@@ -1,0 +1,33 @@
+# Node.js uchun asosiy ignore
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build natijalari (serverda Docker o'zi build qiladi, shuning uchun git'ga kerak emas)
+dist/
+build/
+.next/
+.nuxt/
+out/
+
+# Muhit o'zgaruvchilari (Eng muhim xavfsizlik qoidasi!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE va OS fayllari
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Loglar va temp fayllar
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
