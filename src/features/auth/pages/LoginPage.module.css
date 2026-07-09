@@ -1,0 +1,224 @@
+/* LoginPage.module.css */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #213a2b, #17291e, #0f1d15);
+}
+
+/* Daraxt bloki — BALANDLIGI OSHIRILDI, shuning uchun oq karta pastroqdan
+   boshlanadi. Karta ichidagi kontentga bu umuman ta'sir qilmaydi —
+   karta shunchaki qolgan (endi kichikroq) joyni egallaydi va kerak
+   bo'lsa o'z ichida scroll qiladi. */
+.hero {
+  flex: 0 0 auto;
+  height: clamp(280px, 44dvh, 430px);
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5rem 1.25rem 1rem;
+  text-align: center;
+}
+
+.heroImage {
+  min-height: 0;
+  width: auto;
+  flex: 1 1 auto;
+  object-fit: contain;
+  user-select: none;
+  mix-blend-mode: lighten;
+}
+
+.heroTitle {
+  margin-top: 0.375rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.heroTagline {
+  margin-top: 0.375rem;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e7ede2;
+}
+
+@media (min-width: 640px) {
+  .heroTitle {
+    font-size: 3rem;
+  }
+  .heroTagline {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+}
+
+/* Ixcham sarlavha — 2FA bosqichida */
+.heroCompact {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+}
+
+.heroCompactTitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Oq karta — qolgan joyni egallaydi, sig'masa ICHIDA scroll qiladi.
+   Ichki padding va kontent O'ZGARMAGAN. */
+.card {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 28rem;
+  border-radius: 28px 28px 0 0;
+  background: #fff;
+  box-shadow: 0 -16px 40px rgba(10, 22, 15, 0.35);
+  padding: 1.25rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+}
+
+.cardInner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card {
+    max-width: 32rem;
+    padding-top: 1.5rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ==========================================================================
+   DESKTOP (lg: 1024px+) — ikki ustunli joylashuv (chapda daraxt, o'ngda
+   forma), shajaradesktop.png maketiga mos. Bu bloqdan TASHQARIDAGI (yuqoridagi)
+   BARCHA qoidalar — ya'ni MOBIL ko'rinish — O'ZGARTIRILMAGAN, faqat 1024px+
+   kenglikda qo'shimcha override qo'llanadi.
+   ========================================================================== */
+
+.desktopTopBar {
+  display: none;
+}
+
+.desktopLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.desktopLogoText {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #17291e;
+}
+
+.desktopLangBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2c4a38;
+  cursor: default;
+}
+
+.desktopFormColumn {
+  display: contents;
+}
+
+.desktopSubtitle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    flex-direction: row;
+    height: 100dvh;
+  }
+
+  .hero {
+    flex: 0 0 43%;
+    height: 100%;
+    max-width: none;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .heroImage {
+    max-height: 280px;
+  }
+
+  .heroTitle {
+    margin-top: 1.25rem;
+  }
+
+  .heroTagline {
+    margin-top: 0.5rem;
+  }
+
+  .card {
+    flex: 1 1 auto;
+    max-width: none;
+    width: auto;
+    height: 100%;
+    min-height: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: #fff;
+    background-image: url('/bgtree.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 4rem;
+  }
+
+  .desktopTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    padding-bottom: 2.5rem;
+  }
+
+  .desktopFormColumn {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .desktopSubtitle {
+    display: block;
+    margin-top: 0.375rem;
+    font-size: 0.9rem;
+    color: #4c7552;
+  }
+}

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply font-sans text-brand-900 antialiased;
+  }
+  input::placeholder {
+    @apply text-neutral-400;
+  }
+}
+
+@layer components {
+  /* React Flow'ning standart zoom/fit tugmalari (26x26px) touch uchun
+     torroq — doska (Shajara/Oila a'zolari) sahifalarida barcha ekranlarda
+     qulayroq bosish uchun kattalashtirilgan. */
+  .react-flow__controls-button {
+    width: 34px;
+    height: 34px;
+  }
+}

@@ -1,0 +1,222 @@
+// features/tree/components/EditPersonDialog.tsx
+import { useEffect, useState, type FormEvent } from 'react';
+import {
+  RELATION_GROUPS,
+  type Gender,
+  type RelationKey,
+} from '@/features/tree/model/relations';
+import { PhotoPicker } from './PhotoPicker';
+import { GenderToggle } from './GenderToggle';
+import { YearInputs, validateYears } from './YearInputs';
+import { TextField } from '@/shared/ui/TextField';
+import { Button } from '@/shared/ui/Button';
+import { UserIcon } from '@/shared/ui/icons';
+import { quotaMessage } from '@/features/storage/storage.store';
+
+export interface EditedPerson {
+  fullName: string;
+  gender: Gender;
+  birthYear: number | null;
+  deathYear: number | null;
+  photoUrl: string | null;
+  /** Yangi rasm tanlangan bo'lsa uning hajmi (bayt) — storage kvotasi uchun */
+  photoSizeBytes?: number;
+  /** Qarindoshlik (kimligi) o'zgargan bo'lsa */
+  relation?: RelationKey;
+  /** Nechanchi turmush o'rtog'i (qo'lda). null — avtomatikga qaytarish. */
+  spouseOrder?: number | null;
+}
+
+/** Tahrirlanadigan a'zoning minimal shakli (odam yoki turmush o'rtog'i) */
+export interface EditablePerson {
+  id: string;
+  name: string;
+  gender: Gender;
+  birthYear: number | null;
+  deathYear: number | null;
+  photoUrl: string | null;
+  /** Xom rishta — berilsa va root bo'lmasa, "kimligi" ni tahrirlash mumkin */
+  relation?: RelationKey;
+  /** Qo'lda belgilangan turmush o'rtoq tartibi (null — avtomatik) */
+  spouseOrder?: number | null;
+  isRoot?: boolean;
+}
+
+interface EditPersonDialogProps {
+  /** Tahrirlanayotgan a'zo (null bo'lsa dialog yopiq) */
+  person: EditablePerson | null;
+  onClose: () => void;
+  onSave: (id: string, patch: EditedPerson) => Promise<void>;
+}
+
+export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogProps) {
+  const [fullName, setFullName] = useState('');
+  const [relation, setRelation] = useState<RelationKey>('OTA');
+  const [gender, setGender] = useState<Gender>('MALE');
+  const [birthYear, setBirthYear] = useState('');
+  const [deathYear, setDeathYear] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoSizeBytes, setPhotoSizeBytes] = useState<number | undefined>(undefined);
+  const [spouseOrder, setSpouseOrder] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Dialog ochilganda joriy qiymatlar bilan to'ldiriladi
+  useEffect(() => {
+    if (person) {
+      setFullName(person.name);
+      setRelation(person.relation ?? 'OTA');
+      setGender(person.gender);
+      setBirthYear(person.birthYear ? String(person.birthYear) : '');
+      setDeathYear(person.deathYear ? String(person.deathYear) : '');
+      setPhotoUrl(person.photoUrl);
+      setPhotoSizeBytes(undefined); // faqat yangi rasm tanlanса o'rnatiladi
+      setSpouseOrder(person.spouseOrder != null ? String(person.spouseOrder) : '');
+      setError(null);
+    }
+  }, [person]);
+
+  if (!person) return null;
+
+  // Qarindoshlik (kimligi) tahriri — root emas va xom rishta ma'lum bo'lsa
+  const canEditRelation = !person.isRoot && person.relation != null;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const name = fullName.trim();
+    if (name.length < 2) {
+      setError("Ism kamida 2 ta belgidan iborat bo'lsin");
+      return;
+    }
+    const yearError = validateYears(birthYear, deathYear);
+    if (yearError) {
+      setError(yearError);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave(person.id, {
+        fullName: name,
+        gender,
+        birthYear: birthYear ? Number(birthYear) : null,
+        deathYear: deathYear ? Number(deathYear) : null,
+        photoUrl,
+        ...(photoSizeBytes !== undefined ? { photoSizeBytes } : {}),
+        ...(canEditRelation && relation !== person.relation ? { relation } : {}),
+        // Turmush o'rtog'i bo'lsa — tartib raqamini saqlaymiz (bo'sh -> avtomatik)
+        ...(relation === 'TURMUSH'
+          ? { spouseOrder: spouseOrder ? Number(spouseOrder) : null }
+          : {}),
+      });
+      onClose();
+    } catch (err) {
+      setError(quotaMessage(err) ?? "Saqlab bo'lmadi. Qaytadan urinib ko'ring");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-950/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-label="Oila a'zosini tahrirlash"
+        className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[22px] bg-white p-5 shadow-card"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-center font-serif text-xl font-semibold text-brand-900">Tahrirlash</h2>
+
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <PhotoPicker
+            value={photoUrl}
+            female={gender === 'FEMALE'}
+            onChange={(url, size) => {
+              setPhotoUrl(url);
+              setPhotoSizeBytes(size);
+            }}
+            onError={setError}
+          />
+
+          <TextField
+            icon={<UserIcon />}
+            placeholder="Ism familiya"
+            value={fullName}
+            autoFocus
+            onChange={(e) => {
+              setFullName(e.target.value);
+              setError(null);
+            }}
+          />
+
+          {canEditRelation && (
+            <label className="block">
+              <span className="mb-1 block px-1 text-xs text-neutral-500">Kimligi (qarindoshligi)</span>
+              <select
+                aria-label="Qarindoshlik turi"
+                value={relation}
+                onChange={(e) => setRelation(e.target.value as RelationKey)}
+                className="w-full cursor-pointer rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
+              >
+                {RELATION_GROUPS.map((grp) => (
+                  <optgroup key={grp.title} label={grp.title}>
+                    {grp.items.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <GenderToggle value={gender} onChange={setGender} />
+          <YearInputs
+            birthYear={birthYear}
+            deathYear={deathYear}
+            onBirth={setBirthYear}
+            onDeath={setDeathYear}
+          />
+
+          {relation === 'TURMUSH' && (
+            <label className="block">
+              <span className="mb-1 block px-1 text-xs text-neutral-500">
+                Nechanchi turmush o&#8216;rtog&#8216;i (bo&#8216;sh — avtomatik)
+              </span>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                inputMode="numeric"
+                placeholder="masalan 2 — 2-xotin"
+                value={spouseOrder}
+                onChange={(e) => setSpouseOrder(e.target.value)}
+                className="w-full rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
+              />
+            </label>
+          )}
+
+          {error && <p className="text-center text-xs text-red-500">{error}</p>}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-brand-900 transition-colors hover:bg-brand-50"
+            >
+              Bekor qilish
+            </button>
+            <Button type="submit" loading={saving} className="flex-1">
+              Saqlash
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

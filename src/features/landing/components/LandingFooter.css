@@ -1,0 +1,177 @@
+/* src/features/landing/components/LandingFooter.css
+   Landing sahifa footer bo'limi stillari. */
+
+.landingFooter {
+  background: #fff;
+  padding-top: 4rem;
+}
+
+.landingFooter__inner {
+  margin: 0 auto;
+  max-width: 100rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .landingFooter__inner {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landingFooter__inner {
+    padding: 0 2rem;
+  }
+}
+
+.landingFooter__grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .landingFooter__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landingFooter__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.landingFooter__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landingFooter__brandName {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f3529;
+}
+
+.landingFooter__desc {
+  margin-top: 0.75rem;
+  max-width: 20rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #5a6f60;
+}
+
+.landingFooter__social {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.landingFooter__socialBtn {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid #e7ede2;
+  color: #2c4a38;
+  transition: border-color 0.15s ease;
+}
+
+.landingFooter__socialBtn:hover {
+  border-color: #a3bd9a;
+}
+
+.landingFooter__heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f3529;
+}
+
+.landingFooter__links {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.landingFooter__link {
+  font-size: 0.875rem;
+  color: #5a6f60;
+  text-decoration: none;
+}
+
+.landingFooter__link:hover {
+  color: #1f3529;
+}
+
+.landingFooter__newsText {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #5a6f60;
+}
+
+.landingFooter__newsForm {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 14px;
+  border: 1px solid #cbd9c4;
+  background: #fff;
+  padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+}
+
+.landingFooter__newsInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: #1f3529;
+  outline: none;
+}
+
+.landingFooter__newsInput::placeholder {
+  color: #a3bd9a;
+}
+
+.landingFooter__newsBtn {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: none;
+  background: #213a2b;
+  color: #fff;
+  cursor: pointer;
+}
+
+.landingFooter__newsBtn:hover {
+  background: #17291e;
+}
+
+.landingFooter__bottom {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid #e7ede2;
+  padding: 1.5rem 0;
+  font-size: 0.75rem;
+  color: #729670;
+}
+
+@media (min-width: 640px) {
+  .landingFooter__bottom {
+    flex-direction: row;
+  }
+}
