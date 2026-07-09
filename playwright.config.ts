@@ -17,7 +17,7 @@ export default defineConfig({
     {
       command: 'node dist/main.js',
       cwd: '../ShajaraBackendNode',
-      url: 'http://localhost:3000/api/v1/health',
+      url: 'http://localhost:3000/api/health',
       reuseExistingServer: true,
       timeout: 60_000,
     },
