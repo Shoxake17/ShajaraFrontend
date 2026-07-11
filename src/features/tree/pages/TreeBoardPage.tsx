@@ -14,6 +14,7 @@ import '@xyflow/react/dist/style.css';
 import { useAuthStore } from '@/features/auth';
 import { useTreeStore, type PersonNodeType } from '@/features/tree/model/tree.store';
 import type { RelationKey } from '@/features/tree/model/relations';
+import type { Side } from '@/features/tree/model/kinship';
 import { PersonNode } from '@/features/tree/components/PersonNode';
 import { TreeEdge } from '@/features/tree/components/TreeEdge';
 import { AddPersonDialog, type NewPerson } from '@/features/tree/components/AddPersonDialog';
@@ -74,8 +75,42 @@ function TreeBoard() {
   const [deleting, setDeleting] = useState(false);
   const [arranging, setArranging] = useState(false);
   const [pendingConnect, setPendingConnect] = useState<PendingConnect | null>(null);
+  // Ota tomon / ona tomon — IKKI HOLATLI (radio) filtr, "filtrsiz/hammasi"
+  // degan uchinchi holat YO'Q: doskada doim FAQAT bitta tomon ko'rinadi.
+  // `side` uchta qiymat oladi: PATERNAL/MATERNAL (aniq qon-qarindosh tomoni),
+  // NEUTRAL (ildizning o'z yaqin doirasi — o'zi, turmush o'rtog'i, farzandi,
+  // aka-uka, jiyan — ikkala tomonda ham ko'rinadi), yoki umuman yo'q/null
+  // (nikoh orqali qo'shilgan, qondosh emas — masalan tog'aning xotinining
+  // o'z ota-onasi/opa-singli — "quda") — bunday odam HECH QAYSI tomonda
+  // ko'rinmaydi.
+  const [sideFilter, setSideFilter] = useState<Side>('PATERNAL');
 
-  const rootId = useMemo(() => nodes.find((n) => n.data.isRoot)?.id ?? null, [nodes]);
+  // Joriy ko'ruvchining O'Z tuguni: VIEWER uchun uning anker a'zosi
+  // (access.anchorMemberId — bu spouse sifatida boshqa kartaga birlashgan
+  // bo'lishi ham mumkin, shu sabab kartani qidiramiz), OWNER uchun (yoki
+  // anker bo'lmasa) daraxtning isRoot tuguni. AVVAL bu doim isRoot'ga qarardi
+  // — shu sabab VIEWER "Menga o'tish"ni bossa har doim DARAXT EGASIga (root)
+  // borar edi, o'ziga emas.
+  const myId = useMemo(() => {
+    const anchorId = access?.anchorMemberId;
+    if (anchorId) {
+      for (const n of nodes) {
+        if (n.id === anchorId || n.data.spouses.some((s) => s.id === anchorId)) return n.id;
+      }
+    }
+    return nodes.find((n) => n.data.isRoot)?.id ?? null;
+  }, [nodes, access]);
+
+  const displayedNodes = useMemo(() => {
+    // Kartadagi biror kishi (primary yoki turmush o'rtoqlaridan biri) tanlangan
+    // tomonga mos yoki NEUTRAL bo'lsa, butun karta ko'rinadi.
+    const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
+    return nodes.filter((n) => visible(n.data.side) || n.data.spouses.some((sp) => visible(sp.side)));
+  }, [nodes, sideFilter]);
+  const displayedEdges = useMemo(() => {
+    const visibleIds = new Set(displayedNodes.map((n) => n.id));
+    return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+  }, [edges, displayedNodes]);
 
   useEffect(() => {
     void loadBoard();
@@ -104,7 +139,7 @@ function TreeBoard() {
   // paneldan qo'shish — aynan o'sha odamga.
   const openAddDefault = () => {
     const selected = nodes.find((n) => n.selected);
-    setAddAnchorId(selected?.id ?? rootId);
+    setAddAnchorId(selected?.id ?? myId);
     setAddAnchorName(selected?.data.name ?? user?.fullName ?? '');
     setAddAnchorGender(selected?.data.gender ?? 'MALE');
     setAddOpen(true);
@@ -124,14 +159,14 @@ function TreeBoard() {
   // Qidiruv ro'yxati — har kartadagi asosiy odam va turmush o'rtoqlar
   const searchItems = useMemo<SearchItem[]>(() => {
     const items: SearchItem[] = [];
-    for (const n of nodes) {
+    for (const n of displayedNodes) {
       items.push({ id: n.id, name: n.data.name, relation: n.data.relation });
       for (const sp of n.data.spouses) {
         items.push({ id: sp.id, name: sp.name, relation: sp.relation });
       }
     }
     return items;
-  }, [nodes]);
+  }, [displayedNodes]);
 
   // Berilgan a'zo (asosiy yoki turmush o'rtog'i) qaysi KARTADA — o'sha karta id'si
   const nodeIdForMember = (memberId: string): string | null => {
@@ -156,7 +191,7 @@ function TreeBoard() {
 
   // "Menga o'tish" — root (o'zim) tuguniga yo'naltiradi
   const goToMe = () => {
-    if (rootId) focusMember(rootId);
+    if (myId) focusMember(myId);
   };
 
   // Kartadagi istalgan odam (primary yoki turmush o'rtog'i) nomini topamiz
@@ -215,11 +250,43 @@ function TreeBoard() {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
+          {/* Ota tomon / Ona tomon — radio: doim aynan bittasi faol, ikkalasi
+              birga yoki "hammasi" holati yo'q. */}
+          <div role="radiogroup" aria-label="Qarindoshlik tomoni" className="flex items-center gap-0.5 rounded-field border border-brand-200 p-0.5">
+            <button
+              type="button"
+              onClick={() => setSideFilter('PATERNAL')}
+              role="radio"
+              aria-checked={sideFilter === 'PATERNAL'}
+              title="Faqat ota tomon oila a'zolarini ko'rsatish"
+              className={`rounded-field px-2.5 py-1.5 text-xs font-medium transition-colors sm:text-sm ${
+                sideFilter === 'PATERNAL'
+                  ? 'bg-brand-700 text-white'
+                  : 'text-brand-800 hover:bg-brand-50'
+              }`}
+            >
+              Ota tomon
+            </button>
+            <button
+              type="button"
+              onClick={() => setSideFilter('MATERNAL')}
+              role="radio"
+              aria-checked={sideFilter === 'MATERNAL'}
+              title="Faqat ona tomon oila a'zolarini ko'rsatish"
+              className={`rounded-field px-2.5 py-1.5 text-xs font-medium transition-colors sm:text-sm ${
+                sideFilter === 'MATERNAL'
+                  ? 'bg-brand-700 text-white'
+                  : 'text-brand-800 hover:bg-brand-50'
+              }`}
+            >
+              Ona tomon
+            </button>
+          </div>
           {/* Foydalanuvchi ismini bosish -> o'zimga (root) yo'naltiradi */}
           <button
             type="button"
             onClick={goToMe}
-            disabled={!rootId}
+            disabled={!myId}
             title="Menga o'tish (o'zimni ko'rsatish)"
             className="hidden items-center gap-1.5 rounded-field px-2 py-1.5 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40 sm:flex"
           >
@@ -286,7 +353,7 @@ function TreeBoard() {
         <button
           type="button"
           onClick={goToMe}
-          disabled={!rootId}
+          disabled={!myId}
           title="Menga o'tish"
           aria-label="Menga o'tish"
           className="flex shrink-0 items-center justify-center rounded-field border border-brand-200 px-3 py-2 text-brand-800 transition-colors hover:bg-brand-50 disabled:opacity-40"
@@ -316,8 +383,8 @@ function TreeBoard() {
         )}
 
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={displayedNodes}
+          edges={displayedEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           nodesDraggable={isOwner}

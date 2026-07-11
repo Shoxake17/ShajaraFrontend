@@ -61,7 +61,7 @@ export function Sidebar() {
       <div className="flex h-14 shrink-0 items-center justify-center gap-2 border-b border-brand-100 px-3 lg:justify-start">
         <TreeLogo className="h-8 w-8 shrink-0 text-brand-800" />
         <span className="hidden font-serif text-lg font-semibold text-brand-900 lg:block">
-          Shajara
+          AJDO
         </span>
       </div>
 

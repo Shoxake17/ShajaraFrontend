@@ -1,8 +1,4 @@
 // app/AppLayout.tsx
-// Himoyalangan sahifalar uchun asosiy tuzilma.
-// Desktop/tablet (`lg:` va undan katta): chapda Sidebar, o'ngda sahifa (qator).
-// Mobil (<1024px): tepada sahifa, pastda tab-bar (ustun) — Sidebar shu yerda
-// yashiringan (`hidden lg:flex`), BottomNav esa faqat shu holatda ko'rinadi.
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';

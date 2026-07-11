@@ -27,7 +27,14 @@ const NEW_IS_SOURCE = new Set<RelationKey>([
   'XOLA',
 ]);
 
-type Side = 'PATERNAL' | 'MATERNAL';
+// PATERNAL/MATERNAL — qon-qarindoshning aniq tomoni. NEUTRAL — ildizning
+// (root/anker) O'Z YAQIN doirasi: o'zi, turmush o'rtog'i, farzandlari,
+// aka-uka/opa-singil, jiyan — ikkalasiga ham baravar tegishli, shu bois
+// "Ota tomon"/"Ona tomon" filtrida DOIM ko'rinadi. Bu ikkovidan farqli
+// o'laroq, `sides`da UMUMAN yo'q odam (masalan tog'aning xotinining o'z
+// ota-onasi/opa-singli — nikoh orqali qo'shilgan, qondosh emas) HECH
+// QAYSI filtrda ko'rinmasligi kerak (faqat filtrsiz to'liq doskada).
+export type Side = 'PATERNAL' | 'MATERNAL' | 'NEUTRAL';
 
 const PARENT_SIB: Partial<Record<RelationKey, Side>> = {
   AMAKI: 'PATERNAL',
@@ -334,11 +341,15 @@ type KSide = 'P' | 'M';
 type Cat =
   | { t: 'SELF' }
   | { t: 'SPOUSE' }
-  | { t: 'ANC'; gen: number }
+  | { t: 'ANC'; gen: number; side?: KSide }
   | { t: 'DESC'; gen: number }
   | { t: 'SIB' }
   | { t: 'UNCLE'; side: KSide; gender: Gender; degree?: number }
-  | { t: 'NEPHEW' }
+  // side FAQAT uzoq (LCA fallback) qavatlarda beriladi — umumiy ajdod ANKERning
+  // o'zidan chuqurroqda bo'lganda (masalan amakivachchaning bolasi), aniq bitta
+  // tomonga tegishli bo'ladi. To'g'ridan-to'g'ri aka-uka farzandi (jiyan) esa
+  // side'siz qoladi — u ikkala tomonga ham baravar tegishli (NEUTRAL).
+  | { t: 'NEPHEW'; side?: KSide }
   | { t: 'COUSIN'; side: KSide; uncleGender: Gender };
 
 /**
@@ -369,11 +380,12 @@ export function relationInfoFrom(
   members: (KinMember & { birthYear?: number | null })[],
   edges: KinEdge[],
   anchorId?: string,
-): { labels: Map<string, string>; generations: Map<string, number> } {
+): { labels: Map<string, string>; generations: Map<string, number>; sides: Map<string, Side> } {
   const out = new Map<string, string>();
   const gens = new Map<string, number>();
+  const sides = new Map<string, Side>();
   const A = anchorId ?? members.find((m) => m.isRoot)?.id;
-  if (!A) return { labels: out, generations: gens };
+  if (!A) return { labels: out, generations: gens, sides };
   const byId = new Map(members.map((m) => [m.id, m]));
   const has = new Set(members.map((m) => m.id));
   const g = (id: string): Gender => byId.get(id)?.gender ?? 'MALE';
@@ -501,7 +513,7 @@ export function relationInfoFrom(
   };
 
   // 1) Ajdodlar (Ota/Ona/Bobo/Buvi/Katta...)
-  for (const [id, info] of ancA) if (info.gen > 0) setCat(id, { t: 'ANC', gen: info.gen });
+  for (const [id, info] of ancA) if (info.gen > 0) setCat(id, { t: 'ANC', gen: info.gen, side: info.side });
   // 2) Avlodlar (O'g'il/Qiz/Nabira/Chevara)
   for (const m of members) {
     if (cat.has(m.id)) continue;
@@ -555,7 +567,7 @@ export function relationInfoFrom(
       else if (row === 0) {
         const uncle = parentsOf(X).find((p) => ax.get(p)?.gen === 1);
         setCat(X, { t: 'COUSIN', side: side ?? 'P', uncleGender: uncle ? g(uncle) : 'MALE' });
-      } else setCat(X, { t: 'NEPHEW' });
+      } else setCat(X, { t: 'NEPHEW', side: side ?? 'P' });
     }
   }
 
@@ -588,6 +600,29 @@ export function relationInfoFrom(
     }
   };
   for (const [id, c] of cat) out.set(id, labelFromCat(id, c));
+
+  // TOMON (ota tomon / ona tomon / neytral) — qarang: Side turi izohi yuqorida.
+  const catSide = (c: Cat): Side | undefined => {
+    switch (c.t) {
+      case 'ANC': return c.side === 'P' ? 'PATERNAL' : c.side === 'M' ? 'MATERNAL' : undefined;
+      case 'UNCLE':
+      case 'COUSIN':
+        return c.side === 'P' ? 'PATERNAL' : 'MATERNAL';
+      case 'NEPHEW':
+        return c.side === 'P' ? 'PATERNAL' : c.side === 'M' ? 'MATERNAL' : 'NEUTRAL';
+      case 'SELF':
+      case 'SPOUSE':
+      case 'DESC':
+      case 'SIB':
+        return 'NEUTRAL';
+      default:
+        return undefined;
+    }
+  };
+  for (const [id, c] of cat) {
+    const s = catSide(c);
+    if (s) sides.set(id, s);
+  }
 
   // AVLOD RAQAMLARI — eng tepadagi ajdod 1-avlod, pastga qarab o'sadi.
   // level = ankerga nisbatan qavat (+yuqori / -pastki); faqat QONDOSH toifalar.
@@ -652,7 +687,7 @@ export function relationInfoFrom(
     }
   }
 
-  return { labels: out, generations: gens };
+  return { labels: out, generations: gens, sides };
 }
 
 /**

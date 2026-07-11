@@ -218,7 +218,7 @@ export const useTreeStore = create<TreeState>()((set, get) => {
     },
 
     addPerson: async (input, anchorId) => {
-      const { nodes, members } = get();
+      const { nodes, members, access } = get();
 
       // Ankerni aniqlaymiz. Turmush o'rtog'i (couple kartaga birlashgan) tugun
       // `nodes`da alohida bo'lmaydi — u holda `members`dan topamiz.
@@ -234,7 +234,14 @@ export const useTreeStore = create<TreeState>()((set, get) => {
           if (m) anchorPos = { x: m.posX, y: m.posY };
         }
       } else {
-        const anchorNode = nodes.find((n) => n.selected) ?? nodes.find((n) => n.data.isRoot);
+        // Zaxira: hech narsa tanlanmagan bo'lsa — VIEWER uchun O'Z ankeriga
+        // (access.anchorMemberId — isRoot EMAS, u daraxt egasi bo'lardi),
+        // OWNER uchun isRoot'ga.
+        const myNode = access?.anchorMemberId
+          ? (nodes.find((n) => n.id === access.anchorMemberId) ??
+            nodes.find((n) => n.data.spouses.some((s) => s.id === access.anchorMemberId)))
+          : undefined;
+        const anchorNode = nodes.find((n) => n.selected) ?? myNode ?? nodes.find((n) => n.data.isRoot);
         if (anchorNode) {
           anchorMemberId = anchorNode.id;
           anchorPos = anchorNode.position;

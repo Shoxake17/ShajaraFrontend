@@ -69,13 +69,29 @@ export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.logout);
   const members = useTreeStore((s) => s.members);
+  const access = useTreeStore((s) => s.access);
   const loadBoard = useTreeStore((s) => s.loadBoard);
 
   useEffect(() => {
     if (members.length === 0) void loadBoard();
   }, [members.length, loadBoard]);
 
-  const root = useMemo(() => members.find((m) => m.isRoot), [members]);
+  // Joriy foydalanuvchining O'Z a'zolik yozuvi: VIEWER uchun uning anker
+  // a'zosi (access.anchorMemberId — o'zi tizimga kirganda o'zi uchun
+  // yaratilgan yozuv, shu sabab uni tahrirlashga huquqi bor), OWNER uchun
+  // daraxtning isRoot a'zosi. AVVAL bu doim isRoot'ga qarardi — shu sabab
+  // VIEWER "Saqlash"ni bossa DARAXT EGASINING profilini (unga tegishli
+  // bo'lmagan a'zoni) o'zgartirishga urinib, backend uni 403 bilan
+  // bloklardi (assertCanMutateOwn: faqat o'zi yaratgan a'zoni tahrirlay
+  // oladi).
+  const myMember = useMemo(() => {
+    const anchorId = access?.anchorMemberId;
+    if (anchorId) {
+      const anchored = members.find((m) => m.id === anchorId);
+      if (anchored) return anchored;
+    }
+    return members.find((m) => m.isRoot);
+  }, [members, access]);
   const [ism, setIsm] = useState('');
   const [familiya, setFamiliya] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -97,15 +113,15 @@ export function SettingsPage() {
     authApi.twoFactorStatus().then((s) => setTwoFactorEnabled(s.enabled)).catch(() => setTwoFactorEnabled(false));
   }, []);
 
-  // Boshlang'ich qiymatlar (ism user'dan, rasm root a'zodan)
+  // Boshlang'ich qiymatlar (ism user'dan, rasm o'z a'zolik yozuvidan)
   useEffect(() => {
     const parts = (user?.fullName ?? '').trim().split(/\s+/);
     setIsm(parts[0] ?? '');
     setFamiliya(parts.slice(1).join(' '));
   }, [user?.fullName]);
   useEffect(() => {
-    setPhotoUrl(root?.photoUrl ?? null);
-  }, [root?.photoUrl]);
+    setPhotoUrl(myMember?.photoUrl ?? null);
+  }, [myMember?.photoUrl]);
 
   const goTo = (id: string) => {
     setActive(id);
@@ -145,13 +161,13 @@ export function SettingsPage() {
   };
 
   const onSave = async () => {
-    if (!root) return;
+    if (!myMember) return;
     const name = `${ism} ${familiya}`.trim();
     if (name.length < 2) return setError("Ism kamida 2 ta belgidan iborat bo'lsin");
     setError(null);
     setSaving(true);
     try {
-      await familyApi.updateMember(root.id, {
+      await familyApi.updateMember(myMember.id, {
         fullName: name,
         photoUrl: photoUrl ?? undefined,
         ...(photoSizeBytes !== undefined ? { photoSizeBytes } : {}),

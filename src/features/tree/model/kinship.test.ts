@@ -498,6 +498,96 @@ describe('relationLabelsFrom (ANKERGA nisbatan, umumiy doska)', () => {
     expect(labels.get('xotin')).toBe('Buvi'); // yagona juft — haqiqiy buvi deb olinadi
   });
 
+  it("sides: ota tomon (ota/bobo/amaki/amakivachcha) va ona tomon (ona/xola/xolavachcha) to'g'ri ajratiladi", () => {
+    const members: M[] = [
+      root,
+      { id: 'ota', relation: 'OTA', gender: 'MALE', isRoot: false },
+      { id: 'ona', relation: 'ONA', gender: 'FEMALE', isRoot: false },
+      { id: 'bobo', relation: 'OTA', gender: 'MALE', isRoot: false },
+      { id: 'amaki', relation: 'AMAKI', gender: 'MALE', isRoot: false },
+      { id: 'xola', relation: 'XOLA', gender: 'FEMALE', isRoot: false },
+      { id: 'amakivachcha', relation: 'OGIL', gender: 'MALE', isRoot: false },
+      { id: 'xolavachcha', relation: 'QIZ', gender: 'FEMALE', isRoot: false },
+      { id: 'aka', relation: 'AKA', gender: 'MALE', isRoot: false },
+      { id: 'ogil', relation: 'OGIL', gender: 'MALE', isRoot: false },
+      { id: 'xotin', relation: 'TURMUSH', gender: 'FEMALE', isRoot: false },
+    ];
+    const edges: E[] = [
+      ancEdge('ota', 'root', 'OTA'),
+      ancEdge('ona', 'root', 'ONA'),
+      ancEdge('bobo', 'ota', 'OTA'),
+      { sourceId: 'amaki', targetId: 'root', relation: 'AMAKI' },
+      { sourceId: 'xola', targetId: 'root', relation: 'XOLA' },
+      { sourceId: 'amaki', targetId: 'amakivachcha', relation: 'OGIL' },
+      { sourceId: 'xola', targetId: 'xolavachcha', relation: 'QIZ' },
+      sideEdge('root', 'aka', 'AKA'),
+      sideEdge('root', 'ogil', 'OGIL'),
+      { sourceId: 'root', targetId: 'xotin', relation: 'TURMUSH' },
+    ];
+    const { sides } = relationInfoFrom(members, edges);
+    expect(sides.get('ota')).toBe('PATERNAL');
+    expect(sides.get('bobo')).toBe('PATERNAL');
+    expect(sides.get('amaki')).toBe('PATERNAL');
+    expect(sides.get('amakivachcha')).toBe('PATERNAL');
+    expect(sides.get('ona')).toBe('MATERNAL');
+    expect(sides.get('xola')).toBe('MATERNAL');
+    expect(sides.get('xolavachcha')).toBe('MATERNAL');
+    // O'zim, aka-uka, farzand — ildizning o'z yaqin doirasi, NEUTRAL
+    // (toggle yoqilganda ham doim ko'rinishi kerak)
+    expect(sides.get('root')).toBe('NEUTRAL');
+    expect(sides.get('aka')).toBe('NEUTRAL');
+    expect(sides.get('ogil')).toBe('NEUTRAL');
+    // Turmush o'rtoq — ROOTning o'z turmush o'rtog'i bo'lgani uchun ham NEUTRAL
+    expect(sides.get('xotin')).toBe('NEUTRAL');
+  });
+
+  it('sides: nikoh orqali qo\'shilgan, qondosh bo\'lmagan qarindosh (masalan amakining xotinining ONASI) hech qaysi tomonga tegishli emas', () => {
+    const members: M[] = [
+      root,
+      { id: 'amaki', relation: 'AMAKI', gender: 'MALE', isRoot: false },
+      { id: 'amakixotin', relation: 'TURMUSH', gender: 'FEMALE', isRoot: false },
+      // Amakining xotinining o'z onasi — qondosh emas, faqat nikoh orqali
+      { id: 'xotinona', relation: 'ONA', gender: 'FEMALE', isRoot: false },
+    ];
+    const edges: E[] = [
+      { sourceId: 'amaki', targetId: 'root', relation: 'AMAKI' },
+      { sourceId: 'amaki', targetId: 'amakixotin', relation: 'TURMUSH' },
+      ancEdge('xotinona', 'amakixotin', 'ONA'),
+    ];
+    const { sides } = relationInfoFrom(members, edges);
+    expect(sides.get('amaki')).toBe('PATERNAL');
+    // Amakining xotini o'zi ham cat'ga kirmaydi (faqat "Kelinoyi" labeli oladi) — side yo'q
+    expect(sides.get('amakixotin')).toBeUndefined();
+    // Uning onasi ham — hech qaysi filtrda ko'rinmasligi kerak
+    expect(sides.get('xotinona')).toBeUndefined();
+  });
+
+  it("sides: uzoq jiyan (ammaning nabirasi) NEUTRAL emas, aniq PATERNAL bo'lishi kerak", () => {
+    // bobo -> ota (root otasi) va amma (ota singlisi) ikkalasining ham otasi.
+    // amma -> ammavachcha -> uzoqjiyan: umumiy ajdod (bobo) rootdan 2 qavat,
+    // uzoqjiyandan 3 qavat yuqorida — bu "LCA fallback / row<0" yo'lidan
+    // NEPHEW sifatida keladi, lekin AMMA orqali (ota tomon) kelgani uchun
+    // side yo'qolib NEUTRAL (har doim ko'rinadigan) bo'lib qolmasligi kerak.
+    const members: M[] = [
+      root,
+      { id: 'ota', relation: 'OTA', gender: 'MALE', isRoot: false },
+      { id: 'bobo', relation: 'OTA', gender: 'MALE', isRoot: false },
+      { id: 'amma', relation: 'QIZ', gender: 'FEMALE', isRoot: false },
+      { id: 'ammavachcha', relation: 'OGIL', gender: 'MALE', isRoot: false },
+      { id: 'uzoqjiyan', relation: 'QIZ', gender: 'FEMALE', isRoot: false },
+    ];
+    const edges: E[] = [
+      ancEdge('ota', 'root', 'OTA'),
+      ancEdge('bobo', 'ota', 'OTA'),
+      sideEdge('bobo', 'amma', 'QIZ'),
+      sideEdge('amma', 'ammavachcha', 'OGIL'),
+      sideEdge('ammavachcha', 'uzoqjiyan', 'QIZ'),
+    ];
+    const { sides, labels } = relationInfoFrom(members, edges);
+    expect(labels.get('uzoqjiyan')).toBe('Jiyan');
+    expect(sides.get('uzoqjiyan')).toBe('PATERNAL');
+  });
+
   it("closeFamilyLabels: boboning qo'shimcha xotini O'gay buvi", () => {
     const members: M[] = [
       root,

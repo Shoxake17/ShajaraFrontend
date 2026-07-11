@@ -6,7 +6,7 @@
 //     otasi -> "Bobo").
 import type { Edge, Node } from '@xyflow/react';
 import { relationLabel, type Gender, type RelationKey } from './relations';
-import { relationInfoFrom } from './kinship';
+import { relationInfoFrom, type Side } from './kinship';
 import type { FamilyEdgeDto, FamilyMemberDto } from '@/features/tree/types';
 
 export interface SpouseData {
@@ -17,6 +17,8 @@ export interface SpouseData {
   relation: string;
   /** Ajdod avlod raqami (1=Ota/Ona, 2=Bobo/Buvi, ...); ajdod bo'lmasa null */
   generation: number | null;
+  /** Ota tomon / ona tomon (faqat aniq tomonli qon-qarindoshda); aks holda null */
+  side: Side | null;
   birthYear: number | null;
   deathYear: number | null;
   photoUrl: string | null;
@@ -37,6 +39,8 @@ export interface PersonData extends Record<string, unknown> {
   relation: string; // ildizga nisbatan yorliq (Men, Ota, Bobo, ...)
   /** Ajdod avlod raqami (1=Ota/Ona, 2=Bobo/Buvi, ...); ajdod bo'lmasa null */
   generation: number | null;
+  /** Ota tomon / ona tomon (faqat aniq tomonli qon-qarindoshda); aks holda null */
+  side: Side | null;
   /** Xom rishta (qanday qo'shilgani) — tahrir dialogida tanlangan tur */
   rawRelation: RelationKey;
   birthYear: number | null;
@@ -179,7 +183,7 @@ export function buildBoard(
 
   // 3. Qarindoshlik yorliqlari + ajdod avlod raqamlari — ANKERGA (VIEWER) yoki
   //    isRoot (ega) ga nisbatan.
-  const { labels: relationLabels, generations } = relationInfoFrom(members, edges, anchorId);
+  const { labels: relationLabels, generations, sides } = relationInfoFrom(members, edges, anchorId);
   const baseLabel = (id: string) => {
     const m = byId.get(id);
     return relationLabels.get(id) ?? (m ? relationLabel(m.relation as RelationKey) : '');
@@ -237,6 +241,7 @@ export function buildBoard(
         gender: s.gender,
         relation: labelOf(s.id),
         generation: generations.get(s.id) ?? null,
+        side: sides.get(s.id) ?? null,
         birthYear: s.birthYear,
         deathYear: s.deathYear,
         photoUrl: s.photoUrl,
@@ -256,6 +261,7 @@ export function buildBoard(
         gender: m.gender,
         relation: labelOf(m.id),
         generation: generations.get(m.id) ?? null,
+        side: sides.get(m.id) ?? null,
         rawRelation: (m.relation as RelationKey) ?? 'OTA',
         birthYear: m.birthYear,
         deathYear: m.deathYear,
