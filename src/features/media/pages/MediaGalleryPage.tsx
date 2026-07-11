@@ -273,21 +273,18 @@ export function MediaGalleryPage() {
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">
+                {/* "Ochish" (yangi tab, target=_blank) ATAYLAB yo'q: bu xom
+                    (imzolangan bo'lsa ham) R2 havolasini manzil satrida
+                    ko'rsatib, nusxalash/ulashishga imkon berardi — media
+                    endi shu tarzda ochilmasin (faqat shu lightbox ichida
+                    ko'rinsin). */}
                 <button
                   type="button"
                   onClick={() => setLightbox(null)}
-                  className="rounded-field border border-neutral-200 px-4 py-2 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50"
+                  className="rounded-field bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800"
                 >
                   Yopish
                 </button>
-                <a
-                  href={lightbox.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-field bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800"
-                >
-                  Ochish
-                </a>
               </div>
             </div>
           </div>
