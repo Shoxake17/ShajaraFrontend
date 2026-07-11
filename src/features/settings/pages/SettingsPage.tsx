@@ -16,6 +16,7 @@ import {
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { familyApi, uploadPhoto } from '@/features/tree/api/family.api';
+import { uploadErrorMessage } from '@/features/tree/components/PhotoPicker';
 import { useStorageStore, quotaMessage } from '@/features/storage/storage.store';
 import {
   Card,
@@ -95,6 +96,13 @@ export function SettingsPage() {
   const [ism, setIsm] = useState('');
   const [familiya, setFamiliya] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  // Ko'rsatiladigan rasm — myMember.photoUrl (backend imzolagan, ko'rinadigan
+  // havola) YOKI yangi tanlangan faylning MAHALLIY (blob) oldindan ko'rishi.
+  // `photoUrl`ning o'zi (saqlashga yuboriladigan qiymat) endi yuklashdan
+  // keyin R2 obyekt KALITIGA aylanadi — u to'g'ridan-to'g'ri <img src>
+  // sifatida ishlamaydi (bucket endi yopiq), shu bois ikkovi ajratilgan.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewBlobRef = useRef<string | null>(null);
   const [photoSizeBytes, setPhotoSizeBytes] = useState<number | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -121,7 +129,13 @@ export function SettingsPage() {
   }, [user?.fullName]);
   useEffect(() => {
     setPhotoUrl(myMember?.photoUrl ?? null);
+    setPreviewUrl(myMember?.photoUrl ?? null);
   }, [myMember?.photoUrl]);
+  useEffect(() => {
+    return () => {
+      if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+    };
+  }, []);
 
   const goTo = (id: string) => {
     setActive(id);
@@ -149,12 +163,17 @@ export function SettingsPage() {
     if (file.size > 5 * 1024 * 1024) return setError("Rasm 5 MB dan katta bo'lmasin");
     setError(null);
     setSaving(true);
+    if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+    const blobUrl = URL.createObjectURL(file);
+    previewBlobRef.current = blobUrl;
+    setPreviewUrl(blobUrl);
     try {
       const { url, size } = await uploadPhoto(file);
       setPhotoUrl(url);
       setPhotoSizeBytes(size);
-    } catch {
-      setError("Rasm yuklab bo'lmadi");
+    } catch (err) {
+      setPreviewUrl(photoUrl);
+      setError(uploadErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -242,8 +261,8 @@ export function SettingsPage() {
                 <Card title="Profil ma'lumotlari" desc="Shaxsiy ma'lumotlaringizni yangilang va hisobingizni boshqaring.">
                   <div className="flex flex-col gap-4 sm:flex-row">
                     <div className="relative shrink-0">
-                      {photoUrl ? (
-                        <img src={photoUrl} alt={ism} className="h-24 w-24 rounded-full object-cover" />
+                      {previewUrl ? (
+                        <img src={previewUrl} alt={ism} className="h-24 w-24 rounded-full object-cover" />
                       ) : (
                         <span className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-100 font-serif text-2xl font-semibold text-brand-800">
                           {(ism || '?').charAt(0).toUpperCase()}

@@ -71,21 +71,23 @@ export const familyApi = {
   /** Cloudflare R2 uchun bir martalik yuklash havolasini olish */
   getUploadUrl: (contentType: string) =>
     http
-      .post<{ uploadUrl: string; publicUrl: string }>('/family/upload-url', { contentType })
+      .post<{ uploadUrl: string; key: string }>('/family/upload-url', { contentType })
       .then((r) => r.data),
 };
 
 /**
  * Rasmni R2'ga TO'G'RIDAN-TO'G'RI yuklash (backend orqali o'tmaydi).
- * Qaytadi: ommaviy URL + fayl hajmi (storage kvotasi uchun).
+ * Qaytadi: R2 obyekt KALITI (ochiq URL EMAS — bucket endi yopiq; ko'rish
+ * uchun backend har safar vaqtinchalik imzolangan havola beradi, faqat
+ * shu daraxtga kirish huquqi borlarga) + fayl hajmi (storage kvotasi uchun).
  */
 export async function uploadPhoto(file: File): Promise<{ url: string; size: number }> {
-  const { uploadUrl, publicUrl } = await familyApi.getUploadUrl(file.type);
+  const { uploadUrl, key } = await familyApi.getUploadUrl(file.type);
   const res = await fetch(uploadUrl, {
     method: 'PUT',
     body: file,
     headers: { 'Content-Type': file.type },
   });
   if (!res.ok) throw new Error('Rasm yuklanmadi');
-  return { url: publicUrl, size: file.size };
+  return { url: key, size: file.size };
 }

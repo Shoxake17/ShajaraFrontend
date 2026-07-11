@@ -27,7 +27,7 @@ export const mediaApi = {
 
   getUploadUrl: (contentType: string) =>
     http
-      .post<{ uploadUrl: string; publicUrl: string; kind: MediaType }>('/media/upload-url', {
+      .post<{ uploadUrl: string; key: string; kind: MediaType }>('/media/upload-url', {
         contentType,
       })
       .then((r) => r.data),
@@ -41,16 +41,20 @@ export const mediaApi = {
   remove: (id: string) => http.delete<void>(`/media/${id}`).then((r) => r.data),
 };
 
-/** Faylni R2'ga TO'G'RIDAN-TO'G'RI yuklaydi (backend orqali o'tmaydi). */
+/**
+ * Faylni R2'ga TO'G'RIDAN-TO'G'RI yuklaydi (backend orqali o'tmaydi).
+ * Qaytadi: R2 obyekt KALITI (ochiq URL EMAS — ko'rish uchun backend
+ * har safar vaqtinchalik imzolangan havola beradi, `mediaApi.list()`da).
+ */
 export async function uploadMediaFile(
   file: File,
 ): Promise<{ url: string; kind: MediaType; contentType: string; sizeBytes: number }> {
-  const { uploadUrl, publicUrl, kind } = await mediaApi.getUploadUrl(file.type);
+  const { uploadUrl, key, kind } = await mediaApi.getUploadUrl(file.type);
   const res = await fetch(uploadUrl, {
     method: 'PUT',
     body: file,
     headers: { 'Content-Type': file.type },
   });
   if (!res.ok) throw new Error('Fayl yuklanmadi');
-  return { url: publicUrl, kind, contentType: file.type, sizeBytes: file.size };
+  return { url: key, kind, contentType: file.type, sizeBytes: file.size };
 }
