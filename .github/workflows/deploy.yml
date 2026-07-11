@@ -39,6 +39,8 @@ jobs:
           context: .
           load: true
           tags: ghcr.io/shoxake17/shajara-frontend:latest
+          build-args: |
+            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
           
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

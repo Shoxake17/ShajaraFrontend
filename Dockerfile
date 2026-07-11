@@ -4,6 +4,15 @@ FROM node:20-alpine AS build
 # Ishchi katalog
 WORKDIR /app
 
+# Google Sign-In client ID — Vite build vaqtida bundle ICHIGA yozib
+# qo'yiladi (runtime env emas!). Build-arg berilmasa bo'sh qoladi va
+# frontenddagi Google tugmasi jim ishlamay qoladi (backend ham alohida
+# GOOGLE_CLIENT_ID'ga muhtoj — ikkalasi HAM kerak, biri ikkinchisini
+# almashtirmaydi). CI'da: docker build-push-action build-args orqali
+# beriladi (deploy.yml, ${{ vars.VITE_GOOGLE_CLIENT_ID }}).
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 # Dependency larni o'rnatish
 COPY package*.json ./
 RUN npm ci
