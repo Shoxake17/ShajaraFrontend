@@ -227,6 +227,30 @@ export function SettingsPage() {
   const inputCls =
     'w-full rounded-field border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-brand-900 outline-none transition-colors focus:border-brand-600';
 
+  // Ism/Familiya/Email/Telefon maydonlari — desktop va mobil tahrirlash
+  // formalarida AYNAN bir xil, shu bois bir marta yozib ikkalasida
+  // qayta ishlatiladi.
+  const profileFieldsGrid = (
+    <>
+      <label className="block">
+        <span className="mb-1 block text-xs text-neutral-500">Ism</span>
+        <input value={ism} onChange={(e) => setIsm(e.target.value)} maxLength={60} className={inputCls} />
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-xs text-neutral-500">Familiya</span>
+        <input value={familiya} onChange={(e) => setFamiliya(e.target.value)} maxLength={60} className={inputCls} />
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-xs text-neutral-500">Email</span>
+        <input value={user?.email ?? ''} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-xs text-neutral-500">Telefon raqami</span>
+        <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+      </label>
+    </>
+  );
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-brand-50">
       {/* Sarlavha endi BU YERDA emas — AppLayout'ning umumiy header'iga
@@ -270,96 +294,124 @@ export function SettingsPage() {
           <div className="min-h-0 min-w-0 space-y-6 overflow-y-auto pb-6 pr-1">
             <div id="profil" className="scroll-mt-6">
                 <Card title="Profil ma'lumotlari" desc="Shaxsiy ma'lumotlaringizni yangilang va hisobingizni boshqaring.">
-                  {editingProfile ? (
-                    <>
-                      <div className="flex flex-col gap-4 sm:flex-row">
-                        <div className="relative shrink-0">
-                          {previewUrl ? (
-                            <img src={previewUrl} alt={ism} className="h-24 w-24 rounded-full object-cover" />
-                          ) : (
-                            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-100 font-serif text-2xl font-semibold text-brand-800">
-                              {(ism || '?').charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => fileRef.current?.click()}
-                            disabled={saving}
-                            className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
-                          >
-                            <CameraIcon width={15} height={15} />
-                          </button>
-                          <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
-                        </div>
+                  {/* Rasm tanlash input'i — BITTA, ikkala (desktop/mobil)
+                      kamera tugmasi ham shu bitta ref orqali ochadi. */}
+                  <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
 
-                        <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                          <label className="block">
-                            <span className="mb-1 block text-xs text-neutral-500">Ism</span>
-                            <input value={ism} onChange={(e) => setIsm(e.target.value)} maxLength={60} className={inputCls} />
-                          </label>
-                          <label className="block">
-                            <span className="mb-1 block text-xs text-neutral-500">Familiya</span>
-                            <input value={familiya} onChange={(e) => setFamiliya(e.target.value)} maxLength={60} className={inputCls} />
-                          </label>
-                          <label className="block">
-                            <span className="mb-1 block text-xs text-neutral-500">Email</span>
-                            <input value={user?.email ?? ''} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
-                          </label>
-                          <label className="block">
-                            <span className="mb-1 block text-xs text-neutral-500">Telefon raqami</span>
-                            <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
-                          </label>
-                        </div>
-                      </div>
-
-                      {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
-                      <div className="mt-4 flex items-center justify-end gap-3">
-                        {saved && <span className="text-xs font-medium text-brand-600">Saqlandi ✓</span>}
+                  {/* Desktop (lg+) — HAR DOIM tahrirlash formasi, ko'rish/
+                      tahrirlash almashinuvi YO'Q (faqat mobilga xos). */}
+                  <div className="hidden lg:block">
+                    <div className="flex flex-col gap-4 sm:flex-row">
+                      <div className="relative h-24 w-24 shrink-0">
+                        {previewUrl ? (
+                          <img src={previewUrl} alt={ism} className="h-24 w-24 rounded-full object-cover" />
+                        ) : (
+                          <span className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-100 font-serif text-2xl font-semibold text-brand-800">
+                            {(ism || '?').charAt(0).toUpperCase()}
+                          </span>
+                        )}
                         <button
                           type="button"
-                          onClick={cancelEdit}
+                          onClick={() => fileRef.current?.click()}
                           disabled={saving}
-                          className="rounded-field border border-neutral-200 px-5 py-2.5 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-50"
+                          className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
                         >
-                          Bekor qilish
-                        </button>
-                        <button
-                          type="button"
-                          onClick={onSave}
-                          disabled={saving}
-                          className="rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
-                        >
-                          {saving ? 'Saqlanmoqda…' : 'Saqlash'}
+                          <CameraIcon width={15} height={15} />
                         </button>
                       </div>
-                    </>
-                  ) : (
-                    // Ko'rish rejimi — bitta ixcham blok (mockup: profile.png):
-                    // rasm + ism + email + telefon, o'ngda "Tahrirlash" tugmasi.
-                    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                      {previewUrl ? (
-                        <img src={previewUrl} alt={ism} className="h-14 w-14 shrink-0 rounded-full object-cover" />
-                      ) : (
-                        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-100 font-serif text-lg font-semibold text-brand-800">
-                          {(ism || '?').charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-serif text-base font-semibold text-brand-900">
-                          {`${ism} ${familiya}`.trim() || "Noma'lum"}
-                        </p>
-                        <p className="truncate text-sm text-neutral-500">{user?.email}</p>
-                        <p className="truncate text-sm text-neutral-500">{user?.phone ?? '—'}</p>
-                      </div>
+                      <div className="grid flex-1 gap-3 sm:grid-cols-2">{profileFieldsGrid}</div>
+                    </div>
+                    {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+                    <div className="mt-4 flex items-center justify-end gap-3">
+                      {saved && <span className="text-xs font-medium text-brand-600">Saqlandi ✓</span>}
                       <button
                         type="button"
-                        onClick={() => setEditingProfile(true)}
-                        className="w-full shrink-0 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 sm:w-auto"
+                        onClick={onSave}
+                        disabled={saving}
+                        className="rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
                       >
-                        Tahrirlash
+                        {saving ? 'Saqlanmoqda…' : 'Saqlash'}
                       </button>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Mobil (<lg) — ko'rish rejimi + "Tahrirlash" tugmasi (profile.png) */}
+                  <div className="lg:hidden">
+                    {editingProfile ? (
+                      <>
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="relative h-24 w-24 shrink-0">
+                            {previewUrl ? (
+                              <img src={previewUrl} alt={ism} className="h-24 w-24 rounded-full object-cover" />
+                            ) : (
+                              <span className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-100 font-serif text-2xl font-semibold text-brand-800">
+                                {(ism || '?').charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                            {/* Kamera belgisi rasmning O'NG-PAST burchagiga YOPISHGAN
+                                holatda (ajralgan emas) — -bottom/-right orqali
+                                doira chetiga bir oz botiriladi. */}
+                            <button
+                              type="button"
+                              onClick={() => fileRef.current?.click()}
+                              disabled={saving}
+                              className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
+                            >
+                              <CameraIcon width={15} height={15} />
+                            </button>
+                          </div>
+                          <div className="grid w-full gap-3">{profileFieldsGrid}</div>
+                        </div>
+
+                        {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+                        <div className="mt-4 flex items-center justify-end gap-3">
+                          {saved && <span className="text-xs font-medium text-brand-600">Saqlandi ✓</span>}
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            disabled={saving}
+                            className="rounded-field border border-neutral-200 px-5 py-2.5 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-50"
+                          >
+                            Bekor qilish
+                          </button>
+                          <button
+                            type="button"
+                            onClick={onSave}
+                            disabled={saving}
+                            className="rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
+                          >
+                            {saving ? 'Saqlanmoqda…' : 'Saqlash'}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      // Ko'rish rejimi — bitta ixcham blok (mockup: profile.png):
+                      // rasm + ism + email + telefon, o'ngda "Tahrirlash" tugmasi.
+                      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                        {previewUrl ? (
+                          <img src={previewUrl} alt={ism} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+                        ) : (
+                          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-100 font-serif text-lg font-semibold text-brand-800">
+                            {(ism || '?').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-serif text-base font-semibold text-brand-900">
+                            {`${ism} ${familiya}`.trim() || "Noma'lum"}
+                          </p>
+                          <p className="truncate text-sm text-neutral-500">{user?.email}</p>
+                          <p className="truncate text-sm text-neutral-500">{user?.phone ?? '—'}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProfile(true)}
+                          className="w-full shrink-0 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 sm:w-auto"
+                        >
+                          Tahrirlash
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </div>
 
