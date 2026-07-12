@@ -342,10 +342,13 @@ function TreeBoard() {
           <>
             {/* Sarlavha + joriy tomondagi (Ota/Ona) a'zolar soni — xuddi
                 FamilyMembersPage'dagi "Oila a'zolarim — N ta a'zo" bilan
-                bir xil andozada, faqat son tanlangan tomonga qarab o'zgaradi. */}
-            <div className="min-w-0 shrink-0">
+                bir xil andozada, faqat son tanlangan tomonga qarab o'zgaradi.
+                Kichik mobil telefonlarda BUTUNLAY yashiringan (joy tejash
+                uchun) — faqat planshet/desktop'da (sm: va undan katta)
+                ko'rinadi. */}
+            <div className="hidden min-w-0 shrink-0 sm:block">
               <p className="truncate text-sm font-semibold text-brand-900">Shajara Doska</p>
-              <p className="hidden truncate text-xs text-brand-500 sm:block">
+              <p className="truncate text-xs text-brand-500">
                 {sideFilter === 'PATERNAL' ? 'Ota tomon' : 'Ona tomon'} — {sideCount} ta a&#39;zo
               </p>
             </div>
