@@ -373,9 +373,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
 
   return (
     <>
-      {/* Desktop (lg+) — o'ng drawer. Modal emas: doska va yuqori panel
-          interaktiv qoladi (header to'silmaydi). */}
-      <aside className="absolute right-0 top-0 z-40 hidden h-full w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto border-l border-brand-100 bg-white p-4 shadow-card lg:flex">
+      {/* Desktop (lg+) — o'ng drawer, Sidebar bilan bir xil suzuvchi
+          bordered/yumaloq karta uslubida (mx/my bo'shliq + rounded-2xl +
+          border). Modal emas: doska va yuqori panel interaktiv qoladi
+          (header to'silmaydi). */}
+      <aside className="absolute bottom-3 right-3 top-3 z-40 hidden w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-4 shadow-sm lg:flex">
         <div className="flex items-center justify-between">
           <span className="font-serif text-lg font-semibold text-brand-900">Profil</span>
           <button
@@ -391,12 +393,6 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
         {spouseDetails(Detail)}
       </aside>
 
-      {/* Mobil (< lg) — pastdan chiquvchi panel (mockup: profileajdo.png).
-          Balandligi KONTENTGA qarab o'zi hisoblanadi (h-full EMAS — aks
-          holda qisqa kontentda pastda bo'sh joy qolib ketadi); taxminan
-          ikkita profil blokka (turmush o'rtoq bilan) mos keladigan
-          max-height bilan cheklanadi — tepadan ozgina doska ko'rinib
-          turadi, undan ko'p bo'lsa ICHKARIDA scroll bo'ladi. */}
       <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="relative flex w-full max-h-[90dvh] flex-col rounded-t-3xl border-2 border-b-0 border-brand-200 bg-white shadow-card">
           <button
