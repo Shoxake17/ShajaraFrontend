@@ -1,14 +1,4 @@
 // features/tree/pages/FamilyMembersPage.tsx
-// "Oila a'zolari" — FAQAT yaqin oila (o'zim, turmush o'rtog'im, bolalarim,
-// ota-onam, aka-uka/opa-singillarim, bobo-buvim va butun ajdodlar chizig'i)
-// alohida INTERAKTIV doskada. Qolgan qarindoshlar (tog'a, jiyan, vachcha...)
-// bu yerda ko'rinmaydi — ular umumiy Shajara doskasida.
-// Surish/tartiblash ASOSIY DOSKA bilan bir xil ishlaydi va SAQLANADI —
-// lekin ALOHIDA joylashuvda (famPosX/famPosY), asosiy doskaga ta'sir qilmaydi:
-//  - ikonka O'CHIQ: karta OILASI (bolalari) bilan birga suriladi;
-//  - ikonka YOQIQ: faqat tanlangan kartaning o'zi suriladi;
-//  - "Tartiblash": qavatlarga (y) tekislaydi + shox to'qnashuvlarini 100px
-//    bilan ochadi, chap-o'ng joylashuvga boshqa tegmaydi.
 import { useEffect, useMemo, useState } from 'react';
 import {
   Background,
@@ -230,9 +220,6 @@ export function FamilyMembersPage() {
           <p className="truncate text-xs text-brand-500">Yaqin oila — {count} ta a&#39;zo</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {/* Yakka surish rejimi — bu sahifada VIEWER'ga ham ochiq (o'z
-              ko'rinishini o'zi teradi; owner ma'lumotiga yozilmaydi).
-              Umumiy Shajara doskasida esa ikonka faqat OWNER'da. */}
           <button
             type="button"
             onClick={() => setEditMode((v) => !v)}

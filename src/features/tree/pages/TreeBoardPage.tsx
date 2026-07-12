@@ -1,6 +1,7 @@
 // features/tree/pages/TreeBoardPage.tsx
-// Interaktiv shajara doskasi: drag, zoom, bog'lash + qo'shish/tahrirlash/o'chirish/profil.
 import { useEffect, useMemo, useState, type SVGProps } from 'react';
+import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
 import {
   Background,
   BackgroundVariant,
@@ -12,6 +13,7 @@ import {
   type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import type { AppLayoutContext } from '@/app/AppLayout';
 import { useAuthStore } from '@/features/auth';
 import { useTreeStore, type PersonNodeType } from '@/features/tree/model/tree.store';
 import type { RelationKey } from '@/features/tree/model/relations';
@@ -81,6 +83,10 @@ export function TreeBoardPage() {
 function TreeBoard() {
   const { fitView, setCenter, getNode } = useReactFlow();
   const user = useAuthStore((s) => s.user);
+  // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — shu yerga
+  // qidiruv/filtr/tugmalarni portal qilamiz (logotip AJDO ikki marta
+  // takrorlanmasin uchun, u AppLayout'ning o'zida).
+  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
 
   const nodes = useTreeStore((s) => s.nodes);
   const edges = useTreeStore((s) => s.edges);
@@ -274,142 +280,142 @@ function TreeBoard() {
 
   return (
     <div className="flex h-full flex-col bg-brand-50">
-      {/* Yuqori panel — suzuvchi (floating) yumaloq karta (Apple/app uslubi:
-          border + soya + atrofida joy), barcha o'lchamlarda — mockup
-          (desktopajdo.png) desktop'da ham xuddi shu uslubni ko'rsatadi. */}
-      <header className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2.5 rounded-full border border-brand-100 bg-white px-3 shadow-sm sm:gap-3 sm:px-4">
-        <img src="/shajaratree.png" alt="AJDO" className="h-8 w-8 shrink-0 rounded-full object-cover" />
-        <span className="flex items-center gap-1 font-sans text-lg font-bold text-brand-900">
-          AJDO
-        </span>
+      {/* Bu sahifaning yuqori panel amallari (qidiruv, filtr, tugmalar) endi
+          BU YERDA emas — AppLayout'ning UMUMIY, to'liq kenglikdagi header'iga
+          portal qilib joylashtiriladi (logotip AJDO ham shu umumiy header'da,
+          ikkinchi marta takrorlanmasin uchun). mockup: desktopajdo.png. */}
+      {topBarActionsEl &&
+        createPortal(
+          <>
+            {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
+            <div className="mx-2 hidden flex-1 justify-center md:flex">
+              <MemberSearch items={searchItems} onSelect={focusMember} />
+            </div>
 
-        {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
-        <div className="mx-2 hidden flex-1 justify-center md:flex">
-          <MemberSearch items={searchItems} onSelect={focusMember} />
-        </div>
-
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
-          {/* Ota tomon / Ona tomon — radio: doim aynan bittasi faol, ikkalasi
-              birga yoki "hammasi" holati yo'q. Doira ikonkalar (♂/♀), o'z
-              bordered "bloki" ichida — app uslubi. Ona tomon tanlansa PUSHTI,
-              Ota tomon — brend yashili (o'z holicha). */}
-          <div role="radiogroup" aria-label="Qarindoshlik tomoni" className="flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
-            <button
-              type="button"
-              onClick={() => setSideFilter('PATERNAL')}
-              role="radio"
-              aria-checked={sideFilter === 'PATERNAL'}
-              title="Faqat ota tomon oila a'zolarini ko'rsatish"
-              className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
-                sideFilter === 'PATERNAL'
-                  ? 'bg-brand-700 text-white'
-                  : 'text-brand-700 hover:bg-white'
-              }`}
-            >
-              <MaleIcon />
-            </button>
-            <button
-              type="button"
-              onClick={() => setSideFilter('MATERNAL')}
-              role="radio"
-              aria-checked={sideFilter === 'MATERNAL'}
-              title="Faqat ona tomon oila a'zolarini ko'rsatish"
-              className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
-                sideFilter === 'MATERNAL'
-                  ? 'bg-pink-600 text-white'
-                  : 'text-pink-600 hover:bg-white'
-              }`}
-            >
-              <FemaleIcon />
-            </button>
-          </div>
-          {/* Qidiruv — mobilda lupa ikonkasi pastdagi qatorni ochadi/yopadi;
-              md+ da yuqoridagi to'liq qidiruv maydoni ko'rinadi (shu tugma yo'q).
-              O'z bordered "bloki" — app uslubi. */}
-          <button
-            type="button"
-            onClick={() => setMobileSearchOpen((v) => !v)}
-            title="Qidirish"
-            aria-label="Qidirish"
-            aria-pressed={mobileSearchOpen}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
-              mobileSearchOpen
-                ? 'border-brand-700 bg-brand-700 text-white'
-                : 'border-brand-200 text-brand-700 hover:bg-brand-50'
-            }`}
-          >
-            <SearchIcon />
-          </button>
-          {/* Foydalanuvchi ismini bosish -> o'zimga (root) yo'naltiradi */}
-          <button
-            type="button"
-            onClick={goToMe}
-            disabled={!myId}
-            title="Menga o'tish (o'zimni ko'rsatish)"
-            className="hidden items-center gap-1.5 rounded-full bg-brand-50 py-1.5 pl-1.5 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
-          >
-            <span
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
-              aria-hidden
-            >
-              {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
-            </span>
-            {user?.fullName}
-          </button>
-          {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
-              Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
-              O'chiq: kartalar qimirlamaydi. Mobilda (< sm) joy tejash uchun
-              yashiringan — Tartiblash bilan birga kattaroq ekranda chiqadi. */}
-          {isOwner && (
-            <button
-              type="button"
-              onClick={() => setLayoutEdit(!layoutEdit)}
-              title={
-                layoutEdit
-                  ? "Yakka surish rejimini o'chirish (karta oilasi bilan suriladi)"
-                  : "Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)"
-              }
-              aria-pressed={layoutEdit}
-              className={`hidden h-9 w-9 items-center justify-center rounded-full transition-colors sm:flex ${
-                layoutEdit
-                  ? 'bg-brand-700 text-white hover:bg-brand-800'
-                  : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
-              }`}
-            >
-              {/* Surish (move) ikonkasi */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M12 2v20M2 12h20" strokeLinecap="round" />
-                <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onArrange}
-            disabled={arranging || nodes.length < 2}
-            title="Chiziqlarni tekislash — kartalar o'z qavatiga (tepa-past) tekislanadi, chap-o'ng joylashuv o'zgarmaydi"
-            aria-label="Tartiblash"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
-          >
-            {/* Tartiblash (auto-arrange) ikonkasi — mobilда HAM ko'rinadi (faqat
-                ikonka), desktop bilan bir xil vazifa — sm+ da matn ham chiqadi */}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
-              <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
-            </svg>
-            <span className="hidden sm:inline">{arranging ? 'Tartiblanmoqda…' : 'Tartiblash'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={openAddDefault}
-            title="Qarindosh qo'shish"
-            aria-label="Qarindosh qo'shish"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-2"
-          >
-            <PlusIcon className="sm:hidden" />
-            <span className="hidden sm:inline text-sm font-semibold">+ Qarindosh qo&#8216;shish</span>
-          </button>
-        </div>
-      </header>
+            <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+              {/* Ota tomon / Ona tomon — radio: doim aynan bittasi faol, ikkalasi
+                  birga yoki "hammasi" holati yo'q. Doira ikonkalar (♂/♀), o'z
+                  bordered "bloki" ichida — app uslubi. Ona tomon tanlansa PUSHTI,
+                  Ota tomon — brend yashili (o'z holicha). */}
+              <div role="radiogroup" aria-label="Qarindoshlik tomoni" className="flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
+                <button
+                  type="button"
+                  onClick={() => setSideFilter('PATERNAL')}
+                  role="radio"
+                  aria-checked={sideFilter === 'PATERNAL'}
+                  title="Faqat ota tomon oila a'zolarini ko'rsatish"
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
+                    sideFilter === 'PATERNAL'
+                      ? 'bg-brand-700 text-white'
+                      : 'text-brand-700 hover:bg-white'
+                  }`}
+                >
+                  <MaleIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSideFilter('MATERNAL')}
+                  role="radio"
+                  aria-checked={sideFilter === 'MATERNAL'}
+                  title="Faqat ona tomon oila a'zolarini ko'rsatish"
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
+                    sideFilter === 'MATERNAL'
+                      ? 'bg-pink-600 text-white'
+                      : 'text-pink-600 hover:bg-white'
+                  }`}
+                >
+                  <FemaleIcon />
+                </button>
+              </div>
+              {/* Qidiruv — mobilda lupa ikonkasi pastdagi qatorni ochadi/yopadi;
+                  md+ da yuqoridagi to'liq qidiruv maydoni ko'rinadi (shu tugma yo'q).
+                  O'z bordered "bloki" — app uslubi. */}
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen((v) => !v)}
+                title="Qidirish"
+                aria-label="Qidirish"
+                aria-pressed={mobileSearchOpen}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
+                  mobileSearchOpen
+                    ? 'border-brand-700 bg-brand-700 text-white'
+                    : 'border-brand-200 text-brand-700 hover:bg-brand-50'
+                }`}
+              >
+                <SearchIcon />
+              </button>
+              {/* Foydalanuvchi ismini bosish -> o'zimga (root) yo'naltiradi */}
+              <button
+                type="button"
+                onClick={goToMe}
+                disabled={!myId}
+                title="Menga o'tish (o'zimni ko'rsatish)"
+                className="hidden items-center gap-1.5 rounded-full bg-brand-50 py-1.5 pl-1.5 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
+              >
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
+                  aria-hidden
+                >
+                  {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
+                </span>
+                {user?.fullName}
+              </button>
+              {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
+                  Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
+                  O'chiq: kartalar qimirlamaydi. Mobilda (< sm) joy tejash uchun
+                  yashiringan — Tartiblash bilan birga kattaroq ekranda chiqadi. */}
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setLayoutEdit(!layoutEdit)}
+                  title={
+                    layoutEdit
+                      ? "Yakka surish rejimini o'chirish (karta oilasi bilan suriladi)"
+                      : "Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)"
+                  }
+                  aria-pressed={layoutEdit}
+                  className={`hidden h-9 w-9 items-center justify-center rounded-full transition-colors sm:flex ${
+                    layoutEdit
+                      ? 'bg-brand-700 text-white hover:bg-brand-800'
+                      : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
+                  }`}
+                >
+                  {/* Surish (move) ikonkasi */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                    <path d="M12 2v20M2 12h20" strokeLinecap="round" />
+                    <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onArrange}
+                disabled={arranging || nodes.length < 2}
+                title="Chiziqlarni tekislash — kartalar o'z qavatiga (tepa-past) tekislanadi, chap-o'ng joylashuv o'zgarmaydi"
+                aria-label="Tartiblash"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
+              >
+                {/* Tartiblash (auto-arrange) ikonkasi — mobilда HAM ko'rinadi (faqat
+                    ikonka), desktop bilan bir xil vazifa — sm+ da matn ham chiqadi */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
+                  <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
+                </svg>
+                <span className="hidden sm:inline">{arranging ? 'Tartiblanmoqda…' : 'Tartiblash'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={openAddDefault}
+                title="Qarindosh qo'shish"
+                aria-label="Qarindosh qo'shish"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-2"
+              >
+                <PlusIcon className="sm:hidden" />
+                <span className="hidden sm:inline text-sm font-semibold">+ Qarindosh qo&#8216;shish</span>
+              </button>
+            </div>
+          </>,
+          topBarActionsEl,
+        )}
 
       {/* Mobil qidiruv qatori — sarlavhadagi lupa ikonkasi bilan ochiladi/yopiladi */}
       {mobileSearchOpen && (

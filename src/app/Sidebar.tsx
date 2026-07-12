@@ -7,7 +7,6 @@ import { useAuthStore } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
-import { TreeLogo } from '@/shared/ui/TreeLogo';
 import { NAV, LogoutIcon } from './nav-items';
 
 const MB = 1024 * 1024;
@@ -56,15 +55,10 @@ export function Sidebar() {
     ].join(' ');
 
   return (
-    <aside className="hidden h-full w-16 shrink-0 flex-col border-r border-brand-100 bg-white lg:flex lg:w-60">
-      {/* Logotip */}
-      <div className="flex h-14 shrink-0 items-center justify-center gap-2 border-b border-brand-100 px-3 lg:justify-start">
-        <TreeLogo className="h-8 w-8 shrink-0 text-brand-800" />
-        <span className="hidden font-sans text-lg font-bold text-brand-900 lg:block">
-          AJDO
-        </span>
-      </div>
-
+    // AJDO logotipi endi BU YERDA emas — umumiy AppLayout header'ida
+    // (mockup: desktopajdo.png — logotip butun sahifa tepasida, Sidebar
+    // ustida yagona chiziq). Sidebar o'zi suzuvchi bordered/yumaloq karta.
+    <aside className="mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm lg:flex lg:w-60">
       {/* Navigatsiya */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {NAV.map(({ to, label, Icon, img, end }) => (

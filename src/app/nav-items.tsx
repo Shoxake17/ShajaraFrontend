@@ -32,7 +32,6 @@ export const AiIcon = (p: IconProps) => (
     <path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9Z" />
   </svg>
 );
-// Lucide "settings" (gear) ikoni — MIT litsenziya, inline (paket o'rniga xavfsiz)
 export const SettingsIcon = (p: IconProps) => (
   <svg viewBox="0 0 24 24" width="22" height="22" {...base} strokeWidth={2} {...p}>
     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -49,11 +48,9 @@ export const LogoutIcon = (p: IconProps) => (
 export interface NavItem {
   to: string;
   label: string;
-  /** Pastki tab-bar (mobil) uchun qisqaroq yorliq — joy tor bo'lgani uchun */
   shortLabel: string;
   end: boolean;
   Icon?: (p: IconProps) => ReactElement;
-  /** SVG o'rniga rasm (masalan Shajara doskasi — registertree.png) */
   img?: string;
 }
 
