@@ -1,13 +1,9 @@
 // features/tree/components/AddPersonDialog.tsx
 import { useEffect, useState, type FormEvent } from 'react';
-import {
-  RELATION_GROUPS,
-  relationDef,
-  type Gender,
-  type RelationKey,
-} from '@/features/tree/model/relations';
+import { relationDef, type Gender, type RelationKey } from '@/features/tree/model/relations';
 import { PhotoPicker } from './PhotoPicker';
 import { GenderToggle } from './GenderToggle';
+import { RelationPicker } from './RelationPicker';
 import { YearInputs, validateYears } from './YearInputs';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -155,22 +151,10 @@ export function AddPersonDialog({
             }}
           />
 
-          <select
-            aria-label="Qarindoshlik turi"
-            value={relation}
-            onChange={(e) => setRelation(e.target.value as RelationKey)}
-            className="w-full cursor-pointer rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
-          >
-            {RELATION_GROUPS.map((g) => (
-              <optgroup key={g.title} label={g.title}>
-                {g.items.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          <div>
+            <span className="mb-1 block px-1 text-xs text-neutral-500">Kimligi (qarindoshligi)</span>
+            <RelationPicker value={relation} onChange={setRelation} />
+          </div>
 
           <GenderToggle value={gender} onChange={setGender} />
           <YearInputs
