@@ -470,20 +470,21 @@ function TreeBoard() {
           proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
-          <Controls position="bottom-right" showInteractive={false}>
-            {/* "Menga o'tish" — zoom panelida, mobilda sarlavha tor bo'lgani
-                uchun (u yerdagi matnli tugma sm+da ko'rinadi) doim qo'l
-                yetadigan joyda turishi uchun. */}
-            <ControlButton onClick={goToMe} disabled={!myId} title="Menga o'tish (o'zimni ko'rsatish)">
-              <TargetIcon />
-            </ControlButton>
-            {/* To'liq ekran — Sidebar/header/BottomNav'ni yashirib, doskaga
-                ko'proq joy beradi. "+/-" blokining eng pastidagi tugma. */}
+          <Controls position="bottom-right" showFitView={false} showInteractive={false}>
+            {/* Standart "fit view" tugmasi butunlay o'chirilgan (showFitView=false)
+                — shu o'rniga TO'LIQ EKRAN tugmasi turadi: Sidebar/header/
+                BottomNav'ni yashirib, doskaga ko'proq joy beradi. */}
             <ControlButton
               onClick={toggleFullscreen}
               title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
             >
               {boardFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
+            </ControlButton>
+            {/* "Menga o'tish" — zoom panelida, mobilda sarlavha tor bo'lgani
+                uchun (u yerdagi matnli tugma sm+da ko'rinadi) doim qo'l
+                yetadigan joyda turishi uchun. */}
+            <ControlButton onClick={goToMe} disabled={!myId} title="Menga o'tish (o'zimni ko'rsatish)">
+              <TargetIcon />
             </ControlButton>
           </Controls>
         </ReactFlow>

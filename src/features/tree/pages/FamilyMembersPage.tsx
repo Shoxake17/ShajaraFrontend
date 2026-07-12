@@ -368,8 +368,9 @@ function FamilyMembersBoard() {
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
-            <Controls position="bottom-right" showInteractive={false}>
-              {/* To'liq ekran — "+/-" blokining eng pastidagi tugma. */}
+            <Controls position="bottom-right" showFitView={false} showInteractive={false}>
+              {/* Standart "fit view" tugmasi butunlay o'chirilgan
+                  (showFitView=false) — shu o'rniga TO'LIQ EKRAN tugmasi. */}
               <ControlButton
                 onClick={toggleFullscreen}
                 title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
