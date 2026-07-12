@@ -183,6 +183,21 @@ function TreeBoard() {
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
   }, [edges, displayedNodes]);
 
+  // Joriy tomonda (Ota/Ona) ko'rinayotgan ODAMLAR soni — karta emas, har
+  // bir shaxs alohida (turmush o'rtoqlari ham) hisoblanadi, xuddi
+  // FamilyMembersPage'dagi "N ta a'zo" bilan bir xil mantiqda.
+  const sideCount = useMemo(() => {
+    const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
+    let count = 0;
+    for (const n of nodes) {
+      if (visible(n.data.side)) count++;
+      for (const sp of n.data.spouses) {
+        if (visible(sp.side)) count++;
+      }
+    }
+    return count;
+  }, [nodes, sideFilter]);
+
   useEffect(() => {
     void loadBoard();
   }, [loadBoard]);
@@ -325,6 +340,15 @@ function TreeBoard() {
       {topBarActionsEl &&
         createPortal(
           <>
+            {/* Sarlavha + joriy tomondagi (Ota/Ona) a'zolar soni — xuddi
+                FamilyMembersPage'dagi "Oila a'zolarim — N ta a'zo" bilan
+                bir xil andozada, faqat son tanlangan tomonga qarab o'zgaradi. */}
+            <div className="min-w-0 shrink-0">
+              <p className="truncate text-sm font-semibold text-brand-900">Shajara Doska</p>
+              <p className="hidden truncate text-xs text-brand-500 sm:block">
+                {sideFilter === 'PATERNAL' ? 'Ota tomon' : 'Ona tomon'} — {sideCount} ta a&#39;zo
+              </p>
+            </div>
             {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
             <div className="mx-2 hidden flex-1 justify-center md:flex">
               <MemberSearch items={searchItems} onSelect={focusMember} />
