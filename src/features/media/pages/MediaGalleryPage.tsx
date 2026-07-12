@@ -3,6 +3,9 @@
 // rasmlari. Yuklash, o'chirish, filtr (tur/yil), kattalashtirib ko'rish.
 // Xavfsiz: R2'ga to'g'ridan-to'g'ri yuklash, server tur/hajm/egalikni tekshiradi.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useOutletContext } from 'react-router-dom';
+import type { AppLayoutContext } from '@/app/AppLayout';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore } from '@/features/storage/storage.store';
 import { mediaApi, type MediaDto, type MediaType } from '../api/media.api';
@@ -82,6 +85,7 @@ const selectCls =
   "w-full cursor-pointer appearance-none rounded-xl border border-neutral-200 bg-white bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22 viewBox=%220 0 24 24%22><path d=%22m6 9 6 6 6-6%22/></svg>')] bg-[length:18px] bg-[right_0.75rem_center] bg-no-repeat py-2.5 pl-4 pr-10 text-sm text-brand-900 outline-none transition-colors focus:border-brand-600";
 
 export function MediaGalleryPage() {
+  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const nodes = useTreeStore((s) => s.nodes);
   const members = useTreeStore((s) => s.members);
   const loadBoard = useTreeStore((s) => s.loadBoard);
@@ -153,29 +157,37 @@ export function MediaGalleryPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-brand-50">
+      {/* Sarlavha, hujjatlar soni va "Yangi yuklash" tugmasi endi BU YERDA
+          emas — AppLayout'ning umumiy, to'liq kenglikdagi header'iga
+          portal qilib joylashtiriladi (TreeBoardPage/FamilyMembersPage'dagi
+          bilan bir xil andoza). */}
+      {topBarActionsEl &&
+        createPortal(
+          <>
+            <div className="min-w-0 shrink-0">
+              <p className="truncate text-sm font-semibold text-brand-900">Media Galereya</p>
+              <p className="hidden truncate text-xs text-brand-500 sm:block">
+                Barcha hujjatlar — {items.length} ta
+              </p>
+            </div>
+            <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setUploadOpen(true)}
+                aria-label="Yangi yuklash"
+                className="flex h-9 w-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-5 sm:py-2"
+              >
+                <UploadI />
+                <span className="hidden text-sm font-semibold sm:inline">Yangi yuklash</span>
+              </button>
+            </div>
+          </>,
+          topBarActionsEl,
+        )}
+
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <h1 className="mb-5 font-serif text-2xl font-semibold text-brand-900">Media Galereya</h1>
-
-        {/* Yuqori panel */}
-        <div className="flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-            <GalleryI />
-          </span>
-          <p className="flex-1 text-[15px] font-semibold text-brand-900">
-            Barcha rasmlar va hujjatlar <span className="font-medium text-brand-500">({items.length} ta)</span>
-          </p>
-          <button
-            type="button"
-            onClick={() => setUploadOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 sm:w-auto"
-          >
-            <UploadI />
-            Yangi yuklash
-          </button>
-        </div>
-
         {/* Filtrlar */}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <select aria-label="Filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as 'all' | MediaType)} className={selectCls}>
             <option value="all">Filter: Barchasi</option>
             <option value="IMAGE">Rasmlar</option>
