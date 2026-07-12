@@ -7,8 +7,10 @@ import {
   BackgroundVariant,
   Controls,
   ReactFlow,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
   type NodeChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -19,14 +21,23 @@ import { alignRowYs, computeLayout, resolveSubtreeOverlaps } from '@/features/tr
 import { closeFamilyIds, closeFamilyLabels, relationInfoFrom } from '@/features/tree/model/kinship';
 import { PersonNode } from '@/features/tree/components/PersonNode';
 import { TreeEdge } from '@/features/tree/components/TreeEdge';
+import { MemberSearch, type SearchItem } from '@/features/tree/components/MemberSearch';
 
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { tree: TreeEdge };
 
+// useReactFlow (setCenter/getNode — qidiruvdan kamera bilan uchib borish
+// uchun) faqat ReactFlowProvider ichida ishlaydi.
 export function FamilyMembersPage() {
-  // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — sarlavha va
-  // tugmalarni shu yerga portal qilamiz (TreeBoardPage'dagi bilan bir xil
-  // andoza — logotip AJDO ikki marta takrorlanmasin uchun).
+  return (
+    <ReactFlowProvider>
+      <FamilyMembersBoard />
+    </ReactFlowProvider>
+  );
+}
+
+function FamilyMembersBoard() {
+  const { setCenter, getNode } = useReactFlow();
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const members = useTreeStore((s) => s.members);
   const rawEdges = useTreeStore((s) => s.rawEdges);
@@ -34,16 +45,14 @@ export function FamilyMembersPage() {
   const loading = useTreeStore((s) => s.loading);
   const updateFamilyPositions = useTreeStore((s) => s.updateFamilyPositions);
   const access = useTreeStore((s) => s.access);
-  // VIEWER o'z ANKERIGA nisbatan yaqin oilasini ko'radi (owner uchun anchor = root)
   const anchorId = access?.anchorMemberId ?? undefined;
   const isOwner = access?.role === 'OWNER';
 
-  // Joylashuv rejimi: yoqiq — YAKKA surish; o'chiq — OILASI bilan surish.
   const [editMode, setEditMode] = useState(false);
-  const [fitTick, setFitTick] = useState(0); // Tartiblashdan keyin fitView uchun
+  const [fitTick, setFitTick] = useState(0);
+  // Mobil qidiruv qatori — sarlavhadagi lupa ikonkasi bosilganda ochiladi/yopiladi
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  // VIEWER joylashuvi — FAQAT O'ZIGA (shu qurilma, localStorage): egasining
-  // ma'lumotiga yozilmaydi, boshqa hech kimga ko'rinmaydi.
   const localKey = access ? `shajara.famview.${access.userId}.${access.treeOwnerId}` : null;
   const loadLocalPositions = (): Record<string, { x: number; y: number }> => {
     if (!localKey) return {};
@@ -63,30 +72,23 @@ export function FamilyMembersPage() {
     try {
       localStorage.setItem(localKey, JSON.stringify(cur));
     } catch {
-      /* localStorage to'lgan bo'lsa — indamay o'tamiz (faqat vizual qulaylik) */
     }
   };
-  // Saqlash — rolga qarab: OWNER serverga (famPos), VIEWER o'z brauzeriga
   const persistPositions = (moved: { id: string; posX: number; posY: number }[]) => {
     if (isOwner) updateFamilyPositions(moved);
     else saveLocalPositions(moved);
   };
 
-  // Doska ochilmagan bo'lsa ham a'zolarni yuklaymiz
   useEffect(() => {
     if (members.length === 0) void loadBoard();
   }, [members.length, loadBoard]);
 
-  // Yaqin oila to'plamini ajratib, alohida doska quramiz
   const { board, count } = useMemo(() => {
     const allow = closeFamilyIds(members, rawEdges, anchorId);
     const subMembers = members.filter((m) => allow.has(m.id));
     const subEdges = rawEdges.filter((e) => allow.has(e.sourceId) && allow.has(e.targetId));
     const b = buildBoard(subMembers, subEdges);
-    // Yorliqlarni ANKERGA nisbatan qayta belgilaymiz (viewer o'ziga nisbatan ko'radi)
     const labels = closeFamilyLabels(subMembers, subEdges, anchorId);
-    // Avlod raqamlari TO'LIQ daraxt bo'yicha (eng tepa ajdod = 1-avlod) —
-    // yaqin-oila kesimida hisoblansa raqamlar asosiy doskadan farq qilib qolardi
     const { generations } = relationInfoFrom(members, rawEdges, anchorId);
     for (const n of b.nodes) {
       n.data.relation = labels.get(n.id) ?? n.data.relation;
@@ -96,7 +98,6 @@ export function FamilyMembersPage() {
         sp.generation = generations.get(sp.id) ?? null;
       }
     }
-    // Boshlang'ich joylashuv: SAQLANGAN famPos bo'lsa — o'sha; bo'lmasa dagre
     const layout = computeLayout(
       b.nodes.map((n) => ({
         id: n.id,
@@ -113,7 +114,6 @@ export function FamilyMembersPage() {
         parentHandle: (e.sourceHandle as string | undefined) ?? undefined,
       })),
     );
-    // Saqlangan joylashuv: OWNER — serverdagi famPos; VIEWER — o'z brauzeridagi
     const localPos = isOwner ? {} : loadLocalPositions();
     const byId = new Map(subMembers.map((m) => [m.id, m]));
     const positioned = b.nodes.map((n) => {
@@ -135,14 +135,43 @@ export function FamilyMembersPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState(board.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(board.edges);
 
-  // Manba o'zgarsa (yangi a'zo, yuklash) — doskani yangilaymiz
   useEffect(() => {
     setNodes(board.nodes);
     setEdges(board.edges);
   }, [board, setNodes, setEdges]);
 
-  // Surish — ASOSIY DOSKA bilan bir xil: rejim o'chiq bo'lsa bolalari birga
-  // suriladi; drag tugagach joylashuv SAQLANADI (famPos — alohida).
+  // Qidiruv ro'yxati — har kartadagi asosiy odam va turmush o'rtoqlar
+  const searchItems = useMemo<SearchItem[]>(() => {
+    const items: SearchItem[] = [];
+    for (const n of nodes) {
+      items.push({ id: n.id, name: n.data.name, relation: n.data.relation });
+      for (const sp of n.data.spouses) {
+        items.push({ id: sp.id, name: sp.name, relation: sp.relation });
+      }
+    }
+    return items;
+  }, [nodes]);
+
+  // Berilgan a'zo (asosiy yoki turmush o'rtog'i) qaysi KARTADA — o'sha karta id'si
+  const nodeIdForMember = (memberId: string): string | null => {
+    for (const n of nodes) {
+      if (n.id === memberId) return n.id;
+      if (n.data.spouses.some((s) => s.id === memberId)) return n.id;
+    }
+    return null;
+  };
+
+  // A'zoga kamera bilan "uchib borish" — kartani markazga oladi
+  const focusMember = (memberId: string) => {
+    const nodeId = nodeIdForMember(memberId);
+    if (!nodeId) return;
+    const node = getNode(nodeId);
+    if (!node) return;
+    const w = node.measured?.width ?? 220;
+    const h = node.measured?.height ?? 90;
+    void setCenter(node.position.x + w / 2, node.position.y + h / 2, { zoom: 1.2, duration: 600 });
+  };
+
   const handleNodesChange = (changes: NodeChange<PersonNodeType>[]) => {
     const soloDrag = editMode;
     const extra: NodeChange<PersonNodeType>[] = [];
@@ -174,7 +203,6 @@ export function FamilyMembersPage() {
 
     for (const c of changes) {
       if (c.type === 'position' && c.dragging === false) {
-        // Eng so'nggi holatni keyingi renderda emas, hozir hisoblaymiz
         const ids = soloDrag ? [c.id] : [c.id, ...descendantIds(c.id, edges)];
         const moved = ids
           .map((id) => nodes.find((n) => n.id === id))
@@ -184,9 +212,6 @@ export function FamilyMembersPage() {
       }
     }
   };
-
-  // "Tartiblash" — asosiy doskadagidek: qavatga (y) tekislash + shox
-  // to'qnashuvlarini 100px bilan ochish; x boshqa o'zgarmaydi. SAQLANADI.
   const onArrange = () => {
     const edgeInfos = edges.map((e) => ({
       source: e.source,
@@ -216,22 +241,42 @@ export function FamilyMembersPage() {
     persistPositions(
       positioned.map((n) => ({ id: n.id, posX: n.position.x, posY: n.position.y })),
     );
-    setFitTick((t) => t + 1); // remount -> fitView (butun doska ko'rinadi)
+    setFitTick((t) => t + 1); 
   };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* Sarlavha va tugmalar endi BU YERDA emas — AppLayout'ning UMUMIY,
-          to'liq kenglikdagi header'iga portal qilib joylashtiriladi
-          (TreeBoardPage'dagi bilan bir xil andoza). */}
       {topBarActionsEl &&
         createPortal(
           <>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-brand-900">Oila a&#39;zolarim</p>
-              <p className="truncate text-xs text-brand-500">Yaqin oila — {count} ta a&#39;zo</p>
+            <div className="min-w-0 shrink-0">
+              <p className="truncate text-sm font-semibold text-brand-900">Oila a'zolarim</p>
+              <p className="hidden truncate text-xs text-brand-500 sm:block">Yaqin oila — {count} ta a'zo</p>
+            </div>
+            {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
+            <div className="mx-2 hidden flex-1 justify-center md:flex">
+              <MemberSearch items={searchItems} onSelect={focusMember} />
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
+              {/* Qidiruv — mobilda lupa ikonkasi pastdagi qatorni ochadi/yopadi;
+                  md+ da yuqoridagi to'liq qidiruv maydoni ko'rinadi. */}
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen((v) => !v)}
+                title="Qidirish"
+                aria-label="Qidirish"
+                aria-pressed={mobileSearchOpen}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
+                  mobileSearchOpen
+                    ? 'border-brand-700 bg-brand-700 text-white'
+                    : 'border-brand-200 text-brand-700 hover:bg-brand-50'
+                }`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </button>
               <button
                 type="button"
                 onClick={() => setEditMode((v) => !v)}
@@ -256,7 +301,6 @@ export function FamilyMembersPage() {
                 type="button"
                 onClick={onArrange}
                 disabled={nodes.length < 2}
-                title="Chiziqlarni tekislash — kartalar o'z qavatiga tekislanadi, chap-o'ng joylashuv saqlanadi"
                 aria-label="Tartiblash"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
               >
@@ -269,6 +313,13 @@ export function FamilyMembersPage() {
           </>,
           topBarActionsEl,
         )}
+
+      {/* Mobil qidiruv qatori — sarlavhadagi lupa ikonkasi bilan ochiladi/yopiladi */}
+      {mobileSearchOpen && (
+        <div className="flex shrink-0 items-center gap-2 border-b border-brand-100 bg-white px-4 py-2 md:hidden">
+          <MemberSearch items={searchItems} onSelect={focusMember} />
+        </div>
+      )}
 
       <div className="relative min-h-0 flex-1 bg-brand-50">
        
@@ -299,14 +350,6 @@ export function FamilyMembersPage() {
             <Controls position="bottom-right" showInteractive={false} />
           </ReactFlow>
         )}
-        {/* Zoom paneli uslubi — BottomNav bilan bir xil "app" ko'rinishi:
-            border + yumaloq burchak + soya, ikonkalar brend rangida.
-            index.css'dagi umumiy override ISHLAMAYDI (@xyflow/react/dist/
-            style.css shu sahifaning o'z JS chunk'i ichida import qilingani
-            uchun Vite ularni build paytida bitta CSS faylga birlashtirib,
-            bizning umumiy qoidalarimizni sirli chiqarib tashlaydi) — shu
-            sabab bu yerda, komponentning O'ZIDA, inline <style> orqali
-            (TreeBoardPage.tsx'dagi bilan bir xil). */}
         <style>{`
           .react-flow__controls {
             border: 2px solid #CBD9C4;
