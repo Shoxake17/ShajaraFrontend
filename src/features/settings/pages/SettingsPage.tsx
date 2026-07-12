@@ -227,31 +227,10 @@ export function SettingsPage() {
           ichki menyu Sidebar'ga yaqinroq turadi, bo'shagan joyga esa
           Profil blogi (o'ng, 1fr ustun) cho'ziladi. */}
       <div className="flex w-full flex-1 flex-col overflow-hidden px-3 pb-5 pt-4 sm:px-4">
-        {/* Mobil/tablet (<lg) uchun bo'limlar orasida gorizontal aylantiriladigan
-            navigatsiya — chap menyu shu o'lchamlarda yashiringan bo'lgani uchun
-            bo'limlarga o'tishning YAGONA yo'li shu (aks holda faqat qo'lda
-            scroll qilish qolar edi). */}
-        <nav
-          aria-label="Sozlamalar bo'limlari"
-          className="mb-4 flex shrink-0 gap-2 overflow-x-auto pb-1 lg:hidden"
-        >
-          {SECTIONS.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => goTo(id)}
-              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-medium transition-colors ${
-                active === id
-                  ? 'border-brand-700 bg-brand-700 text-white'
-                  : 'border-neutral-200 bg-white text-brand-700'
-              }`}
-            >
-              <Icon width={15} height={15} className="shrink-0" />
-              {label}
-            </button>
-          ))}
-        </nav>
-
+        {/* Mobilda (<lg) alohida "bo'limlar" panjarasi (tab-bar) YO'Q —
+            sahifaning o'zi oddiy, bitta ustunli scroll ro'yxat: Profil
+            ma'lumotlari bitta blok, qolgan bo'limlar (Xavfsizlik, Maxfiylik,
+            ...) esa har biri o'zining alohida blokida, ketma-ket. */}
         <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[230px_1fr]">
           {/* Ichki menyu — joyidan qimirlamaydi, faqat o'ng tomon scroll bo'ladi */}
           <nav className="hidden rounded-2xl border border-brand-100 bg-white p-2 lg:block lg:h-full lg:overflow-y-auto">
