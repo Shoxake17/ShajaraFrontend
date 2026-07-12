@@ -72,7 +72,7 @@ export function RelationPicker({ value, onChange, label = 'Qarindoshlik turi' }:
           id={listId}
           role="listbox"
           aria-label={label}
-          className="absolute z-30 mt-1.5 max-h-72 w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
+          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
         >
           {RELATION_GROUPS.map((g) => (
             <div key={g.title} className="mb-1 last:mb-0">

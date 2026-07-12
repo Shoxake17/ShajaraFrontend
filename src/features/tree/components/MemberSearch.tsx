@@ -134,7 +134,7 @@ export function MemberSearch({ items, onSelect }: Props) {
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
+          className="no-scrollbar absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
         >
           {results.length === 0 ? (
             <li className="px-3 py-2 text-sm text-neutral-400">Hech kim topilmadi</li>

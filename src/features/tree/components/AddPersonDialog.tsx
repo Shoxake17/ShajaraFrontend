@@ -117,7 +117,7 @@ export function AddPersonDialog({
       <div
         role="dialog"
         aria-label="Oila a'zosini qo'shish"
-        className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[22px] bg-white p-5 shadow-card"
+        className="no-scrollbar max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[22px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-center font-serif text-xl font-semibold text-brand-900">

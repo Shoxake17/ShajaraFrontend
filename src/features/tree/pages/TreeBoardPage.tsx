@@ -81,6 +81,18 @@ const FullscreenExitIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// Ota tomon / ona tomon tanlovi — oxirgi holat SAQLANADI (localStorage),
+// aks holda har safar sahifa qayta yuklanganda (restart) doim "Ota tomon"ga
+// qaytib ketardi.
+const SIDE_FILTER_KEY = 'shajara.sideFilter';
+const loadSideFilter = (): Side => {
+  try {
+    return localStorage.getItem(SIDE_FILTER_KEY) === 'MATERNAL' ? 'MATERNAL' : 'PATERNAL';
+  } catch {
+    return 'PATERNAL';
+  }
+};
+
 // useReactFlow (fitView) faqat ReactFlowProvider ichida ishlaydi
 export function TreeBoardPage() {
   return (
@@ -134,7 +146,15 @@ function TreeBoard() {
   // (nikoh orqali qo'shilgan, qondosh emas — masalan tog'aning xotinining
   // o'z ota-onasi/opa-singli — "quda") — bunday odam HECH QAYSI tomonda
   // ko'rinmaydi.
-  const [sideFilter, setSideFilter] = useState<Side>('PATERNAL');
+  const [sideFilter, setSideFilterState] = useState<Side>(loadSideFilter);
+  const setSideFilter = (v: Side) => {
+    setSideFilterState(v);
+    try {
+      localStorage.setItem(SIDE_FILTER_KEY, v);
+    } catch {
+      /* localStorage yo'q/to'lgan bo'lsa — indamay o'tamiz (faqat UI qulayligi) */
+    }
+  };
 
   // Joriy ko'ruvchining O'Z tuguni: VIEWER uchun uning anker a'zosi
   // (access.anchorMemberId — bu spouse sifatida boshqa kartaga birlashgan

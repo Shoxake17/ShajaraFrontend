@@ -377,7 +377,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
           bordered/yumaloq karta uslubida (mx/my bo'shliq + rounded-2xl +
           border). Modal emas: doska va yuqori panel interaktiv qoladi
           (header to'silmaydi). */}
-      <aside className="absolute bottom-3 right-3 top-3 z-40 hidden w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-4 shadow-sm lg:flex">
+      <aside className="no-scrollbar absolute bottom-3 right-3 top-3 z-40 hidden w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-4 shadow-sm lg:flex">
         <div className="flex items-center justify-between">
           <span className="font-serif text-lg font-semibold text-brand-900">Profil</span>
           <button
@@ -403,7 +403,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
           >
             ✕
           </button>
-          <div className="min-h-0 flex-1 divide-y divide-brand-100 overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+          <div className="no-scrollbar min-h-0 flex-1 divide-y divide-brand-100 overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
             {primaryDetail(MobileDetail)}
             {spouseDetails(MobileDetail)}
           </div>

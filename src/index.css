@@ -31,4 +31,16 @@
     width: 34px;
     height: 34px;
   }
+
+  /* Ingichka scrollbar (tepaga/pastga tushib-chiqadigan) ko'rinmasin —
+     profil paneli, qidiruv/tanlov ro'yxatlari kabi yon panellarda "Apple"
+     uslubidagi tozaroq ko'rinish uchun. Scroll funksionalligi saqlanadi —
+     faqat vizual scrollbar chizig'i yashiriladi. */
+  .no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* eski Edge/IE */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/yangi Edge */
+  }
 }
