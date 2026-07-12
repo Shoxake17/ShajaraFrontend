@@ -1,29 +1,19 @@
 // features/ai/pages/ShajaraAiPage.tsx
 // "Shajara AI" — sun'iy intellekt yordamchisi (tez orada). Imkoniyatlar
-// kartalari va o'chirilgan (disabled) xabar yozish qatori.
-import type { SVGProps } from 'react';
+// kartalari va savol-javob qatori: yozib yuborilsa, pastda (boshqa AI
+// ilovalariga o'xshash, Apple uslubidagi bordered blokda) javob chiqadi —
+// hozircha DEMO javob (haqiqiy AI hali ulanmagan, "Tez orada").
+import { useState, type FormEvent, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import type { AppLayoutContext } from '@/app/AppLayout';
 
 const iconBase = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
-const LinkIcon = (p: SVGProps<SVGSVGElement>) => (
+const SparkleIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" {...iconBase} {...p}>
-    <path d="M9 12h6" />
-    <path d="M10.5 7H8a5 5 0 0 0 0 10h2.5" />
-    <path d="M13.5 7H16a5 5 0 0 1 0 10h-2.5" />
-  </svg>
-);
-const BookIcon = (p: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" {...iconBase} {...p}>
-    <path d="M4 5.5A2 2 0 0 1 6 3.5h14v15H6a2 2 0 0 0-2 2Z" />
-    <path d="M20 18.5H6a2 2 0 0 0-2 2" />
-  </svg>
-);
-const PuzzleIcon = (p: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" {...iconBase} {...p}>
-    <path d="M9 4.5h4v2.2a1.6 1.6 0 0 0 2.9 1 1.6 1.6 0 0 1 2.9 1V13h-2.2a1.6 1.6 0 0 0-1 2.9 1.6 1.6 0 0 1-1 2.9H13v2H4.5V9h2.2a1.6 1.6 0 0 0 1-2.9A1.6 1.6 0 0 1 9 4.5Z" />
+    <path d="M12 3.5 13.6 8l4.5 1.6-4.5 1.6L12 15.7l-1.6-4.5L5.9 9.6 10.4 8 12 3.5Z" />
+    <path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9Z" />
   </svg>
 );
 const SendIcon = (p: SVGProps<SVGSVGElement>) => (
@@ -32,29 +22,28 @@ const SendIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const FEATURES = [
-  {
-    title: 'Qarindoshlikni aniqlash',
-    desc: "Ikki a'zo bir-biriga kim bo'lishini so'rang — AI zanjirni topib beradi.",
-    Icon: LinkIcon,
-    badge: 'bg-brand-50 text-brand-700',
-  },
-  {
-    title: 'Oila tarixini yozish',
-    desc: "A'zolar ma'lumotidan avlodlar hikoyasini matn ko'rinishida tayyorlaydi.",
-    Icon: BookIcon,
-    badge: 'bg-pink-50 text-pink-600',
-  },
-  {
-    title: "Ma'lumotni to'ldirish",
-    desc: "Yetishmayotgan qarindoshlar va bo'shliqlarni topishда yordam beradi.",
-    Icon: PuzzleIcon,
-    badge: 'bg-amber-50 text-amber-600',
-  },
-];
+interface Turn {
+  q: string;
+  a: string;
+}
+
+const DEMO_ANSWER =
+  "Tez orada bu savolingizga chinakam javob bera olaman — hozircha Shajara AI ustida ishlanmoqda. Kuzatib boring!";
 
 export function ShajaraAiPage() {
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
+  const [question, setQuestion] = useState('');
+  const [conversation, setConversation] = useState<Turn[]>([]);
+
+  // Haqiqiy AI hali ulanmagan — demo javob, faqat kiritish/javob
+  // blokining KO'RINISHINI namoyish qilish uchun ("Tez orada").
+  const onAsk = (e: FormEvent) => {
+    e.preventDefault();
+    const q = question.trim();
+    if (!q) return;
+    setConversation((c) => [...c, { q, a: DEMO_ANSWER }]);
+    setQuestion('');
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-brand-50">
@@ -71,38 +60,58 @@ export function ShajaraAiPage() {
         )}
 
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-5">
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
           {/* Imkoniyatlar */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            {FEATURES.map(({ title, desc, Icon, badge }) => (
-              <div key={title} className="rounded-2xl border border-brand-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${badge}`}>
-                  <Icon width={18} height={18} />
-                </span>
-                <h3 className="mt-3 text-sm font-semibold text-brand-900">{title}</h3>
-                <p className="mt-1 text-xs text-brand-500">{desc}</p>
-              </div>
-            ))}
-          </div>
+          <div className="grid gap-3 sm:grid-cols-3"></div>
 
-          {/* Xabar yozish qatori (o'chirilgan) */}
-          <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm">
+          {/* Savol-javob — o'zi yuborgan savol pushti-brend pufakchada,
+              AI javobi esa Apple uslubidagi BORDERED blokda (rounded-2xl,
+              yumshoq soya, kichik AI belgisi bilan). */}
+          {conversation.length > 0 && (
+            <div className="space-y-4">
+              {conversation.map((turn, i) => (
+                <div key={i} className="space-y-2.5">
+                  <div className="flex justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand-700 px-4 py-2.5 text-sm text-white shadow-sm">
+                      {turn.q}
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-white text-brand-700 shadow-sm">
+                      <SparkleIcon width={15} height={15} />
+                    </span>
+                    <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-brand-100 bg-white px-4 py-3 text-sm leading-relaxed text-brand-900 shadow-sm">
+                      {turn.a}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Xabar yozish qatori — yozib yuborilsa yuqorida javob chiqadi */}
+          <form
+            onSubmit={onAsk}
+            className="flex shrink-0 items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors focus-within:border-brand-400"
+          >
             <input
-              disabled
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
               placeholder="Masalan: “Akmal menga kim bo'ladi?”"
-              className="min-w-0 flex-1 bg-transparent px-3 text-sm text-neutral-400 outline-none"
+              className="min-w-0 flex-1 bg-transparent px-3 text-sm text-brand-900 outline-none placeholder:text-neutral-400"
             />
             <span className="hidden shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-medium text-neutral-500 sm:inline-block">
               Tez orada
             </span>
             <button
-              disabled
+              type="submit"
+              disabled={!question.trim()}
               aria-label="Yuborish"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-400"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:bg-neutral-200 disabled:text-neutral-400"
             >
               <SendIcon width={16} height={16} />
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
