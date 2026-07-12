@@ -67,11 +67,15 @@ export function ShajaraAiPage() {
           topBarActionsEl,
         )}
 
-      {/* Chat oynasi — DOIM ko'rinadigan bordered blok (xabar bo'lmasa ham),
-          xabarlar ko'payib ketsa FAQAT shu qism ICHIDA scroll bo'ladi. */}
-      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pt-5 sm:px-6">
-        <div className="mx-auto flex h-full max-w-3xl flex-col">
-          <div className="flex min-h-full flex-col justify-end gap-4 rounded-3xl border border-brand-100 bg-white/60 p-4 shadow-sm sm:p-5">
+      {/* Chat oynasi — DOIM ko'rinadigan bordered blok (xabar bo'lmasa ham).
+          Blokning O'ZI belgilangan balandlikda (flex-1 + min-h-0) va
+          scroll ENDI shu blokning ICHIDA (overflow-y-auto shu yerda,
+          tashqi konteynerda EMAS) — shu bois chegara (border) doim
+          joyida qotib turadi, xabarlar hech qachon undan tashqariga
+          "chiqib" ketmaydi, faqat ICHKARIDA yuqoriga/pastga suriladi. */}
+      <div className="min-h-0 flex-1 px-4 pt-5 sm:px-6">
+        <div className="mx-auto flex h-full max-w-5xl flex-col">
+          <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-3xl border border-brand-100 bg-white/60 p-4 shadow-sm sm:p-5">
             {conversation.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-700">
@@ -86,7 +90,7 @@ export function ShajaraAiPage() {
               </div>
             ) : (
               conversation.map((turn, i) => (
-                <div key={i} className="space-y-2.5">
+                <div key={i} className="shrink-0 space-y-2.5">
                   <div className="flex justify-end">
                     <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand-700 px-4 py-2.5 text-sm text-white shadow-sm">
                       {turn.q}
@@ -103,7 +107,7 @@ export function ShajaraAiPage() {
                 </div>
               ))
             )}
-            <div ref={bottomRef} />
+            <div ref={bottomRef} className="shrink-0" />
           </div>
         </div>
       </div>
@@ -113,7 +117,7 @@ export function ShajaraAiPage() {
       <div className="shrink-0 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
         <form
           onSubmit={onAsk}
-          className="mx-auto flex max-w-3xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors focus-within:border-brand-400"
+          className="mx-auto flex max-w-5xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors focus-within:border-brand-400"
         >
           <input
             value={question}
