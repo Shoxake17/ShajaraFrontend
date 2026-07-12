@@ -50,7 +50,7 @@ export function FamilyMembersPage() {
 }
 
 function FamilyMembersBoard() {
-  const { setCenter, getNode, fitView } = useReactFlow();
+  const { setCenter, getNode } = useReactFlow();
   const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
   const members = useTreeStore((s) => s.members);
   const rawEdges = useTreeStore((s) => s.rawEdges);
@@ -185,11 +185,12 @@ function FamilyMembersBoard() {
     void setCenter(node.position.x + w / 2, node.position.y + h / 2, { zoom: 1.2, duration: 600 });
   };
 
-  // To'liq ekran — Sidebar/header/BottomNav Apple uslubida animatsiya bilan
-  // yashiriladi (AppLayout'da), doska butun ekranni egallaydi.
+  // To'liq ekran — FAQAT Sidebar/header/BottomNav Apple uslubida animatsiya
+  // bilan yashiriladi (AppLayout'da). Doskaning o'zi (pan/zoom, kartalar
+  // joyi) BUTUNLAY TEGILMAYDI — fitView chaqirilmaydi, aks holda kartalar
+  // "qimirlab" ketardi.
   const toggleFullscreen = () => {
     setBoardFullscreen(!boardFullscreen);
-    setTimeout(() => fitView({ padding: 0.15, maxZoom: 1.5, duration: 300 }), 350);
   };
 
   const handleNodesChange = (changes: NodeChange<PersonNodeType>[]) => {

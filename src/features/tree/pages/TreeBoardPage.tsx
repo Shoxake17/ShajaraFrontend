@@ -245,12 +245,12 @@ function TreeBoard() {
     if (myId) focusMember(myId);
   };
 
-  // To'liq ekran — Sidebar/header/BottomNav Apple uslubida animatsiya bilan
-  // yashiriladi (AppLayout'da), doska butun ekranni egallaydi. Bo'shagan
-  // joyga moslab qayta markazlaymiz (animatsiya tugashini kutib, 350ms).
+  // To'liq ekran — FAQAT Sidebar/header/BottomNav Apple uslubida animatsiya
+  // bilan yashiriladi (AppLayout'da). Doskaning o'zi (pan/zoom, kartalar
+  // joyi) BUTUNLAY TEGILMAYDI — fitView chaqirilmaydi, aks holda kartalar
+  // "qimirlab" ketardi.
   const toggleFullscreen = () => {
     setBoardFullscreen(!boardFullscreen);
-    setTimeout(() => fitView({ padding: 0.15, maxZoom: 1.2, duration: 300 }), 350);
   };
 
   // Kartadagi istalgan odam (primary yoki turmush o'rtog'i) nomini topamiz
