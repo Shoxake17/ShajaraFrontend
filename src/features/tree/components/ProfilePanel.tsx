@@ -307,10 +307,6 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
   const canDeleteM = (createdById: string | null, isRoot: boolean) =>
     !isRoot && (isOwner || createdById === uid);
 
-  // Turmush o'rtog'i bilan 2 yoki undan ortiq kishi — mobilda TO'LIQ ekranda
-  // (sig'magani ichkarida scroll), aks holda ekranning bir qismini egallaydi.
-  const hasMultiple = node.spouses.length > 0;
-
   const primaryDetail = (Comp: typeof Detail) => (
     <Comp
       name={node.name}
@@ -396,15 +392,13 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
       </aside>
 
       {/* Mobil (< lg) — pastdan chiquvchi panel (mockup: profileajdo.png).
-          1 kishi bo'lsa ekranning bir qismini egallaydi (orqada doska
-          ko'rinadi), 2+ kishi (turmush o'rtoqlari bilan) bo'lsa TO'LIQ
-          ekranda ochiladi va sig'magani ichkarida scroll bo'ladi. */}
-      <div className={`fixed z-40 lg:hidden ${hasMultiple ? 'inset-0' : 'inset-x-0 bottom-0'}`}>
-        <div
-          className={`relative flex w-full flex-col bg-white shadow-card ${
-            hasMultiple ? 'h-full rounded-t-none' : 'max-h-[75vh] rounded-t-3xl'
-          }`}
-        >
+          Balandligi KONTENTGA qarab o'zi hisoblanadi (h-full EMAS — aks
+          holda qisqa kontentda pastda bo'sh joy qolib ketadi); taxminan
+          ikkita profil blokka (turmush o'rtoq bilan) mos keladigan
+          max-height bilan cheklanadi — tepadan ozgina doska ko'rinib
+          turadi, undan ko'p bo'lsa ICHKARIDA scroll bo'ladi. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+        <div className="relative flex w-full max-h-[90dvh] flex-col rounded-t-3xl bg-white shadow-card">
           <button
             type="button"
             onClick={onClose}
