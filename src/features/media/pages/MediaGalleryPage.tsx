@@ -268,7 +268,11 @@ export function MediaGalleryPage() {
           topBarActionsEl,
         )}
 
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      {/* max-w chegarasi olib tashlandi (Shajara AI sahifasidagi bilan bir
+          xil) — Sidebar/ekran chetidan faqat ozgina padding qoladi, kontent
+          qolgan joyni to'liq egallaydi. pt-3 — Sidebar'ning mt-3 bilan
+          TEPASI TEKIS (bir xil balandlikda boshlanadi). */}
+      <div className="px-3 pb-6 pt-3 sm:px-4">
         {/* Filtrlar — barcha qurilmalarda (mobil ham) bitta qatorda 3 tagacha
             sig'adigan panjara; tanlagichlar RelationPicker (Qarindosh
             qo'shish blogi) bilan bir xil Apple uslubida. */}

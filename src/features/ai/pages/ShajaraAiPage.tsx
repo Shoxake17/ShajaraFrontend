@@ -72,7 +72,9 @@ export function ShajaraAiPage() {
           tashqi konteynerda EMAS) — shu bois chegara (border) doim
           joyida qotib turadi, xabarlar hech qachon undan tashqariga
           "chiqib" ketmaydi, faqat ICHKARIDA yuqoriga/pastga suriladi. */}
-      <div className="min-h-0 flex-1 px-3 pt-5 sm:px-4">
+      {/* pt-3 — Sidebar'ning mt-3 bilan TEPASI TEKIS (bir xil balandlikda
+          boshlanadi). */}
+      <div className="min-h-0 flex-1 px-3 pt-3 sm:px-4">
         <div className="flex h-full flex-col">
           <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-3xl border border-brand-100 bg-white/60 p-4 shadow-sm sm:p-5">
             {conversation.length === 0 ? (
