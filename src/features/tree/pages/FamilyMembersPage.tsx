@@ -1,10 +1,11 @@
 // features/tree/pages/FamilyMembersPage.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import {
   Background,
   BackgroundVariant,
+  ControlButton,
   Controls,
   ReactFlow,
   ReactFlowProvider,
@@ -26,6 +27,18 @@ import { MemberSearch, type SearchItem } from '@/features/tree/components/Member
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { tree: TreeEdge };
 
+const iconBase = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+const FullscreenEnterIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" {...iconBase} {...p}>
+    <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />
+  </svg>
+);
+const FullscreenExitIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" {...iconBase} {...p}>
+    <path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M21 16h-3a2 2 0 0 0-2 2v3M8 21v-3a2 2 0 0 0-2-2H3" />
+  </svg>
+);
+
 // useReactFlow (setCenter/getNode — qidiruvdan kamera bilan uchib borish
 // uchun) faqat ReactFlowProvider ichida ishlaydi.
 export function FamilyMembersPage() {
@@ -37,8 +50,8 @@ export function FamilyMembersPage() {
 }
 
 function FamilyMembersBoard() {
-  const { setCenter, getNode } = useReactFlow();
-  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
+  const { setCenter, getNode, fitView } = useReactFlow();
+  const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
   const members = useTreeStore((s) => s.members);
   const rawEdges = useTreeStore((s) => s.rawEdges);
   const loadBoard = useTreeStore((s) => s.loadBoard);
@@ -170,6 +183,13 @@ function FamilyMembersBoard() {
     const w = node.measured?.width ?? 220;
     const h = node.measured?.height ?? 90;
     void setCenter(node.position.x + w / 2, node.position.y + h / 2, { zoom: 1.2, duration: 600 });
+  };
+
+  // To'liq ekran — Sidebar/header/BottomNav Apple uslubida animatsiya bilan
+  // yashiriladi (AppLayout'da), doska butun ekranni egallaydi.
+  const toggleFullscreen = () => {
+    setBoardFullscreen(!boardFullscreen);
+    setTimeout(() => fitView({ padding: 0.15, maxZoom: 1.5, duration: 300 }), 350);
   };
 
   const handleNodesChange = (changes: NodeChange<PersonNodeType>[]) => {
@@ -347,7 +367,15 @@ function FamilyMembersBoard() {
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
-            <Controls position="bottom-right" showInteractive={false} />
+            <Controls position="bottom-right" showInteractive={false}>
+              {/* To'liq ekran — "+/-" blokining eng pastidagi tugma. */}
+              <ControlButton
+                onClick={toggleFullscreen}
+                title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
+              >
+                {boardFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
+              </ControlButton>
+            </Controls>
           </ReactFlow>
         )}
         <style>{`

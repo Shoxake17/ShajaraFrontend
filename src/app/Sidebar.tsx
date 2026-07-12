@@ -11,7 +11,12 @@ import { NAV, LogoutIcon } from './nav-items';
 
 const MB = 1024 * 1024;
 
-export function Sidebar() {
+interface SidebarProps {
+  /** Doska fullscreen rejimida bo'lsa — chapga suzuvchi yopiladi (animatsiya bilan) */
+  fullscreen: boolean;
+}
+
+export function Sidebar({ fullscreen }: SidebarProps) {
   const navigate = useNavigate();
   const clearSession = useAuthStore((s) => s.logout);
   const usedBytes = useStorageStore((s) => s.usedBytes);
@@ -58,7 +63,13 @@ export function Sidebar() {
     // AJDO logotipi endi BU YERDA emas — umumiy AppLayout header'ida
     // (mockup: desktopajdo.png — logotip butun sahifa tepasida, Sidebar
     // ustida yagona chiziq). Sidebar o'zi suzuvchi bordered/yumaloq karta.
-    <aside className="mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm lg:flex lg:w-60">
+    <aside
+      className={`mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:flex ${
+        fullscreen
+          ? 'lg:w-0 lg:min-w-0 lg:-translate-x-6 lg:border-transparent lg:opacity-0'
+          : 'border-brand-100 lg:w-60 lg:translate-x-0'
+      }`}
+    >
       {/* Navigatsiya */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {NAV.map(({ to, label, Icon, img, end }) => (
@@ -98,7 +109,6 @@ export function Sidebar() {
           type="button"
           onClick={onLogout}
           disabled={loggingOut}
-          title="Chiqish"
           className="flex w-full items-center justify-center gap-3 rounded-full border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 lg:justify-start"
         >
           <LogoutIcon className="shrink-0" />

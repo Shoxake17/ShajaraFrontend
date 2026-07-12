@@ -7,7 +7,12 @@
 import { NavLink } from 'react-router-dom';
 import { NAV } from './nav-items';
 
-export function BottomNav() {
+interface BottomNavProps {
+  /** Doska fullscreen rejimida bo'lsa — pastga suzuvchi yopiladi (animatsiya bilan) */
+  fullscreen: boolean;
+}
+
+export function BottomNav({ fullscreen }: BottomNavProps) {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
       'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
@@ -16,10 +21,15 @@ export function BottomNav() {
 
   return (
     // Apple/app uslubi: suzuvchi (floating) TO'LIQ yumaloq (pill) karta —
-    // atrofida joy (mx/mb), ANIQ ko'rinadigan border + soya.
+    // atrofida joy (mx/mb), ANIQ ko'rinadigan border + soya. Fullscreen'da
+    // pastga siljib (translate) yopiladi.
     <nav
       aria-label="Asosiy navigatsiya"
-      className="mx-3 mb-[max(0.75rem,env(safe-area-inset-bottom))] flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md lg:hidden"
+      className={`mx-3 flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
+        fullscreen
+          ? 'mb-0 max-h-0 translate-y-6 opacity-0'
+          : 'mb-[max(0.75rem,env(safe-area-inset-bottom))] max-h-20 translate-y-0 opacity-100'
+      }`}
     >
       {NAV.map(({ to, shortLabel, Icon, img, end }) => (
         <NavLink key={to} to={to} end={end} className={linkClass}>

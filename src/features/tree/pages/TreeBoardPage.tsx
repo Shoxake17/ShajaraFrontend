@@ -70,6 +70,16 @@ const TargetIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
   </svg>
 );
+const FullscreenEnterIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" {...iconBase} {...p}>
+    <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />
+  </svg>
+);
+const FullscreenExitIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" {...iconBase} {...p}>
+    <path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M21 16h-3a2 2 0 0 0-2 2v3M8 21v-3a2 2 0 0 0-2-2H3" />
+  </svg>
+);
 
 // useReactFlow (fitView) faqat ReactFlowProvider ichida ishlaydi
 export function TreeBoardPage() {
@@ -86,7 +96,7 @@ function TreeBoard() {
   // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — shu yerga
   // qidiruv/filtr/tugmalarni portal qilamiz (logotip AJDO ikki marta
   // takrorlanmasin uchun, u AppLayout'ning o'zida).
-  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
+  const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
 
   const nodes = useTreeStore((s) => s.nodes);
   const edges = useTreeStore((s) => s.edges);
@@ -233,6 +243,14 @@ function TreeBoard() {
   // "Menga o'tish" — root (o'zim) tuguniga yo'naltiradi
   const goToMe = () => {
     if (myId) focusMember(myId);
+  };
+
+  // To'liq ekran — Sidebar/header/BottomNav Apple uslubida animatsiya bilan
+  // yashiriladi (AppLayout'da), doska butun ekranni egallaydi. Bo'shagan
+  // joyga moslab qayta markazlaymiz (animatsiya tugashini kutib, 350ms).
+  const toggleFullscreen = () => {
+    setBoardFullscreen(!boardFullscreen);
+    setTimeout(() => fitView({ padding: 0.15, maxZoom: 1.2, duration: 300 }), 350);
   };
 
   // Kartadagi istalgan odam (primary yoki turmush o'rtog'i) nomini topamiz
@@ -391,7 +409,6 @@ function TreeBoard() {
                 type="button"
                 onClick={onArrange}
                 disabled={arranging || nodes.length < 2}
-                title="Chiziqlarni tekislash — kartalar o'z qavatiga (tepa-past) tekislanadi, chap-o'ng joylashuv o'zgarmaydi"
                 aria-label="Tartiblash"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
               >
@@ -459,6 +476,14 @@ function TreeBoard() {
                 yetadigan joyda turishi uchun. */}
             <ControlButton onClick={goToMe} disabled={!myId} title="Menga o'tish (o'zimni ko'rsatish)">
               <TargetIcon />
+            </ControlButton>
+            {/* To'liq ekran — Sidebar/header/BottomNav'ni yashirib, doskaga
+                ko'proq joy beradi. "+/-" blokining eng pastidagi tugma. */}
+            <ControlButton
+              onClick={toggleFullscreen}
+              title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
+            >
+              {boardFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
             </ControlButton>
           </Controls>
         </ReactFlow>
