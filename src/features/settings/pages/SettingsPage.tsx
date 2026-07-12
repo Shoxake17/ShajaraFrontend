@@ -4,7 +4,9 @@
 // haqiqatan saqlanadi; backend hali yo'q bo'lganlar "Tez orada" deb belgilangan
 // (soxta xavfsizlik da'vosi qilinmaydi — 100% xavfsiz).
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import type { AppLayoutContext } from '@/app/AppLayout';
 import {
   ChangePasswordDialog,
   LoginHistoryDialog,
@@ -66,6 +68,7 @@ const SECTIONS = [
 const chevron = <ChevronIcon width={16} height={16} className="text-neutral-300" />;
 
 export function SettingsPage() {
+  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.logout);
@@ -209,9 +212,21 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-brand-50">
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden px-4 pb-5 pt-6 sm:px-6">
-        <h1 className="mb-4 shrink-0 font-serif text-2xl font-semibold text-brand-900">Sozlamalar</h1>
+      {/* Sarlavha endi BU YERDA emas — AppLayout'ning umumiy header'iga
+          portal qilib joylashtiriladi (boshqa sahifalardagi bilan bir xil
+          andoza). */}
+      {topBarActionsEl &&
+        createPortal(
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-brand-900">Sozlamalar</p>
+          </div>,
+          topBarActionsEl,
+        )}
 
+      {/* max-w-6xl/mx-auto olib tashlandi va chap padding qisqartirildi —
+          ichki menyu Sidebar'ga yaqinroq turadi, bo'shagan joyga esa
+          Profil blogi (o'ng, 1fr ustun) cho'ziladi. */}
+      <div className="flex w-full flex-1 flex-col overflow-hidden px-3 pb-5 pt-4 sm:px-4">
         {/* Mobil/tablet (<lg) uchun bo'limlar orasida gorizontal aylantiriladigan
             navigatsiya — chap menyu shu o'lchamlarda yashiringan bo'lgani uchun
             bo'limlarga o'tishning YAGONA yo'li shu (aks holda faqat qo'lda
@@ -272,7 +287,6 @@ export function SettingsPage() {
                         type="button"
                         onClick={() => fileRef.current?.click()}
                         disabled={saving}
-                        title="Rasmni o'zgartirish"
                         className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
                       >
                         <CameraIcon width={15} height={15} />
