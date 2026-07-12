@@ -302,6 +302,36 @@ export function FamilyMembersPage() {
             <Controls position="bottom-right" showInteractive={false} />
           </ReactFlow>
         )}
+        {/* Zoom paneli uslubi — BottomNav bilan bir xil "app" ko'rinishi:
+            border + yumaloq burchak + soya, ikonkalar brend rangida.
+            index.css'dagi umumiy override ISHLAMAYDI (@xyflow/react/dist/
+            style.css shu sahifaning o'z JS chunk'i ichida import qilingani
+            uchun Vite ularni build paytida bitta CSS faylga birlashtirib,
+            bizning umumiy qoidalarimizni sirli chiqarib tashlaydi) — shu
+            sabab bu yerda, komponentning O'ZIDA, inline <style> orqali
+            (TreeBoardPage.tsx'dagi bilan bir xil). */}
+        <style>{`
+          .react-flow__controls {
+            border: 2px solid #CBD9C4;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(23, 41, 30, 0.12);
+          }
+          .react-flow__controls-button {
+            width: 34px;
+            height: 34px;
+            background: #ffffff;
+            color: #2C4A38;
+            border-bottom-color: #E7EDE2;
+          }
+          .react-flow__controls-button:hover {
+            background: #F3F6F0;
+            color: #213A2B;
+          }
+          .react-flow__controls-button:disabled svg {
+            fill-opacity: 0.35;
+          }
+        `}</style>
       </div>
     </div>
   );

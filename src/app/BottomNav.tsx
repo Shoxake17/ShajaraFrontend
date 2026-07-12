@@ -10,14 +10,16 @@ import { NAV } from './nav-items';
 export function BottomNav() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-[11px] font-medium transition-colors',
+      'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
       isActive ? 'text-brand-800' : 'text-brand-400',
     ].join(' ');
 
   return (
+    // Apple/app uslubi: suzuvchi (floating) TO'LIQ yumaloq (pill) karta —
+    // atrofida joy (mx/mb), ANIQ ko'rinadigan border + soya.
     <nav
       aria-label="Asosiy navigatsiya"
-      className="flex shrink-0 border-t border-brand-100 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="mx-3 mb-[max(0.75rem,env(safe-area-inset-bottom))] flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md lg:hidden"
     >
       {NAV.map(({ to, shortLabel, Icon, img, end }) => (
         <NavLink key={to} to={to} end={end} className={linkClass}>

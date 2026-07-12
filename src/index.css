@@ -17,7 +17,16 @@
 @layer components {
   /* React Flow'ning standart zoom/fit tugmalari (26x26px) touch uchun
      torroq — doska (Shajara/Oila a'zolari) sahifalarida barcha ekranlarda
-     qulayroq bosish uchun kattalashtirilgan. */
+     qulayroq bosish uchun kattalashtirilgan.
+     ESLATMA: bu yerga qo'shimcha border/rang override yozish ISHLAMAYDI —
+     @xyflow/react/dist/style.css TreeBoardPage/FamilyMembersPage'ning o'z
+     JS chunk'i ichida import qilingani uchun, Vite/Rollup uni build paytida
+     xuddi shu chunk'ning CSS fayliga birlashtiradi va bizning shu umumiy
+     index.css'dagi qoidalarimiz (hatto !important bilan ham) sirli tarzda
+     chiqib ketadi (build tekshiruvida tasdiqlandi — 2026-07-12). Border/rang
+     kabi qo'shimcha stillar endi TreeBoardPage.tsx/FamilyMembersPage.tsx
+     ICHIDA, <Controls>'dan keyingi inline <style> teg orqali yoziladi —
+     shu component bilan BIR XIL faylda/chunkda bo'lgani uchun ishonchli. */
   .react-flow__controls-button {
     width: 34px;
     height: 34px;
