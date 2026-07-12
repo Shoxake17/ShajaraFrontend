@@ -218,7 +218,7 @@ export function MediaGalleryPage() {
         ) : shown.length === 0 ? (
           <p className="mt-8 py-16 text-center text-sm text-neutral-500">Filtr bo&#8216;yicha hech narsa topilmadi</p>
         ) : (
-          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {shown.map((it) => (
               <li key={it.key} className="group rounded-2xl border border-brand-100 bg-white shadow-sm">
                 <button type="button" onClick={() => setLightbox(it)} className="relative block aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-neutral-100">
