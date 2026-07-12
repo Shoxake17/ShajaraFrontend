@@ -390,8 +390,10 @@ export function SettingsPage() {
                       </>
                     ) : (
                       // Ko'rish rejimi — bitta ixcham blok (mockup: profile.png):
-                      // rasm + ism + email + telefon, o'ngda "Tahrirlash" tugmasi.
-                      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                      // rasm + ism + email + telefon, o'ngda "Tahrirlash" tugmasi —
+                      // BARCHA o'lchamlarda (mobil ham) BITTA qatorda, tugma
+                      // rasm bilan bir SATRDA (pastda emas).
+                      <div className="flex items-center gap-3">
                         {previewUrl ? (
                           <img src={previewUrl} alt={ism} className="h-14 w-14 shrink-0 rounded-full object-cover" />
                         ) : (
@@ -409,7 +411,7 @@ export function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => setEditingProfile(true)}
-                          className="w-full shrink-0 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 sm:w-auto"
+                          className="shrink-0 rounded-full bg-brand-50 px-3.5 py-2 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 sm:px-5 sm:py-2.5 sm:text-sm"
                         >
                           Tahrirlash
                         </button>
