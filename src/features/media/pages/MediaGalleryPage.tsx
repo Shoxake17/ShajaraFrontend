@@ -37,6 +37,8 @@ const UploadI = () => (<svg viewBox="0 0 24 24" width="18" height="18" {...svg}>
 const TrashI = () => (<svg viewBox="0 0 24 24" width="15" height="15" {...svg}><path d="M5.5 7h13M9 7V5.5h6V7M7 7l1 12h8l1-12" /></svg>);
 const EditI = () => (<svg viewBox="0 0 24 24" width="15" height="15" {...svg}><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.2 4 20Z" /><path d="M14.5 7.5l2.8 2.8" /></svg>);
 const DotsI = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5.5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="18.5" r="1.6" /></svg>);
+const ChevronI = ({ className }: { className?: string }) => (<svg viewBox="0 0 24 24" width="14" height="14" {...svg} className={className}><path d="m6 9 6 6 6-6" /></svg>);
+const CheckI = () => (<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>);
 
 /** Karta ustidagi ⋮ menyu — Tahrirlash / O'chirish */
 function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
@@ -81,8 +83,89 @@ const TypeBadge = ({ type }: { type: MediaType }) => (
   </span>
 );
 
-const selectCls =
-  "w-full cursor-pointer appearance-none rounded-xl border border-neutral-200 bg-white bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22 viewBox=%220 0 24 24%22><path d=%22m6 9 6 6 6-6%22/></svg>')] bg-[length:18px] bg-[right_0.75rem_center] bg-no-repeat py-2.5 pl-4 pr-10 text-sm text-brand-900 outline-none transition-colors focus:border-brand-600";
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+/** Filtr tanlagichi — RelationPicker (Qarindosh qo'shish blogi) bilan bir
+    xil Apple uslubidagi custom dropdown: tugma bosilganda ro'yxat ochiladi,
+    tanlangan qator ✓ belgi bilan ajralib turadi. Native <select> o'rniga. */
+function FilterPicker({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: string;
+  options: FilterOption[];
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative min-w-0">
+      <button
+        type="button"
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={`flex w-full min-w-0 items-center justify-between gap-1 rounded-field border bg-white px-2.5 py-2 text-left transition-colors sm:px-4 sm:py-3 ${
+          open ? 'border-brand-600' : 'border-neutral-200 hover:border-neutral-300'
+        }`}
+      >
+        <span className="truncate text-[12px] font-medium text-brand-900 sm:text-[15px]">
+          {current?.label ?? label}
+        </span>
+        <ChevronI className={`shrink-0 text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label={label}
+          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-max min-w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
+        >
+          {options.map((o) => {
+            const selected = o.value === value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
+                  selected ? 'bg-brand-50 font-medium text-brand-800' : 'text-brand-900 hover:bg-neutral-50'
+                }`}
+              >
+                <span className="truncate">{o.label}</span>
+                {selected && <CheckI />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function MediaGalleryPage() {
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
@@ -186,22 +269,30 @@ export function MediaGalleryPage() {
         )}
 
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        {/* Filtrlar */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <select aria-label="Filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as 'all' | MediaType)} className={selectCls}>
-            <option value="all">Filter: Barchasi</option>
-            <option value="IMAGE">Rasmlar</option>
-            <option value="VIDEO">Videolar</option>
-            <option value="DOCUMENT">Hujjatlar</option>
-          </select>
-          <select aria-label="Yillar" value={year} onChange={(e) => setYear(e.target.value)} className={selectCls}>
-            <option value="all">Yillar: Barchasi</option>
-            {years.map((y) => (
-              <option key={y} value={String(y)}>
-                {y}-yil
-              </option>
-            ))}
-          </select>
+        {/* Filtrlar — barcha qurilmalarda (mobil ham) bitta qatorda 3 tagacha
+            sig'adigan panjara; tanlagichlar RelationPicker (Qarindosh
+            qo'shish blogi) bilan bir xil Apple uslubida. */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <FilterPicker
+            label="Tur"
+            value={typeFilter}
+            onChange={(v) => setTypeFilter(v as 'all' | MediaType)}
+            options={[
+              { value: 'all', label: 'Barchasi' },
+              { value: 'IMAGE', label: 'Rasmlar' },
+              { value: 'VIDEO', label: 'Videolar' },
+              { value: 'DOCUMENT', label: 'Hujjatlar' },
+            ]}
+          />
+          <FilterPicker
+            label="Yil"
+            value={year}
+            onChange={setYear}
+            options={[
+              { value: 'all', label: 'Yil: Barchasi' },
+              ...years.map((y) => ({ value: String(y), label: `${y}-yil` })),
+            ]}
+          />
         </div>
 
         {/* Kartalar */}
