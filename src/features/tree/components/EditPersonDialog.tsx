@@ -15,7 +15,9 @@ export interface EditedPerson {
   gender: Gender;
   birthYear: number | null;
   deathYear: number | null;
-  photoUrl: string | null;
+  /** FAQAT yangi rasm tanlangan bo'lsa berilgan (R2 kalit) — aks holda
+      yuborilmaydi, chunki eski qiymat ko'rish uchun IMZOLANGAN havola. */
+  photoUrl?: string | null;
   /** Yangi rasm tanlangan bo'lsa uning hajmi (bayt) — storage kvotasi uchun */
   photoSizeBytes?: number;
   /** Qarindoshlik (kimligi) o'zgargan bo'lsa */
@@ -99,8 +101,11 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
         gender,
         birthYear: birthYear ? Number(birthYear) : null,
         deathYear: deathYear ? Number(deathYear) : null,
-        photoUrl,
-        ...(photoSizeBytes !== undefined ? { photoSizeBytes } : {}),
+        // photoUrl FAQAT yangi rasm tanlangandagina yuboriladi (shu vaqtda
+        // photoSizeBytes ham o'rnatiladi) — aks holda `photoUrl` hali
+        // ko'rish uchun IMZOLANGAN havola bo'lib qoladi va backend uni
+        // "o'ziniki emas" deb 400 bilan rad etardi.
+        ...(photoSizeBytes !== undefined ? { photoUrl, photoSizeBytes } : {}),
         ...(canEditRelation && relation !== person.relation ? { relation } : {}),
         // Turmush o'rtog'i bo'lsa — tartib raqamini saqlaymiz (bo'sh -> avtomatik)
         ...(relation === 'TURMUSH'

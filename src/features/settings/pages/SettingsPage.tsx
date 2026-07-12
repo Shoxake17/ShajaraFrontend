@@ -195,8 +195,12 @@ export function SettingsPage() {
     try {
       await familyApi.updateMember(myMember.id, {
         fullName: name,
-        photoUrl: photoUrl ?? undefined,
-        ...(photoSizeBytes !== undefined ? { photoSizeBytes } : {}),
+        // photoUrl FAQAT yangi rasm tanlangandagina yuboriladi (shu vaqtda
+        // photoSizeBytes ham o'rnatiladi) — aks holda `photoUrl` hali
+        // ko'rish uchun IMZOLANGAN havola (createViewUrl) bo'lib qoladi va
+        // backend uni "o'ziniki emas" deb 400 bilan rad etardi (rasmni
+        // o'zgartirmasdan boshqa maydonni saqlashda ham).
+        ...(photoSizeBytes !== undefined ? { photoUrl: photoUrl ?? undefined, photoSizeBytes } : {}),
       });
       await loadBoard();
       void useStorageStore.getState().loadUsage();
@@ -360,7 +364,7 @@ export function SettingsPage() {
                               <CameraIcon width={15} height={15} />
                             </button>
                           </div>
-                          <div className="grid w-full gap-3">{profileFieldsGrid}</div>
+                          <div className="grid w-full gap-3 sm:grid-cols-2">{profileFieldsGrid}</div>
                         </div>
 
                         {error && <p className="mt-3 text-xs text-red-500">{error}</p>}

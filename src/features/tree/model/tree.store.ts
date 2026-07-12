@@ -34,7 +34,9 @@ interface EditInput {
   gender: Gender;
   birthYear: number | null;
   deathYear: number | null;
-  photoUrl: string | null;
+  /** FAQAT yangi rasm tanlangan bo'lsa berilgan (R2 kalit) — aks holda
+      yuborilmaydi, chunki eski qiymat ko'rish uchun IMZOLANGAN havola. */
+  photoUrl?: string | null;
   photoSizeBytes?: number;
   /** Qarindoshlik (kimligi) o'zgargan bo'lsa */
   relation?: RelationKey;
@@ -329,7 +331,7 @@ export const useTreeStore = create<TreeState>()((set, get) => {
         gender: patch.gender,
         birthYear: patch.birthYear,
         deathYear: patch.deathYear,
-        photoUrl: patch.photoUrl,
+        ...(patch.photoUrl !== undefined ? { photoUrl: patch.photoUrl } : {}),
         ...(patch.photoSizeBytes !== undefined ? { photoSizeBytes: patch.photoSizeBytes } : {}),
         ...(patch.relation ? { relation: patch.relation } : {}),
         ...(patch.spouseOrder !== undefined ? { spouseOrder: patch.spouseOrder } : {}),
