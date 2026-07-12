@@ -118,7 +118,7 @@ export function MemberSearch({ items, onSelect }: Props) {
           autoComplete="off"
           spellCheck={false}
           maxLength={MAX_QUERY}
-          placeholder="Ism yoki familiya bo'yicha qidirish"
+          placeholder="Qidirish..."
           value={query}
           onChange={(e) => {
             setQuery(e.target.value.slice(0, MAX_QUERY));
@@ -126,7 +126,7 @@ export function MemberSearch({ items, onSelect }: Props) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="w-full rounded-field border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-brand-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-brand-600"
+          className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm text-brand-900 outline-none transition-colors placeholder:text-brand-400 focus:border-brand-300 focus:bg-white"
         />
       </div>
 

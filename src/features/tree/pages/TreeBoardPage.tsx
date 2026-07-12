@@ -274,11 +274,12 @@ function TreeBoard() {
 
   return (
     <div className="flex h-full flex-col bg-brand-50">
-      {/* Yuqori panel — mobilda suzuvchi (floating) yumaloq karta (Apple uslubi:
-          border + soya + atrofida joy), lg+ da odatiy yassi app-bar'ga qaytadi. */}
-      <header className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2.5 rounded-full border border-brand-100 bg-white px-3 shadow-sm sm:gap-3 sm:px-4 lg:mx-0 lg:mt-0 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:shadow-none">
+      {/* Yuqori panel — suzuvchi (floating) yumaloq karta (Apple/app uslubi:
+          border + soya + atrofida joy), barcha o'lchamlarda — mockup
+          (desktopajdo.png) desktop'da ham xuddi shu uslubni ko'rsatadi. */}
+      <header className="mx-3 mt-3 flex h-14 shrink-0 items-center gap-2.5 rounded-full border border-brand-100 bg-white px-3 shadow-sm sm:gap-3 sm:px-4">
         <img src="/shajaratree.png" alt="AJDO" className="h-8 w-8 shrink-0 rounded-full object-cover" />
-        <span className="flex items-center gap-1 font-serif text-lg font-semibold text-brand-900">
+        <span className="flex items-center gap-1 font-sans text-lg font-bold text-brand-900">
           AJDO
         </span>
 
@@ -345,7 +346,7 @@ function TreeBoard() {
             onClick={goToMe}
             disabled={!myId}
             title="Menga o'tish (o'zimni ko'rsatish)"
-            className="hidden items-center gap-1.5 rounded-field px-2 py-1.5 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40 sm:flex"
+            className="hidden items-center gap-1.5 rounded-full bg-brand-50 py-1.5 pl-1.5 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
           >
             <span
               className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
@@ -369,10 +370,10 @@ function TreeBoard() {
                   : "Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)"
               }
               aria-pressed={layoutEdit}
-              className={`hidden items-center justify-center rounded-field border px-3 py-2 transition-colors sm:flex ${
+              className={`hidden h-9 w-9 items-center justify-center rounded-full transition-colors sm:flex ${
                 layoutEdit
-                  ? 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800'
-                  : 'border-brand-200 text-brand-800 hover:bg-brand-50'
+                  ? 'bg-brand-700 text-white hover:bg-brand-800'
+                  : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
               }`}
             >
               {/* Surish (move) ikonkasi */}
@@ -388,7 +389,7 @@ function TreeBoard() {
             disabled={arranging || nodes.length < 2}
             title="Chiziqlarni tekislash — kartalar o'z qavatiga (tepa-past) tekislanadi, chap-o'ng joylashuv o'zgarmaydi"
             aria-label="Tartiblash"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-200 text-brand-800 transition-colors hover:bg-brand-50 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-field sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
           >
             {/* Tartiblash (auto-arrange) ikonkasi — mobilда HAM ko'rinadi (faqat
                 ikonka), desktop bilan bir xil vazifa — sm+ da matn ham chiqadi */}
@@ -402,7 +403,7 @@ function TreeBoard() {
             onClick={openAddDefault}
             title="Qarindosh qo'shish"
             aria-label="Qarindosh qo'shish"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-field sm:px-4 sm:py-2"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-2"
           >
             <PlusIcon className="sm:hidden" />
             <span className="hidden sm:inline text-sm font-semibold">+ Qarindosh qo&#8216;shish</span>
@@ -425,13 +426,7 @@ function TreeBoard() {
           </div>
         )}
 
-        {/* Joylashuv rejimi yoqiq — qisqa yo'riqnoma */}
-        {layoutEdit && isOwner && (
-          <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full bg-brand-800/90 px-4 py-1.5 text-xs font-medium text-white shadow-lg">
-            Faqat TANLANGAN kartaning o&#8216;zi suriladi (oilasi joyida qoladi) — rejim
-            o&#8216;chiq bo&#8216;lsa karta oilasi bilan birga suriladi
-          </div>
-        )}
+       
 
         <ReactFlow
           nodes={displayedNodes}

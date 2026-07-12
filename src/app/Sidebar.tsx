@@ -48,10 +48,10 @@ export function Sidebar() {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'flex items-center gap-3 rounded-field px-3 py-2.5 text-sm font-medium transition-colors',
+      'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors',
       'justify-center lg:justify-start',
       isActive
-        ? 'bg-brand-100 text-brand-900'
+        ? 'bg-brand-800 text-white shadow-sm'
         : 'text-brand-700 hover:bg-brand-50 hover:text-brand-900',
     ].join(' ');
 
@@ -60,7 +60,7 @@ export function Sidebar() {
       {/* Logotip */}
       <div className="flex h-14 shrink-0 items-center justify-center gap-2 border-b border-brand-100 px-3 lg:justify-start">
         <TreeLogo className="h-8 w-8 shrink-0 text-brand-800" />
-        <span className="hidden font-serif text-lg font-semibold text-brand-900 lg:block">
+        <span className="hidden font-sans text-lg font-bold text-brand-900 lg:block">
           AJDO
         </span>
       </div>
@@ -105,7 +105,7 @@ export function Sidebar() {
           onClick={onLogout}
           disabled={loggingOut}
           title="Chiqish"
-          className="flex w-full items-center justify-center gap-3 rounded-field border border-neutral-200 px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 lg:justify-start"
+          className="flex w-full items-center justify-center gap-3 rounded-full border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 lg:justify-start"
         >
           <LogoutIcon className="shrink-0" />
           <span className="hidden lg:block">Chiqish</span>
