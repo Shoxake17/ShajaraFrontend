@@ -28,8 +28,7 @@ interface Turn {
   a: string;
 }
 
-const DEMO_ANSWER =
-  "Tez orada bu savolingizga chinakam javob bera olaman — hozircha Shajara AI ustida ishlanmoqda. Kuzatib boring!";
+const DEMO_ANSWER = 'Bu — Shajara AI javobining namunasi. Haqiqiy javoblar hozir tayyorlanmoqda.';
 
 export function ShajaraAiPage() {
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
@@ -73,8 +72,8 @@ export function ShajaraAiPage() {
           tashqi konteynerda EMAS) — shu bois chegara (border) doim
           joyida qotib turadi, xabarlar hech qachon undan tashqariga
           "chiqib" ketmaydi, faqat ICHKARIDA yuqoriga/pastga suriladi. */}
-      <div className="min-h-0 flex-1 px-4 pt-5 sm:px-6">
-        <div className="mx-auto flex h-full max-w-5xl flex-col">
+      <div className="min-h-0 flex-1 px-3 pt-5 sm:px-4">
+        <div className="flex h-full flex-col">
           <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-3xl border border-brand-100 bg-white/60 p-4 shadow-sm sm:p-5">
             {conversation.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
@@ -114,10 +113,10 @@ export function ShajaraAiPage() {
 
       {/* Kiritish qatori — HAR DOIM pastda qotib turadi, scroll bilan
           birga ketmaydi (chat ilovalaridagi kabi). */}
-      <div className="shrink-0 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
+      <div className="shrink-0 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4">
         <form
           onSubmit={onAsk}
-          className="mx-auto flex max-w-5xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors focus-within:border-brand-400"
+          className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 shadow-sm transition-colors focus-within:border-brand-400"
         >
           <input
             value={question}
@@ -125,9 +124,6 @@ export function ShajaraAiPage() {
             placeholder="Masalan: “Akmal menga kim bo'ladi?”"
             className="min-w-0 flex-1 bg-transparent px-3 text-sm text-brand-900 outline-none placeholder:text-neutral-400"
           />
-          <span className="hidden shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-medium text-neutral-500 sm:inline-block">
-            Tez orada
-          </span>
           <button
             type="submit"
             disabled={!question.trim()}
