@@ -393,7 +393,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
         {spouseDetails(Detail)}
       </aside>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <div className="fixed inset-x-3 bottom-0 z-40 lg:hidden">
         <div className="relative flex w-full max-h-[90dvh] flex-col rounded-t-3xl border-2 border-b-0 border-brand-200 bg-white shadow-card">
           <button
             type="button"
