@@ -595,6 +595,10 @@
     "segmentedCode": {
       "groupLabel": "Confirmation code",
       "boxLabel": "Code digit {{n}}"
+    },
+    "upload": {
+      "networkError": "Couldn't connect to the file storage server (possibly a network or CORS issue)",
+      "httpError": "File wasn't saved (error code: {{status}})"
     }
   }
 }

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "patch-package",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:capacitor": "tsc -b && vite build --mode capacitor",
@@ -45,6 +46,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.11.0",
     "jsdom": "^25.0.0",
+    "patch-package": "^8.0.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.12",
     "typescript": "^5.6.2",

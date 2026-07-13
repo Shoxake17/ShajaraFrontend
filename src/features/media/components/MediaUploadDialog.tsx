@@ -6,6 +6,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { mediaApi, uploadMediaFile } from '../api/media.api';
 import { useStorageStore, quotaMessage, formatBytes } from '@/features/storage/storage.store';
+import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
 import { Button } from '@/shared/ui/Button';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -92,7 +93,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
       onUploaded();
       onClose();
     } catch (err) {
-      setError(quotaMessage(err) ?? t('media.uploadDialog.uploadFailed'));
+      setError(quotaMessage(err) ?? r2UploadErrorMessage(err) ?? t('media.uploadDialog.uploadFailed'));
     } finally {
       setBusy(false);
     }

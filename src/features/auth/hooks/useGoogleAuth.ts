@@ -6,7 +6,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/model/auth.store';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import { requestGoogleAccessToken } from '@/shared/lib/google';
-import { requestGoogleAccessTokenNative } from '@/shared/lib/google-native';
+import { requestGoogleIdTokenNative } from '@/shared/lib/google-native';
 import { env } from '@/shared/config/env';
 
 /**
@@ -28,19 +28,28 @@ export function useGoogleAuth() {
     setLoading(true);
     try {
       // Nativ ilovada GIS popup ishlamaydi (Google WebView'ni bloklaydi) —
-      // Play Services'ning o'z hisob tanlash oynasi ishlatiladi.
-      const googleToken = Capacitor.isNativePlatform()
-        ? await requestGoogleAccessTokenNative()
-        : await requestGoogleAccessToken(env.googleClientId);
-      const { user, accessToken } = await authApi.google({ accessToken: googleToken });
+      // Play Services'ning o'z hisob tanlash oynasi ishlatiladi, u ID token
+      // qaytaradi (access token emas — sabab: google-native.ts'dagi izoh).
+      const isNative = Capacitor.isNativePlatform();
+      const { user, accessToken } = isNative
+        ? await authApi.google({ idToken: await requestGoogleIdTokenNative() })
+        : await authApi.google({ accessToken: await requestGoogleAccessToken(env.googleClientId) });
       setSession(user, accessToken);
       navigate('/doska');
     } catch (e) {
-      // Foydalanuvchi oynani o'zi yopgan bo'lsa — xato ko'rsatmaymiz
-      const msg = (e as Error).message;
-      if (msg !== 'popup_closed' && msg !== 'access_denied') {
-        setError(authErrorMessage(e));
+      // Foydalanuvchi hisob tanlashni bekor qilgan bo'lsa — xato ko'rsatmaymiz
+      // (veb: GIS popup_closed/access_denied; nativ plugin: SIGN_IN_CANCELLED,
+      // kod 12501 — https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes)
+      const err = e as { message?: string; code?: string };
+      if (err.message === 'popup_closed' || err.message === 'access_denied' || err.code === '12501') {
+        return;
       }
+      // Nativ plugin xatosi backend javobi EMAS (axios emas) — authErrorMessage
+      // buni umumiy "Xatolik yuz berdi"ga aylantirardi, aniq sababni yashirib.
+      // Diagnostika uchun XOM xabarni ham qo'shib ko'rsatamiz.
+      const base = authErrorMessage(e);
+      const raw = !Capacitor.isNativePlatform() || typeof e !== 'object' ? null : err.message;
+      setError(raw && raw !== base ? `${base} (${raw})` : base);
     } finally {
       setLoading(false);
     }

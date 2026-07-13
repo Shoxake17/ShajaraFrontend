@@ -50,11 +50,21 @@ export async function uploadMediaFile(
   file: File,
 ): Promise<{ url: string; kind: MediaType; contentType: string; sizeBytes: number }> {
   const { uploadUrl, key, kind } = await mediaApi.getUploadUrl(file.type);
-  const res = await fetch(uploadUrl, {
-    method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
-  });
-  if (!res.ok) throw new Error('Fayl yuklanmadi');
+  let res: Response;
+  try {
+    res = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
+    });
+  } catch (err) {
+    // fetch() javob OLMASDAN rad etsa — CORS yoki tarmoq darajasidagi xato
+    // (masalan R2 bucket'ning o'z CORS siyosati so'rov manbasiga ruxsat
+    // bermayapti). HTTP status YO'Q — shu bois alohida turkum.
+    throw new Error(`R2_NETWORK_ERROR: ${(err as Error).message}`);
+  }
+  if (!res.ok) {
+    throw new Error(`R2_HTTP_ERROR: ${res.status} ${res.statusText}`.trim());
+  }
   return { url: key, kind, contentType: file.type, sizeBytes: file.size };
 }

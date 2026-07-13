@@ -51,8 +51,9 @@ export const authApi = {
   /** 2FA o'chirish — joriy parol majburiy tasdiqlanadi */
   disableTwoFactor: (dto: DisableTwoFactorDto) =>
     http.post<void>('/auth/2fa/disable', dto).then((r) => r.data),
-  /** Google access token bilan kirish/ro'yxatdan o'tish */
-  google: (dto: { accessToken: string }) =>
+  /** Google bilan kirish/ro'yxatdan o'tish — veb: accessToken (GIS popup),
+   * nativ: idToken (Play Services hisob tanlash oynasi) */
+  google: (dto: { accessToken: string } | { idToken: string }) =>
     http.post<AuthResponse>('/auth/google', dto).then((r) => r.data),
   /** Joriy sessiya egasi. 401 bo'lsa interceptor cookie orqali avtomatik yangilaydi. */
   me: () => http.get<AuthUser>('/auth/me').then((r) => r.data),

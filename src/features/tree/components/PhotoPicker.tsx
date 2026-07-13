@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { uploadPhoto } from '@/features/tree/api/family.api';
 import { quotaMessage } from '@/features/storage/storage.store';
+import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
 
 interface PhotoPickerProps {
   value: string | null;
@@ -20,6 +21,8 @@ interface PhotoPickerProps {
 export function uploadErrorMessage(err: unknown): string {
   const quota = quotaMessage(err);
   if (quota) return quota;
+  const r2 = r2UploadErrorMessage(err);
+  if (r2) return r2;
   const status = (err as { response?: { status?: number } } | undefined)?.response?.status;
   if (status === 401) return i18n.t('tree.photoPicker.sessionExpired');
   if (status === 503) return i18n.t('tree.photoPicker.storageNotConfigured');
