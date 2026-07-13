@@ -1,5 +1,6 @@
 // features/tree/components/AddPersonDialog.tsx
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { relationDef, type Gender, type RelationKey } from '@/features/tree/model/relations';
 import { PhotoPicker } from './PhotoPicker';
 import { GenderToggle } from './GenderToggle';
@@ -39,6 +40,7 @@ export function AddPersonDialog({
   onClose,
   onAdd,
 }: AddPersonDialogProps) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [relation, setRelation] = useState<RelationKey>('OTA');
   const [gender, setGender] = useState<Gender>('MALE');
@@ -77,7 +79,7 @@ export function AddPersonDialog({
     e.preventDefault();
     const name = fullName.trim();
     if (name.length < 2) {
-      setError("Ism kamida 2 ta belgidan iborat bo'lsin");
+      setError(t('tree.addDialog.nameRequired'));
       return;
     }
     const yearError = validateYears(birthYear, deathYear);
@@ -103,7 +105,7 @@ export function AddPersonDialog({
       reset();
       onClose();
     } catch (err) {
-      setError(quotaMessage(err) ?? "Saqlab bo'lmadi. Qaytadan urinib ko'ring");
+      setError(quotaMessage(err) ?? t('tree.addDialog.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -116,16 +118,17 @@ export function AddPersonDialog({
     >
       <div
         role="dialog"
-        aria-label="Oila a'zosini qo'shish"
+        aria-label={t('tree.addDialog.ariaLabel')}
         className="no-scrollbar max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[22px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-center font-serif text-xl font-semibold text-brand-900">
-          Oila a&#8216;zosini qo&#8216;shish
+          {t('tree.addDialog.title')}
         </h2>
         {anchorName && (
           <p className="mt-1 text-center text-[13px] text-brand-600">
-            <span className="font-semibold">{anchorName}</span>ga nisbatan
+            <span className="font-semibold">{anchorName}</span>
+            {t('tree.addDialog.forRelativeSuffix')}
           </p>
         )}
 
@@ -142,7 +145,7 @@ export function AddPersonDialog({
 
           <TextField
             icon={<UserIcon />}
-            placeholder="Ism familiya"
+            placeholder={t('tree.addDialog.namePlaceholder')}
             value={fullName}
             autoFocus
             onChange={(e) => {
@@ -152,7 +155,7 @@ export function AddPersonDialog({
           />
 
           <div>
-            <span className="mb-1 block px-1 text-xs text-neutral-500">Kimligi (qarindoshligi)</span>
+            <span className="mb-1 block px-1 text-xs text-neutral-500">{t('tree.addDialog.relationLabel')}</span>
             <RelationPicker value={relation} onChange={setRelation} />
           </div>
 
@@ -167,14 +170,14 @@ export function AddPersonDialog({
           {relation === 'TURMUSH' && (
             <label className="block">
               <span className="mb-1 block text-[13px] font-medium text-brand-700">
-                Nechanchi turmush o&#8216;rtog&#8216;i (ixtiyoriy)
+                {t('tree.addDialog.spouseOrderLabel')}
               </span>
               <input
                 type="number"
                 min={1}
                 max={50}
                 inputMode="numeric"
-                placeholder="masalan 2 — 2-xotin"
+                placeholder={t('tree.addDialog.spouseOrderPlaceholder')}
                 value={spouseOrder}
                 onChange={(e) => setSpouseOrder(e.target.value)}
                 className="w-full rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
@@ -190,10 +193,10 @@ export function AddPersonDialog({
               onClick={onClose}
               className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-brand-900 transition-colors hover:bg-brand-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <Button type="submit" loading={saving} className="flex-1">
-              Qo&#8216;shish
+              {t('tree.addDialog.submit')}
             </Button>
           </div>
         </form>

@@ -1,16 +1,19 @@
 // src/features/landing/components/Navbar.tsx
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/shared/hooks/useLanguage';
 import './Navbar.css';
 
-const NAV_LINKS = [
-  { href: '#asosiy', label: 'Asosiy' },
-  { href: '#imkoniyatlar', label: 'Imkoniyatlar' },
-  { href: '#afzalliklar', label: 'Afzalliklar' },
-  { href: '#tariflar', label: 'Tariflar' },
-  { href: '#faq', label: 'F.A.Q' },
-];
-
 export function Navbar() {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
+  const NAV_LINKS = [
+    { href: '#asosiy', label: t('landing.navbar.links.home') },
+    { href: '#imkoniyatlar', label: t('landing.navbar.links.features') },
+    { href: '#afzalliklar', label: t('landing.navbar.links.benefits') },
+    { href: '#tariflar', label: t('landing.navbar.links.pricing') },
+    { href: '#faq', label: t('landing.navbar.links.faq') },
+  ];
   return (
     <header className="navbar">
       <div className="navbar__inner">
@@ -18,7 +21,7 @@ export function Navbar() {
         <Link to="/" className="navbar__brand">
           <img
             src="/registertree.png"
-            alt="Shajara logotipi"
+            alt={t('landing.navbar.logoAlt')}
             draggable={false}
             className="navbar__logoImg"
           />
@@ -36,7 +39,12 @@ export function Navbar() {
 
         {/* O'ng blok: til tanlagich + Kirish tugmasi */}
         <div className="navbar__actions">
-          <button type="button" className="navbar__lang" aria-label="Tilni tanlash">
+          <button
+            type="button"
+            className="navbar__lang"
+            aria-label={t('landing.navbar.langLabel')}
+            onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+          >
             {/* Globus ikonkasi */}
             <svg
               className="navbar__langIcon"
@@ -52,7 +60,7 @@ export function Navbar() {
               <path d="M2 12h20" />
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
             </svg>
-            UZ
+            {language.toUpperCase()}
             {/* Chevron (pastga) ikonkasi */}
             <svg
               className="navbar__langChevron"
@@ -69,7 +77,7 @@ export function Navbar() {
           </button>
 
           <Link to="/login" className="navbar__cta">
-            Kirish
+            {t('landing.navbar.login')}
           </Link>
         </div>
       </div>

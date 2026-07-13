@@ -4,6 +4,7 @@
 // daraxt, pulsatsiyalanuvchi nur va uchib tushayotgan barglar.
 // Daraxt rasmi mix-blend-mode + mask orqali fonga to'liq singdirilgan.
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowRightIcon } from '@/shared/ui/icons';
 import './LandingMain.css';
 
@@ -25,6 +26,7 @@ function Leaf({ className }: { className: string }) {
 }
 
 export function LandingMain() {
+  const { t } = useTranslation();
   return (
     <section id="asosiy" className="landingMain">
       {/* Uchib tushayotgan barglar — butun hero bo'ylab */}
@@ -40,23 +42,20 @@ export function LandingMain() {
           <h1 className="landingMain__title">Shajara</h1>
 
           <p className="landingMain__subtitle">
-            Yangi hisob yarating
+            {t('landing.hero.subtitleLine1')}
             <br />
-            va oila daraxtingizni boshlang
+            {t('landing.hero.subtitleLine2')}
           </p>
 
-          <p className="landingMain__description">
-            Oila tarixingizni asrang, avlodlaringizni bog&#8216;lang va kelajak uchun meros
-            qoldiring.
-          </p>
+          <p className="landingMain__description">{t('landing.hero.description')}</p>
 
           <div className="landingMain__actions">
             <Link to="/register" className="landingMain__ctaPrimary">
-              Bepul boshlash
+              {t('landing.hero.ctaPrimary')}
               <ArrowRightIcon />
             </Link>
             <a href="#imkoniyatlar" className="landingMain__ctaSecondary">
-              Ko&#8216;proq ma&#8216;lumot
+              {t('landing.hero.ctaSecondary')}
             </a>
           </div>
 
@@ -69,9 +68,9 @@ export function LandingMain() {
               ))}
             </div>
             <p className="landingMain__proofText">
-              <span className="landingMain__proofStrong">10,000+</span> foydalanuvchi
+              <span className="landingMain__proofStrong">10,000+</span> {t('landing.hero.proofUsers')}
               <br />
-              bizga ishonadi
+              {t('landing.hero.proofTrust')}
             </p>
           </div>
         </div>
@@ -81,7 +80,7 @@ export function LandingMain() {
           <div className="landingMain__glow" aria-hidden="true" />
           <img
             src="/landingtree.png"
-            alt="Shajara daraxti"
+            alt={t('landing.hero.imageAlt')}
             draggable={false}
             className="landingMain__image"
           />

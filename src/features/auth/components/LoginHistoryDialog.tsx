@@ -5,6 +5,7 @@
 // vaqti, brauzeri, IP manzili bilan ko'rsatiladi — GitHub/Google'dagi
 // "xavfsizlik jurnali" standartiga mos.
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '@/features/auth/api/auth.api';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import { fmtIp, fmtTime } from '@/features/auth/lib/device-format';
@@ -14,16 +15,6 @@ interface LoginHistoryDialogProps {
   open: boolean;
   onClose: () => void;
 }
-
-const EVENT_LABEL: Record<LoginEventType, string> = {
-  REGISTER: "Hisob yaratildi (ro'yxatdan o'tish)",
-  LOGIN_SUCCESS: 'Muvaffaqiyatli kirish',
-  LOGIN_FAILED: "Muvaffaqiyatsiz urinish (noto'g'ri parol)",
-  GOOGLE_LOGIN: 'Google orqali kirish',
-  PASSWORD_CHANGED: "Parol o'zgartirildi",
-  TWO_FACTOR_ENABLED: 'Ikki bosqichli autentifikatsiya yoqildi',
-  TWO_FACTOR_DISABLED: "Ikki bosqichli autentifikatsiya o'chirildi",
-};
 
 function EventGlyph({ type }: { type: LoginEventType }) {
   const cls = 'h-5 w-5';
@@ -68,6 +59,7 @@ function EventGlyph({ type }: { type: LoginEventType }) {
 }
 
 export function LoginHistoryDialog({ open, onClose }: LoginHistoryDialogProps) {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<LoginEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,18 +95,17 @@ export function LoginHistoryDialog({ open, onClose }: LoginHistoryDialogProps) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Kirish tarixi"
+        aria-label={t('auth.loginHistory.ariaLabel')}
         className="flex max-h-[80vh] w-full max-w-md flex-col rounded-[20px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-serif text-lg font-semibold text-brand-900">Kirish tarixi</h3>
+        <h3 className="font-serif text-lg font-semibold text-brand-900">{t('auth.loginHistory.title')}</h3>
         <p className="mt-1 text-xs text-brand-500">
-          Hisobingizga barcha kirish urinishlari — muvaffaqiyatli va muvaffaqiyatsizlari.
-          Tanimagan urinishni ko&#8216;rsangiz — parolingizni darhol o&#8216;zgartiring.
+          {t('auth.loginHistory.desc')}
         </p>
 
         <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-          {events === null && <p className="py-6 text-center text-sm text-neutral-400">Yuklanmoqda…</p>}
+          {events === null && <p className="py-6 text-center text-sm text-neutral-400">{t('auth.loginHistory.loading')}</p>}
 
           {events?.map((ev) => {
             const failed = ev.type === 'LOGIN_FAILED';
@@ -134,11 +125,11 @@ export function LoginHistoryDialog({ open, onClose }: LoginHistoryDialogProps) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <span className={`text-sm font-semibold ${failed ? 'text-red-700' : 'text-brand-900'}`}>
-                    {EVENT_LABEL[ev.type]}
+                    {t(`auth.loginHistory.events.${ev.type}`)}
                   </span>
                   <p className="mt-1 text-xs text-neutral-500">
                     {ev.browser} — {ev.os}
-                    {ev.device === 'mobile' ? ' (mobil)' : ''}
+                    {ev.device === 'mobile' ? t('auth.loginHistory.mobileSuffix') : ''}
                   </p>
                   <p className="mt-0.5 text-xs text-neutral-500">{fmtIp(ev.ip)}</p>
                   <p className="mt-0.5 text-xs text-neutral-400">{fmtTime(ev.createdAt)}</p>
@@ -148,7 +139,7 @@ export function LoginHistoryDialog({ open, onClose }: LoginHistoryDialogProps) {
           })}
 
           {events !== null && events.length === 0 && !error && (
-            <p className="py-6 text-center text-sm text-neutral-400">Kirish tarixi topilmadi</p>
+            <p className="py-6 text-center text-sm text-neutral-400">{t('auth.loginHistory.noHistory')}</p>
           )}
         </div>
 
@@ -159,7 +150,7 @@ export function LoginHistoryDialog({ open, onClose }: LoginHistoryDialogProps) {
           onClick={onClose}
           className="mt-4 shrink-0 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50"
         >
-          Yopish
+          {t('auth.loginHistory.close')}
         </button>
       </div>
     </div>

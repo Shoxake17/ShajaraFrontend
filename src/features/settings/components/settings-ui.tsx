@@ -1,6 +1,7 @@
 // features/settings/components/settings-ui.tsx
 // Sozlamalar bo'limi uchun qayta ishlatiladigan kichik UI bo'laklari + ikonlar.
 import type { ReactElement, ReactNode, SVGProps } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type IconProps = SVGProps<SVGSVGElement>;
 export type IconCmp = (p: IconProps) => ReactElement;
@@ -59,9 +60,10 @@ export function Card({ title, desc, children, className = '' }: { title: string;
 }
 
 export function SoonBadge() {
+  const { t } = useTranslation();
   return (
     <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">
-      Tez orada
+      {t('common.soon')}
     </span>
   );
 }

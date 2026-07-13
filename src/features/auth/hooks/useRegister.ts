@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  registerSchema,
-  verifyCodeSchema,
+  getRegisterSchema,
+  getVerifyCodeSchema,
   type RegisterForm,
   type VerifyCodeForm,
 } from '@/features/auth/model/auth.schemas';
@@ -30,8 +30,8 @@ export function useRegister() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resent, setResent] = useState(false);
 
-  const form = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
-  const codeForm = useForm<VerifyCodeForm>({ resolver: zodResolver(verifyCodeSchema) });
+  const form = useForm<RegisterForm>({ resolver: zodResolver(getRegisterSchema()) });
+  const codeForm = useForm<VerifyCodeForm>({ resolver: zodResolver(getVerifyCodeSchema()) });
 
   // Qayta yuborish cooldown'ining orqaga sanog'i (server 60s cooldown'ini aks ettiradi)
   useEffect(() => {

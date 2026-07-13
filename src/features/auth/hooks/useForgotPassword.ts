@@ -16,8 +16,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  forgotPasswordEmailSchema,
-  resetPasswordSchema,
+  getForgotPasswordEmailSchema,
+  getResetPasswordSchema,
   type ForgotPasswordEmailForm,
   type ResetPasswordForm,
 } from '@/features/auth/model/auth.schemas';
@@ -42,8 +42,8 @@ export function useForgotPassword() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resent, setResent] = useState(false);
 
-  const emailForm = useForm<ForgotPasswordEmailForm>({ resolver: zodResolver(forgotPasswordEmailSchema) });
-  const resetForm = useForm<ResetPasswordForm>({ resolver: zodResolver(resetPasswordSchema) });
+  const emailForm = useForm<ForgotPasswordEmailForm>({ resolver: zodResolver(getForgotPasswordEmailSchema()) });
+  const resetForm = useForm<ResetPasswordForm>({ resolver: zodResolver(getResetPasswordSchema()) });
 
   // Qayta yuborish cooldown'ining orqaga sanog'i (server 60s cooldown'ini aks ettiradi)
   useEffect(() => {

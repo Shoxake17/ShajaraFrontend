@@ -4,6 +4,7 @@
 // Joriy qurilma belgilanadi; qolganlarini bittadan yoki hammasini birdan
 // yakunlash mumkin (GitHub/Google'dagi sessiya boshqaruvi standarti).
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '@/features/auth/api/auth.api';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import { fmtIp, fmtTime } from '@/features/auth/lib/device-format';
@@ -37,6 +38,7 @@ function DeviceGlyph({ device }: { device: string }) {
 }
 
 export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState<SessionInfo[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -123,18 +125,17 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Faol qurilmalar"
+        aria-label={t('auth.sessions.ariaLabel')}
         className="flex max-h-[80vh] w-full max-w-md flex-col rounded-[20px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-serif text-lg font-semibold text-brand-900">Faol qurilmalar</h3>
+        <h3 className="font-serif text-lg font-semibold text-brand-900">{t('auth.sessions.title')}</h3>
         <p className="mt-1 text-xs text-brand-500">
-          Hisobingizga kirgan barcha qurilmalar. Tanimagan qurilmangiz bo&#8216;lsa — sessiyasini
-          yakunlang va parolingizni o&#8216;zgartiring.
+          {t('auth.sessions.desc')}
         </p>
 
         <div className="mt-4 min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1">
-          {sessions === null && <p className="py-6 text-center text-sm text-neutral-400">Yuklanmoqda…</p>}
+          {sessions === null && <p className="py-6 text-center text-sm text-neutral-400">{t('auth.sessions.loading')}</p>}
 
           {sessions?.map((s) => (
             <div
@@ -152,15 +153,15 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
                     </span>
                     {s.current && (
                       <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                        Joriy qurilma
+                        {t('auth.sessions.current')}
                       </span>
                     )}
                   </div>
                   <p className="mt-1 text-xs text-neutral-500">{fmtIp(s.ip)}</p>
-                  <p className="mt-0.5 text-xs text-neutral-500">Kirgan: {fmtTime(s.createdAt)}</p>
+                  <p className="mt-0.5 text-xs text-neutral-500">{t('auth.sessions.joined')} {fmtTime(s.createdAt)}</p>
                   {s.lastSeenAt !== s.createdAt && (
                     <p className="mt-0.5 text-xs text-neutral-400">
-                      So&#8216;nggi faollik: {fmtTime(s.lastSeenAt)}
+                      {t('auth.sessions.lastActivity')} {fmtTime(s.lastSeenAt)}
                     </p>
                   )}
                 </div>
@@ -171,7 +172,7 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
                     disabled={busyId !== null}
                     className="shrink-0 rounded-field border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                   >
-                    {busyId === s.id ? '…' : 'Yakunlash'}
+                    {busyId === s.id ? '…' : t('auth.sessions.endSession')}
                   </button>
                 )}
               </div>
@@ -179,7 +180,7 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
           ))}
 
           {sessions !== null && sessions.length === 0 && !error && (
-            <p className="py-6 text-center text-sm text-neutral-400">Faol sessiyalar topilmadi</p>
+            <p className="py-6 text-center text-sm text-neutral-400">{t('auth.sessions.noSessions')}</p>
           )}
         </div>
 
@@ -191,7 +192,7 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
             onClick={onClose}
             className="flex-1 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50"
           >
-            Yopish
+            {t('auth.sessions.close')}
           </button>
           {others.length > 0 && (
             <button
@@ -200,7 +201,9 @@ export function SessionsDialog({ open, onClose }: SessionsDialogProps) {
               disabled={busyId !== null}
               className="flex-1 rounded-field bg-red-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
             >
-              {busyId === '__others__' ? 'Yakunlanmoqda…' : `Boshqa ${others.length} tasini yakunlash`}
+              {busyId === '__others__'
+                ? t('auth.sessions.endingOthers')
+                : t('auth.sessions.endOthers', { count: others.length })}
             </button>
           )}
         </div>

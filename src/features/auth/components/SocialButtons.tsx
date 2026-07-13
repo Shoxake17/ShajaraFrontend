@@ -1,4 +1,5 @@
 // features/auth/components/SocialButtons.tsx
+import { useTranslation } from 'react-i18next';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 import { AppleIcon, GoogleIcon, TelegramIcon } from '@/shared/ui/icons';
 
@@ -14,6 +15,7 @@ interface SocialButtonsProps {
  * ikonka + yorliq bilan teng kenglikdagi tugmalar qatori.
  */
 export function SocialButtons({ dense }: SocialButtonsProps) {
+  const { t } = useTranslation();
   const { signInWithGoogle, loading, error } = useGoogleAuth();
   const size = dense ? 'h-11 w-16 lg:h-12' : 'h-14 w-20 lg:h-12';
 
@@ -22,7 +24,7 @@ export function SocialButtons({ dense }: SocialButtonsProps) {
       <div className="flex justify-center gap-3">
         <button
           type="button"
-          aria-label="Google orqali kirish"
+          aria-label={t('auth.social.google')}
           onClick={signInWithGoogle}
           disabled={loading}
           className={`flex ${size} items-center justify-center gap-2 rounded-field border border-neutral-200 bg-white transition-all hover:border-brand-300 hover:shadow-card active:scale-95 disabled:cursor-wait disabled:opacity-60 lg:flex-1 lg:px-3`}
@@ -38,7 +40,7 @@ export function SocialButtons({ dense }: SocialButtonsProps) {
         </button>
         <button
           type="button"
-          aria-label="Apple orqali kirish (tez orada)"
+          aria-label={t('auth.social.apple')}
           disabled
           className={`flex ${size} cursor-not-allowed items-center justify-center gap-2 rounded-field border border-neutral-200 bg-white opacity-50 lg:flex-1 lg:px-3`}
         >
@@ -47,7 +49,7 @@ export function SocialButtons({ dense }: SocialButtonsProps) {
         </button>
         <button
           type="button"
-          aria-label="Telegram orqali kirish (tez orada)"
+          aria-label={t('auth.social.telegram')}
           disabled
           className={`flex ${size} cursor-not-allowed items-center justify-center gap-2 rounded-field border border-neutral-200 bg-white opacity-50 lg:flex-1 lg:px-3`}
         >

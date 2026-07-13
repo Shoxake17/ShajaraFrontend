@@ -3,6 +3,7 @@
 // yuklanadi, so'ng media yozuvi yaratiladi. Klient tomonda tur va hajm
 // tekshiriladi (server ham qayta tekshiradi — 100% xavfsiz).
 import { useRef, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { mediaApi, uploadMediaFile } from '../api/media.api';
 import { useStorageStore, quotaMessage, formatBytes } from '@/features/storage/storage.store';
 import { Button } from '@/shared/ui/Button';
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
@@ -48,11 +50,11 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
     if (!f) return;
     const maxMb = LIMITS[f.type];
     if (!maxMb) {
-      setError('Faqat rasm, video yoki PDF fayl');
+      setError(t('media.uploadDialog.onlyImageVideoPdf'));
       return;
     }
     if (f.size > maxMb * 1024 * 1024) {
-      setError(`Fayl ${maxMb} MB dan katta bo'lmasin`);
+      setError(t('media.uploadDialog.fileTooLarge', { maxMb }));
       return;
     }
     setError(null);
@@ -62,16 +64,18 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file) return setError('Fayl tanlang');
-    const t = title.trim();
-    if (t.length < 1) return setError('Nom kiriting');
+    if (!file) return setError(t('media.uploadDialog.pickFile'));
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length < 1) return setError(t('media.uploadDialog.enterName'));
     if (year && (Number(year) < 1000 || Number(year) > CURRENT_YEAR)) {
-      return setError("Yil noto'g'ri");
+      return setError(t('media.uploadDialog.invalidYear'));
     }
     // Kvota oldindan tekshiruvi (bekorga R2'ga yuklamaslik uchun)
     const { usedBytes, limitBytes } = useStorageStore.getState();
     if (usedBytes + file.size > limitBytes) {
-      return setError(`Xotira yetarli emas. Bo'sh joy: ${formatBytes(Math.max(0, limitBytes - usedBytes))}`);
+      return setError(
+        t('media.uploadDialog.notEnoughStorage', { free: formatBytes(Math.max(0, limitBytes - usedBytes)) }),
+      );
     }
     setBusy(true);
     setError(null);
@@ -79,7 +83,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
       const up = await uploadMediaFile(file);
       await mediaApi.create({
         url: up.url,
-        title: t,
+        title: trimmedTitle,
         contentType: up.contentType,
         sizeBytes: up.sizeBytes,
         year: year ? Number(year) : undefined,
@@ -88,7 +92,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
       onUploaded();
       onClose();
     } catch (err) {
-      setError(quotaMessage(err) ?? "Yuklab bo'lmadi. Qaytadan urinib ko'ring");
+      setError(quotaMessage(err) ?? t('media.uploadDialog.uploadFailed'));
     } finally {
       setBusy(false);
     }
@@ -96,22 +100,22 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
 
   const kindLabel = file
     ? file.type.startsWith('video/')
-      ? 'Video'
+      ? t('media.typeLabels.VIDEO')
       : file.type === 'application/pdf'
-        ? 'Hujjat'
-        : 'Rasm'
+        ? t('media.typeLabels.DOCUMENT')
+        : t('media.typeLabels.IMAGE')
     : '';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-950/40 p-4" onClick={onClose}>
       <div
         role="dialog"
-        aria-label="Media yuklash"
+        aria-label={t('media.uploadDialog.ariaLabel')}
         className="w-full max-w-md rounded-[22px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-center font-serif text-xl font-semibold text-brand-900">Media yuklash</h2>
-        <p className="mt-1 text-center text-[13px] text-brand-500">Rasm, video yoki PDF hujjat</p>
+        <h2 className="text-center font-serif text-xl font-semibold text-brand-900">{t('media.uploadDialog.title')}</h2>
+        <p className="mt-1 text-center text-[13px] text-brand-500">{t('media.uploadDialog.subtitle')}</p>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
           <button
@@ -133,7 +137,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
                 </span>
               </span>
             ) : (
-              <span className="text-sm font-medium text-brand-700">Fayl tanlash</span>
+              <span className="text-sm font-medium text-brand-700">{t('media.uploadDialog.chooseFile')}</span>
             )}
           </button>
           <input
@@ -149,7 +153,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
 
           <input
             type="text"
-            placeholder="Nomi (masalan: Bobom yoshligi)"
+            placeholder={t('media.uploadDialog.namePlaceholder')}
             value={title}
             maxLength={120}
             onChange={(e) => setTitle(e.target.value)}
@@ -157,7 +161,7 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
           />
           <input
             type="number"
-            placeholder="Yil (ixtiyoriy)"
+            placeholder={t('media.uploadDialog.yearPlaceholder')}
             value={year}
             min={1000}
             max={CURRENT_YEAR}
@@ -174,10 +178,10 @@ export function MediaUploadDialog({ open, onClose, onUploaded }: Props) {
               onClick={onClose}
               className="flex-1 rounded-field border border-neutral-200 py-3 text-[15px] font-medium text-brand-900 transition-colors hover:bg-brand-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <Button type="submit" loading={busy} className="flex-1">
-              Yuklash
+              {t('media.uploadDialog.submit')}
             </Button>
           </div>
         </form>

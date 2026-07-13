@@ -1,5 +1,13 @@
 // features/tree/model/relations.ts
 // Qarindoshlik turlari (backend'dagi relations.ts bilan MOS bo'lishi shart).
+// Model fayl — komponent EMAS, shu bois useTranslation() hook'i o'rniga
+// i18next global instansini to'g'ridan-to'g'ri ishlatamiz (bu funksiyalar
+// tree.store.ts/kinship.ts kabi oddiy modul darajasidagi kodda chaqiriladi).
+// RELATION_GROUPS/relationLabel FUNKSIYA sifatida — har chaqirilganda JORIY
+// tildan o'qiydi (til Sozlamalar'dan o'zgartirilsa, doskadagi yorliqlar ham
+// yangilanishi uchun useMemo qaramliklariga `i18n.language` qo'shilgan
+// joylarda avtomatik qayta hisoblanadi).
+import i18n from '@/i18n';
 
 export type RelationKey =
   | 'OTA'
@@ -23,7 +31,7 @@ export type RelationKey =
 
 export type Gender = 'MALE' | 'FEMALE';
 
-interface RelationDef {
+export interface RelationDef {
   value: RelationKey;
   label: string;
   gender: Gender;
@@ -31,52 +39,67 @@ interface RelationDef {
   gen: -2 | -1 | 0 | 1;
 }
 
-// Guruhlab ko'rsatiladi (dialogdagi <optgroup>)
-export const RELATION_GROUPS: { title: string; items: RelationDef[] }[] = [
+interface RelationDefStatic {
+  value: RelationKey;
+  gender: Gender;
+  gen: -2 | -1 | 0 | 1;
+}
+
+const STATIC_GROUPS: { titleKey: string; items: RelationDefStatic[] }[] = [
   {
-    title: 'Ota-ona va ajdodlar',
+    titleKey: 'tree.relationGroups.parents',
     items: [
-      { value: 'OTA', label: 'Ota', gender: 'MALE', gen: -1 },
-      { value: 'ONA', label: 'Ona', gender: 'FEMALE', gen: -1 },
-      { value: 'BOBO', label: 'Bobo', gender: 'MALE', gen: -2 },
-      { value: 'BUVI', label: 'Buvi', gender: 'FEMALE', gen: -2 },
+      { value: 'OTA', gender: 'MALE', gen: -1 },
+      { value: 'ONA', gender: 'FEMALE', gen: -1 },
+      { value: 'BOBO', gender: 'MALE', gen: -2 },
+      { value: 'BUVI', gender: 'FEMALE', gen: -2 },
     ],
   },
   {
-    title: 'Aka-uka, opa-singil',
+    titleKey: 'tree.relationGroups.siblings',
     items: [
-      { value: 'AKA', label: 'Aka', gender: 'MALE', gen: 0 },
-      { value: 'UKA', label: 'Uka', gender: 'MALE', gen: 0 },
-      { value: 'OPA', label: 'Opa', gender: 'FEMALE', gen: 0 },
-      { value: 'SINGIL', label: 'Singil', gender: 'FEMALE', gen: 0 },
+      { value: 'AKA', gender: 'MALE', gen: 0 },
+      { value: 'UKA', gender: 'MALE', gen: 0 },
+      { value: 'OPA', gender: 'FEMALE', gen: 0 },
+      { value: 'SINGIL', gender: 'FEMALE', gen: 0 },
     ],
   },
   {
-    title: 'Amaki, amma, tog\'a, xola',
+    titleKey: 'tree.relationGroups.extended',
     items: [
-      { value: 'AMAKI', label: 'Amaki', gender: 'MALE', gen: -1 },
-      { value: 'AMMA', label: 'Amma', gender: 'FEMALE', gen: -1 },
-      { value: 'TOGA', label: "Tog'a", gender: 'MALE', gen: -1 },
-      { value: 'XOLA', label: 'Xola', gender: 'FEMALE', gen: -1 },
-      { value: 'POCHA', label: 'Pocha', gender: 'MALE', gen: 0 },
+      { value: 'AMAKI', gender: 'MALE', gen: -1 },
+      { value: 'AMMA', gender: 'FEMALE', gen: -1 },
+      { value: 'TOGA', gender: 'MALE', gen: -1 },
+      { value: 'XOLA', gender: 'FEMALE', gen: -1 },
+      { value: 'POCHA', gender: 'MALE', gen: 0 },
     ],
   },
   {
-    title: 'Turmush o\'rtog\'i va farzandlar',
+    titleKey: 'tree.relationGroups.spouseChildren',
     items: [
-      { value: 'TURMUSH', label: "Turmush o'rtog'i", gender: 'MALE', gen: 0 },
-      { value: 'OGIL', label: "O'g'il", gender: 'MALE', gen: 1 },
-      { value: 'QIZ', label: 'Qiz', gender: 'FEMALE', gen: 1 },
-      { value: 'KELINOYI', label: 'Kelinoyi', gender: 'FEMALE', gen: 1 },
-      { value: 'KUYOV', label: 'Kuyov', gender: 'MALE', gen: 1 },
+      { value: 'TURMUSH', gender: 'MALE', gen: 0 },
+      { value: 'OGIL', gender: 'MALE', gen: 1 },
+      { value: 'QIZ', gender: 'FEMALE', gen: 1 },
+      { value: 'KELINOYI', gender: 'FEMALE', gen: 1 },
+      { value: 'KUYOV', gender: 'MALE', gen: 1 },
     ],
   },
 ];
 
-const ALL: RelationDef[] = RELATION_GROUPS.flatMap((g) => g.items);
+const ALL_STATIC: RelationDefStatic[] = STATIC_GROUPS.flatMap((g) => g.items);
 
-export const relationDef = (r: RelationKey): RelationDef =>
-  ALL.find((x) => x.value === r) ?? ALL[0];
+/** Guruhlab ko'rsatiladi (RelationPicker/ConnectRelativeDialog) — JORIY tilda */
+export function getRelationGroups(): { title: string; items: RelationDef[] }[] {
+  return STATIC_GROUPS.map((g) => ({
+    title: i18n.t(g.titleKey),
+    items: g.items.map((it) => ({ ...it, label: i18n.t(`tree.relations.${it.value}`) })),
+  }));
+}
+
+export const relationDef = (r: RelationKey): RelationDef => {
+  const s = ALL_STATIC.find((x) => x.value === r) ?? ALL_STATIC[0];
+  return { ...s, label: i18n.t(`tree.relations.${s.value}`) };
+};
 
 export const relationLabel = (r: RelationKey): string => relationDef(r).label;
 

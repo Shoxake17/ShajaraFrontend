@@ -3,7 +3,9 @@
 // emailga yuborilgan 6 xonali kodni tasdiqlash (2).
 import { Link } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useRegister } from '@/features/auth/hooks/useRegister';
+import { useLanguage } from '@/shared/hooks/useLanguage';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -30,6 +32,8 @@ const treeMask =
   'radial-gradient(ellipse 60% 56% at 50% 47%, black 60%, transparent 92%)';
 
 export function RegisterPage() {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
   const {
     step,
     form,
@@ -71,11 +75,11 @@ export function RegisterPage() {
             className="max-h-[280px] w-auto select-none object-contain mix-blend-lighten"
             style={{ maskImage: treeMask, WebkitMaskImage: treeMask }}
           />
-          <h1 className="mt-2 font-serif text-5xl font-semibold text-white">Shajara</h1>
+          <h1 className="mt-2 font-serif text-5xl font-semibold text-white">{t('auth.brand')}</h1>
           <p className="text-sm leading-relaxed text-brand-100">
-            Oila daraxtingizni yarating
+            {t('auth.login.heroTaglineLine1')}
             <br />
-            va avlodlaringizni bog&#8216;lang
+            {t('auth.login.heroTaglineLine2')}
           </p>
         </div>
 
@@ -83,30 +87,34 @@ export function RegisterPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TreeLogo className="h-7 w-7 text-brand-800" />
-              <span className="font-serif text-xl font-semibold text-brand-900">Shajara</span>
+              <span className="font-serif text-xl font-semibold text-brand-900">{t('auth.brand')}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-brand-700">
+            <button
+              type="button"
+              onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+              className="flex items-center gap-1.5 text-sm font-medium text-brand-700"
+            >
               <GlobeIcon />
-              O&#8216;zbekcha
+              {language === 'uz' ? 'O‘zbekcha' : 'Русский'}
               <ChevronDownIcon />
-            </div>
+            </button>
           </div>
 
           <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col justify-center py-6">
             {step === 'form' ? (
               <>
                 <h2 className="font-serif text-[28px] font-semibold text-brand-900">
-                  Ro&#8216;yxatdan o&#8216;tish
+                  {t('auth.register.title')}
                 </h2>
                 <p className="mt-1 text-sm text-brand-600">
-                  Yangi hisob yaratish uchun ma&#8216;lumotlaringizni kiriting
+                  {t('auth.register.subtitle')}
                 </p>
 
                 <form onSubmit={submit} noValidate className="mt-5 space-y-3">
                   <TextField
                     icon={<UserIcon />}
                     autoComplete="name"
-                    placeholder="Ism familiya"
+                    placeholder={t('auth.register.fullNamePlaceholder')}
                     error={errors.fullName?.message}
                     {...register('fullName')}
                   />
@@ -116,7 +124,7 @@ export function RegisterPage() {
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
-                      placeholder="+998 90 123 45 67"
+                      placeholder={t('auth.register.phonePlaceholder')}
                       error={errors.phone?.message}
                       {...register('phone')}
                     />
@@ -124,7 +132,7 @@ export function RegisterPage() {
                       icon={<MailIcon />}
                       type="email"
                       autoComplete="email"
-                      placeholder="Email manzil"
+                      placeholder={t('auth.register.emailPlaceholder')}
                       error={errors.email?.message}
                       {...register('email')}
                     />
@@ -132,7 +140,7 @@ export function RegisterPage() {
                       icon={<LockIcon />}
                       isPassword
                       autoComplete="new-password"
-                      placeholder="Parol"
+                      placeholder={t('auth.register.passwordPlaceholder')}
                       error={errors.password?.message}
                       {...register('password')}
                     />
@@ -140,7 +148,7 @@ export function RegisterPage() {
                       icon={<LockIcon />}
                       isPassword
                       autoComplete="new-password"
-                      placeholder="Parolni tasdiqlang"
+                      placeholder={t('auth.register.confirmPasswordPlaceholder')}
                       error={errors.confirmPassword?.message}
                       {...register('confirmPassword')}
                     />
@@ -148,7 +156,7 @@ export function RegisterPage() {
                   <TextField
                     icon={<UserIcon />}
                     autoComplete="off"
-                    placeholder="Ulashish kodi (ixtiyoriy)"
+                    placeholder={t('auth.register.shareCodePlaceholder')}
                     error={errors.shareCode?.message}
                     {...register('shareCode')}
                   />
@@ -160,15 +168,15 @@ export function RegisterPage() {
                       {...register('terms')}
                     />
                     <span className="text-[13px] leading-snug text-brand-900">
-                      Men{' '}
+                      {t('auth.register.termsPrefix')}{' '}
                       <Link to="/terms" className="font-medium text-link hover:underline">
-                        foydalanuvchi shartlari
+                        {t('auth.register.termsLink')}
                       </Link>{' '}
-                      va{' '}
+                      {t('auth.register.termsAnd')}{' '}
                       <Link to="/privacy" className="font-medium text-link hover:underline">
-                        maxfiylik siyosati
+                        {t('auth.register.privacyLink')}
                       </Link>{' '}
-                      bilan tanishib chiqdim va roziman
+                      {t('auth.register.termsSuffix')}
                     </span>
                   </label>
                   {errors.terms && <p className="px-1 text-xs text-red-500">{errors.terms.message}</p>}
@@ -176,22 +184,22 @@ export function RegisterPage() {
                   {serverError && <Alert>{serverError}</Alert>}
 
                   <Button type="submit" loading={isSubmitting} className="!mt-4">
-                    Ro&#8216;yxatdan o&#8216;tish
+                    {t('auth.register.submit')}
                   </Button>
                 </form>
 
                 <div className="my-4 flex items-center gap-4">
                   <span className="h-px flex-1 bg-neutral-200" />
-                  <span className="text-xs text-neutral-400">yoki</span>
+                  <span className="text-xs text-neutral-400">{t('auth.register.or')}</span>
                   <span className="h-px flex-1 bg-neutral-200" />
                 </div>
 
                 <SocialButtons />
 
                 <p className="mt-4 text-center text-sm text-brand-900">
-                  Hisobingiz bormi?{' '}
+                  {t('auth.register.haveAccount')}{' '}
                   <Link to="/login" className="font-semibold text-link hover:underline">
-                    Kirish
+                    {t('auth.register.loginLink')}
                   </Link>
                 </p>
               </>
@@ -203,15 +211,14 @@ export function RegisterPage() {
                   className="flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:text-brand-900"
                 >
                   <ArrowLeftIcon width={16} height={16} />
-                  Orqaga
+                  {t('auth.register.back')}
                 </button>
 
                 <h2 className="mt-2 font-serif text-[26px] font-semibold text-brand-900">
-                  Emailni tasdiqlang
+                  {t('auth.register.confirmEmailTitle')}
                 </h2>
                 <p className="mt-1.5 text-[13px] leading-snug text-brand-700">
-                  <b>{pendingEmail}</b> manziliga 6 xonali tasdiqlash kodi yubordik. Kodni pastga
-                  kiriting — hisobingiz shundan keyin yaratiladi.
+                  {t('auth.register.confirmEmailDescPrefix')}{' '}<b>{pendingEmail}</b>{' '}{t('auth.register.confirmEmailDescSuffix')}
                 </p>
 
                 <form onSubmit={confirm} noValidate className="mt-4 space-y-2.5">
@@ -231,12 +238,12 @@ export function RegisterPage() {
                   {serverError && <Alert>{serverError}</Alert>}
                   {resent && (
                     <p className="text-center text-xs font-medium text-brand-600">
-                      Yangi kod yuborildi ✓
+                      {t('auth.register.codeResent')}
                     </p>
                   )}
 
                   <Button type="submit" loading={confirming} className="!mt-3">
-                    Tasdiqlash
+                    {t('auth.register.confirm')}
                   </Button>
                 </form>
 
@@ -247,8 +254,8 @@ export function RegisterPage() {
                   className="mt-3 w-full text-center text-sm font-medium text-link hover:underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
                 >
                   {resendCooldown > 0
-                    ? `Qayta yuborish (${resendCooldown}s)`
-                    : "Kodni qayta yuborish"}
+                    ? t('auth.register.resendWithCooldown', { seconds: resendCooldown })
+                    : t('auth.register.resend')}
                 </button>
               </>
             )}
@@ -278,9 +285,9 @@ export function RegisterPage() {
             // mix-blend-multiply: logoning oq foni och fonga "erib" ketadi
             className="min-h-0 w-auto flex-1 select-none object-contain mix-blend-multiply [max-height:9.5rem]"
           />
-          <h1 className="font-serif text-3xl font-semibold text-brand-800 sm:text-4xl">Shajara</h1>
+          <h1 className="font-serif text-3xl font-semibold text-brand-800 sm:text-4xl">{t('auth.brand')}</h1>
           <p className="mt-1 text-[13px] leading-snug text-brand-700">
-            Yangi hisob yarating va oila daraxtingizni boshlang
+            {t('auth.register.mobileSubtitle')}
           </p>
         </header>
 
@@ -289,14 +296,14 @@ export function RegisterPage() {
           {step === 'form' ? (
             <>
               <h2 className="text-center font-serif text-[22px] font-semibold text-brand-900">
-                Ro&#8216;yxatdan o&#8216;tish
+                {t('auth.register.title')}
               </h2>
 
               <form onSubmit={submit} noValidate className="mt-3 space-y-2.5">
                 <TextField
                   icon={<UserIcon />}
                   autoComplete="name"
-                  placeholder="Ism familiya"
+                  placeholder={t('auth.register.fullNamePlaceholder')}
                   error={errors.fullName?.message}
                   {...register('fullName')}
                 />
@@ -305,7 +312,7 @@ export function RegisterPage() {
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
-                  placeholder="+998 90 123 45 67"
+                  placeholder={t('auth.register.phonePlaceholder')}
                   error={errors.phone?.message}
                   {...register('phone')}
                 />
@@ -313,7 +320,7 @@ export function RegisterPage() {
                   icon={<MailIcon />}
                   type="email"
                   autoComplete="email"
-                  placeholder="Email manzil"
+                  placeholder={t('auth.register.emailPlaceholder')}
                   error={errors.email?.message}
                   {...register('email')}
                 />
@@ -321,7 +328,7 @@ export function RegisterPage() {
                   icon={<LockIcon />}
                   isPassword
                   autoComplete="new-password"
-                  placeholder="Parol"
+                  placeholder={t('auth.register.passwordPlaceholder')}
                   error={errors.password?.message}
                   {...register('password')}
                 />
@@ -329,14 +336,14 @@ export function RegisterPage() {
                   icon={<LockIcon />}
                   isPassword
                   autoComplete="new-password"
-                  placeholder="Parolni tasdiqlang"
+                  placeholder={t('auth.register.confirmPasswordPlaceholder')}
                   error={errors.confirmPassword?.message}
                   {...register('confirmPassword')}
                 />
                 <TextField
                   icon={<UserIcon />}
                   autoComplete="off"
-                  placeholder="Ulashish kodi (ixtiyoriy)"
+                  placeholder={t('auth.register.shareCodePlaceholder')}
                   error={errors.shareCode?.message}
                   {...register('shareCode')}
                 />
@@ -349,15 +356,15 @@ export function RegisterPage() {
                     {...register('terms')}
                   />
                   <span className="text-[12px] leading-snug text-brand-900">
-                    Men{' '}
+                    {t('auth.register.termsPrefix')}{' '}
                     <Link to="/terms" className="font-medium text-link hover:underline">
-                      foydalanuvchi shartlari
+                      {t('auth.register.termsLink')}
                     </Link>{' '}
-                    va{' '}
+                    {t('auth.register.termsAnd')}{' '}
                     <Link to="/privacy" className="font-medium text-link hover:underline">
-                      maxfiylik siyosati
+                      {t('auth.register.privacyLink')}
                     </Link>{' '}
-                    bilan tanishib chiqdim va roziman
+                    {t('auth.register.termsSuffix')}
                   </span>
                 </label>
                 {errors.terms && <p className="px-1 text-xs text-red-500">{errors.terms.message}</p>}
@@ -365,23 +372,23 @@ export function RegisterPage() {
                 {serverError && <Alert>{serverError}</Alert>}
 
                 <Button type="submit" loading={isSubmitting} className="!mt-3">
-                  Ro&#8216;yxatdan o&#8216;tish
+                  {t('auth.register.submit')}
                 </Button>
               </form>
 
               {/* yoki — Google orqali ro'yxatdan o'tish */}
               <div className="my-2 flex items-center gap-4">
                 <span className="h-px flex-1 bg-neutral-200" />
-                <span className="text-xs text-neutral-400">yoki</span>
+                <span className="text-xs text-neutral-400">{t('auth.register.or')}</span>
                 <span className="h-px flex-1 bg-neutral-200" />
               </div>
 
               <SocialButtons dense />
 
               <p className="mt-2.5 text-center text-sm text-brand-900">
-                Hisobingiz bormi?{' '}
+                {t('auth.register.haveAccount')}{' '}
                 <Link to="/login" className="font-semibold text-link hover:underline">
-                  Kirish
+                  {t('auth.register.loginLink')}
                 </Link>
               </p>
             </>
@@ -393,15 +400,14 @@ export function RegisterPage() {
                 className="flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:text-brand-900"
               >
                 <ArrowLeftIcon width={16} height={16} />
-                Orqaga
+                {t('auth.register.back')}
               </button>
 
               <h2 className="mt-2 text-center font-serif text-[22px] font-semibold text-brand-900">
-                Emailni tasdiqlang
+                {t('auth.register.confirmEmailTitle')}
               </h2>
               <p className="mt-1.5 text-center text-[13px] leading-snug text-brand-700">
-                <b>{pendingEmail}</b> manziliga 6 xonali tasdiqlash kodi yubordik. Kodni pastga
-                kiriting — hisobingiz shundan keyin yaratiladi.
+                {t('auth.register.confirmEmailDescPrefix')}{' '}<b>{pendingEmail}</b>{' '}{t('auth.register.confirmEmailDescSuffix')}
               </p>
 
               <form onSubmit={confirm} noValidate className="mt-4 space-y-2.5">
@@ -421,12 +427,12 @@ export function RegisterPage() {
                 {serverError && <Alert>{serverError}</Alert>}
                 {resent && (
                   <p className="text-center text-xs font-medium text-brand-600">
-                    Yangi kod yuborildi ✓
+                    {t('auth.register.codeResent')}
                   </p>
                 )}
 
                 <Button type="submit" loading={confirming} className="!mt-3">
-                  Tasdiqlash
+                  {t('auth.register.confirm')}
                 </Button>
               </form>
 
@@ -437,8 +443,8 @@ export function RegisterPage() {
                 className="mt-3 w-full text-center text-sm font-medium text-link hover:underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
               >
                 {resendCooldown > 0
-                  ? `Qayta yuborish (${resendCooldown}s)`
-                  : "Kodni qayta yuborish"}
+                  ? t('auth.register.resendWithCooldown', { seconds: resendCooldown })
+                  : t('auth.register.resend')}
               </button>
             </>
           )}

@@ -6,6 +6,7 @@
 // ko'rinadi, kod esa orqa fonda so'raladi.
 import { Link } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -14,6 +15,7 @@ import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
 import { ArrowLeftIcon, LockIcon, MailIcon } from '@/shared/ui/icons';
 
 export function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const {
     step,
     emailForm,
@@ -45,9 +47,9 @@ export function ForgotPasswordPage() {
 
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col justify-center px-4 pb-3 pt-3 sm:max-w-lg">
         <header className="flex flex-col items-center text-center">
-          <h1 className="font-serif text-3xl font-semibold text-brand-800 sm:text-4xl">Shajara</h1>
+          <h1 className="font-serif text-3xl font-semibold text-brand-800 sm:text-4xl">{t('auth.brand')}</h1>
           <p className="mt-1 text-[13px] leading-snug text-brand-700">
-            Parolingizni tiklash uchun quyidagi qadamlarni bajaring
+            {t('auth.forgotPassword.subtitle')}
           </p>
         </header>
 
@@ -55,11 +57,10 @@ export function ForgotPasswordPage() {
           {step === 'email' ? (
             <>
               <h2 className="mt-2 text-center font-serif text-[22px] font-semibold text-brand-900">
-                Parolni unutdingizmi?
+                {t('auth.forgotPassword.title')}
               </h2>
               <p className="mt-1.5 text-center text-[13px] leading-snug text-brand-700">
-                Ro&#8216;yxatdan o&#8216;tgan email manzilingizni kiriting — tasdiqlash kodini shu
-                manzilga yuboramiz.
+                {t('auth.forgotPassword.desc')}
               </p>
 
               <form onSubmit={submitEmail} noValidate className="mt-4 space-y-2.5">
@@ -68,7 +69,7 @@ export function ForgotPasswordPage() {
                   type="email"
                   autoFocus
                   autoComplete="email"
-                  placeholder="Email manzil"
+                  placeholder={t('auth.forgotPassword.emailPlaceholder')}
                   error={emailErrors.email?.message}
                   {...registerEmail('email')}
                 />
@@ -76,14 +77,14 @@ export function ForgotPasswordPage() {
                 {serverError && <Alert>{serverError}</Alert>}
 
                 <Button type="submit" loading={submittingEmail} className="!mt-3">
-                  Davom etish
+                  {t('auth.forgotPassword.continue')}
                 </Button>
               </form>
 
               <p className="mt-3 flex items-center justify-center gap-1.5 text-sm font-medium text-brand-700">
                 <Link to="/login" className="flex items-center gap-1.5 hover:text-brand-900">
                   <ArrowLeftIcon width={16} height={16} />
-                  Kirishga qaytish
+                  {t('auth.forgotPassword.backToLogin')}
                 </Link>
               </p>
             </>
@@ -95,11 +96,11 @@ export function ForgotPasswordPage() {
                 className="flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:text-brand-900"
               >
                 <ArrowLeftIcon width={16} height={16} />
-                Orqaga
+                {t('auth.forgotPassword.back')}
               </button>
 
               <h2 className="mt-2 text-center font-serif text-[22px] font-semibold text-brand-900">
-                Yangi parol o&#8216;rnating
+                {t('auth.forgotPassword.newPasswordTitle')}
               </h2>
 
               <form onSubmit={confirm} noValidate className="mt-4 space-y-4">
@@ -110,7 +111,7 @@ export function ForgotPasswordPage() {
                     isPassword
                     autoFocus
                     autoComplete="new-password"
-                    placeholder="Yangi parol"
+                    placeholder={t('auth.forgotPassword.newPasswordPlaceholder')}
                     error={resetErrors.newPassword?.message}
                     {...registerReset('newPassword')}
                   />
@@ -118,7 +119,7 @@ export function ForgotPasswordPage() {
                     icon={<LockIcon />}
                     isPassword
                     autoComplete="new-password"
-                    placeholder="Yangi parolni tasdiqlang"
+                    placeholder={t('auth.forgotPassword.confirmNewPasswordPlaceholder')}
                     error={resetErrors.confirmPassword?.message}
                     {...registerReset('confirmPassword')}
                   />
@@ -129,7 +130,7 @@ export function ForgotPasswordPage() {
                   data-testid="otp-block"
                   className="rounded-field border border-brand-100 bg-brand-50/60 p-3"
                 >
-                  <p className="mb-2 text-xs font-medium text-brand-700">Tasdiqlash kodi</p>
+                  <p className="mb-2 text-xs font-medium text-brand-700">{t('auth.forgotPassword.confirmationCode')}</p>
                   <Controller
                     control={resetForm.control}
                     name="code"
@@ -146,12 +147,12 @@ export function ForgotPasswordPage() {
                 {serverError && <Alert>{serverError}</Alert>}
                 {resent && (
                   <p className="text-center text-xs font-medium text-brand-600">
-                    Yangi kod yuborildi ✓
+                    {t('auth.forgotPassword.codeResent')}
                   </p>
                 )}
 
                 <Button type="submit" loading={confirming} className="!mt-1">
-                  Parolni saqlash
+                  {t('auth.forgotPassword.save')}
                 </Button>
               </form>
 
@@ -161,7 +162,9 @@ export function ForgotPasswordPage() {
                 disabled={resendCooldown > 0}
                 className="mt-3 w-full text-center text-sm font-medium text-link hover:underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
               >
-                {resendCooldown > 0 ? `Qayta yuborish (${resendCooldown}s)` : "Kodni qayta yuborish"}
+                {resendCooldown > 0
+                  ? t('auth.forgotPassword.resendWithCooldown', { seconds: resendCooldown })
+                  : t('auth.forgotPassword.resend')}
               </button>
             </>
           )}

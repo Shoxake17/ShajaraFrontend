@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  loginSchema,
-  twoFactorLoginSchema,
+  getLoginSchema,
+  getTwoFactorLoginSchema,
   type LoginForm,
   type TwoFactorLoginForm,
 } from '@/features/auth/model/auth.schemas';
@@ -27,6 +28,7 @@ const emailOnlySchema = z.string().trim().email();
  * zaxira kod) kiritilib, faqat SHU tasdiqlangandan keyin sessiya ochiladi.
  */
 export function useLogin() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -35,8 +37,8 @@ export function useLogin() {
   /** 'totp' — 6 xonali segmentli kod (odatiy); 'recovery' — 10 belgili zaxira kod (oddiy matn maydoni) */
   const [codeMode, setCodeMode] = useState<'totp' | 'recovery'>('totp');
 
-  const form = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
-  const twoFactorForm = useForm<TwoFactorLoginForm>({ resolver: zodResolver(twoFactorLoginSchema) });
+  const form = useForm<LoginForm>({ resolver: zodResolver(getLoginSchema()) });
+  const twoFactorForm = useForm<TwoFactorLoginForm>({ resolver: zodResolver(getTwoFactorLoginSchema()) });
 
   const submit = form.handleSubmit(async (values) => {
     setServerError(null);
@@ -99,8 +101,8 @@ export function useLogin() {
       form.setError('identifier', {
         type: 'manual',
         message: raw
-          ? 'Parolni tiklash uchun email manzil kiriting (telefon raqam emas)'
-          : 'Parolni tiklash uchun avval email manzilingizni kiriting',
+          ? t('auth.login.forgotPasswordEmailOnly')
+          : t('auth.login.forgotPasswordEmailFirst'),
       });
       return;
     }

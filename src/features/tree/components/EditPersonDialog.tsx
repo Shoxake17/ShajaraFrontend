@@ -1,5 +1,6 @@
 // features/tree/components/EditPersonDialog.tsx
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { type Gender, type RelationKey } from '@/features/tree/model/relations';
 import { PhotoPicker } from './PhotoPicker';
 import { GenderToggle } from './GenderToggle';
@@ -49,6 +50,7 @@ interface EditPersonDialogProps {
 }
 
 export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogProps) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [relation, setRelation] = useState<RelationKey>('OTA');
   const [gender, setGender] = useState<Gender>('MALE');
@@ -84,7 +86,7 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
     e.preventDefault();
     const name = fullName.trim();
     if (name.length < 2) {
-      setError("Ism kamida 2 ta belgidan iborat bo'lsin");
+      setError(t('tree.addDialog.nameRequired'));
       return;
     }
     const yearError = validateYears(birthYear, deathYear);
@@ -114,7 +116,7 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
       });
       onClose();
     } catch (err) {
-      setError(quotaMessage(err) ?? "Saqlab bo'lmadi. Qaytadan urinib ko'ring");
+      setError(quotaMessage(err) ?? t('tree.addDialog.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -127,11 +129,11 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
     >
       <div
         role="dialog"
-        aria-label="Oila a'zosini tahrirlash"
+        aria-label={t('tree.editDialog.ariaLabel')}
         className="no-scrollbar max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[22px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-center font-serif text-xl font-semibold text-brand-900">Tahrirlash</h2>
+        <h2 className="text-center font-serif text-xl font-semibold text-brand-900">{t('tree.editDialog.title')}</h2>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
           <PhotoPicker
@@ -146,7 +148,7 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
 
           <TextField
             icon={<UserIcon />}
-            placeholder="Ism familiya"
+            placeholder={t('tree.addDialog.namePlaceholder')}
             value={fullName}
             autoFocus
             onChange={(e) => {
@@ -157,7 +159,7 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
 
           {canEditRelation && (
             <div>
-              <span className="mb-1 block px-1 text-xs text-neutral-500">Kimligi (qarindoshligi)</span>
+              <span className="mb-1 block px-1 text-xs text-neutral-500">{t('tree.addDialog.relationLabel')}</span>
               <RelationPicker value={relation} onChange={setRelation} />
             </div>
           )}
@@ -173,14 +175,14 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
           {relation === 'TURMUSH' && (
             <label className="block">
               <span className="mb-1 block px-1 text-xs text-neutral-500">
-                Nechanchi turmush o&#8216;rtog&#8216;i (bo&#8216;sh — avtomatik)
+                {t('tree.editDialog.spouseOrderLabel')}
               </span>
               <input
                 type="number"
                 min={1}
                 max={50}
                 inputMode="numeric"
-                placeholder="masalan 2 — 2-xotin"
+                placeholder={t('tree.addDialog.spouseOrderPlaceholder')}
                 value={spouseOrder}
                 onChange={(e) => setSpouseOrder(e.target.value)}
                 className="w-full rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
@@ -196,10 +198,10 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
               onClick={onClose}
               className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-brand-900 transition-colors hover:bg-brand-50"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <Button type="submit" loading={saving} className="flex-1">
-              Saqlash
+              {t('common.save')}
             </Button>
           </div>
         </form>

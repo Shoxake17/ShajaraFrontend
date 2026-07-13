@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState, type FormEvent, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
 
 const iconBase = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
@@ -28,9 +29,8 @@ interface Turn {
   a: string;
 }
 
-const DEMO_ANSWER = 'Bu — Shajara AI javobining namunasi. Haqiqiy javoblar hozir tayyorlanmoqda.';
-
 export function ShajaraAiPage() {
+  const { t } = useTranslation();
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Turn[]>([]);
@@ -48,7 +48,7 @@ export function ShajaraAiPage() {
     e.preventDefault();
     const q = question.trim();
     if (!q) return;
-    setConversation((c) => [...c, { q, a: DEMO_ANSWER }]);
+    setConversation((c) => [...c, { q, a: t('ai.demoAnswer') }]);
     setQuestion('');
   };
 
@@ -61,7 +61,7 @@ export function ShajaraAiPage() {
         createPortal(
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-brand-900">Shajara AI</p>
-            <p className="hidden truncate text-xs text-brand-500 sm:block">Sun&#8216;iy intellekt yordamchisi</p>
+            <p className="hidden truncate text-xs text-brand-500 sm:block">{t('ai.subtitle')}</p>
           </div>,
           topBarActionsEl,
         )}
@@ -83,10 +83,8 @@ export function ShajaraAiPage() {
                   <SparkleIcon width={26} height={26} />
                 </span>
                 <div>
-                  <p className="font-serif text-lg font-semibold text-brand-900">Savolingizni yozing</p>
-                  <p className="mx-auto mt-1 max-w-xs text-sm text-brand-500">
-                    Masalan: &#8220;Akmal menga kim bo&#8216;ladi?&#8221; — javob shu yerda ko&#8216;rinadi.
-                  </p>
+                  <p className="font-serif text-lg font-semibold text-brand-900">{t('ai.emptyTitle')}</p>
+                  <p className="mx-auto mt-1 max-w-xs text-sm text-brand-500">{t('ai.emptyDesc')}</p>
                 </div>
               </div>
             ) : (
@@ -123,13 +121,13 @@ export function ShajaraAiPage() {
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Masalan: “Akmal menga kim bo'ladi?”"
+            placeholder={t('ai.inputPlaceholder')}
             className="min-w-0 flex-1 bg-transparent px-3 text-sm text-brand-900 outline-none placeholder:text-neutral-400"
           />
           <button
             type="submit"
             disabled={!question.trim()}
-            aria-label="Yuborish"
+            aria-label={t('ai.send')}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white transition-colors hover:bg-brand-800 disabled:bg-neutral-200 disabled:text-neutral-400"
           >
             <SendIcon width={16} height={16} />

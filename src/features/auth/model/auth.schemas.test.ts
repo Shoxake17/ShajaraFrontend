@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { changePasswordSchema, loginSchema, registerSchema, verifyCodeSchema } from './auth.schemas';
+import {
+  getChangePasswordSchema,
+  getLoginSchema,
+  getRegisterSchema,
+  getVerifyCodeSchema,
+} from './auth.schemas';
+
+const loginSchema = getLoginSchema();
+const registerSchema = getRegisterSchema();
+const changePasswordSchema = getChangePasswordSchema();
+const verifyCodeSchema = getVerifyCodeSchema();
 
 const validRegister = {
   fullName: 'Test Foydalanuvchi',

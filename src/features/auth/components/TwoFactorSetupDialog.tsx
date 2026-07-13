@@ -9,13 +9,14 @@
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Alert } from '@/shared/ui/Alert';
 import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
 import { authApi } from '@/features/auth/api/auth.api';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import {
-  confirmTwoFactorSetupSchema,
+  getConfirmTwoFactorSetupSchema,
   type ConfirmTwoFactorSetupForm,
 } from '@/features/auth/model/auth.schemas';
 
@@ -27,6 +28,7 @@ interface TwoFactorSetupDialogProps {
 }
 
 export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetupDialogProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'loading' | 'scan' | 'recovery'>('loading');
   const [secret, setSecret] = useState('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
@@ -34,7 +36,7 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
   const [serverError, setServerError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const codeForm = useForm<ConfirmTwoFactorSetupForm>({ resolver: zodResolver(confirmTwoFactorSetupSchema) });
+  const codeForm = useForm<ConfirmTwoFactorSetupForm>({ resolver: zodResolver(getConfirmTwoFactorSetupSchema()) });
   const { handleSubmit, reset, formState: { errors, isSubmitting } } = codeForm;
 
   // Oyna har ochilganda yangi kalit so'raladi (eski kalit tashlab yuboriladi)
@@ -97,20 +99,20 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Ikki bosqichli autentifikatsiyani yoqish"
+        aria-label={t('auth.twoFactorSetup.ariaLabel')}
         className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         {step === 'loading' ? (
           <>
             <h3 className="font-serif text-lg font-semibold text-brand-900">
-              Ikki bosqichli autentifikatsiya
+              {t('auth.twoFactorSetup.title')}
             </h3>
             {serverError ? (
               <>
                 <Alert>{serverError}</Alert>
                 <Button type="button" onClick={onClose} className="mt-4 !py-3 !text-sm">
-                  Yopish
+                  {t('auth.twoFactorSetup.close')}
                 </Button>
               </>
             ) : (
@@ -122,18 +124,17 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
         ) : step === 'scan' ? (
           <>
             <h3 className="font-serif text-lg font-semibold text-brand-900">
-              Authenticator ilovasi bilan bog&#8216;lash
+              {t('auth.twoFactorSetup.scanTitle')}
             </h3>
             <p className="mt-1.5 text-[13px] leading-snug text-brand-700">
-              Google Authenticator (yoki boshqa TOTP ilovasi) bilan quyidagi QR kodni skanerlang, so&#8216;ng
-              ilova ko&#8216;rsatgan 6 xonali kodni kiriting.
+              {t('auth.twoFactorSetup.scanDesc')}
             </p>
 
             {qrCodeDataUrl && (
               <div className="mt-3 flex justify-center">
                 <img
                   src={qrCodeDataUrl}
-                  alt="2FA QR kod"
+                  alt={t('auth.twoFactorSetup.qrAlt')}
                   width={176}
                   height={176}
                   className="rounded-xl border border-neutral-200 p-2"
@@ -142,7 +143,7 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
             )}
 
             <p className="mt-2 text-center text-[11px] text-brand-500">
-              Skanerlab bo&#8216;lmasa, qo&#8216;lda kiriting:
+              {t('auth.twoFactorSetup.manualEntry')}
             </p>
             <p className="mt-1 break-all rounded-field bg-neutral-50 px-3 py-2 text-center font-mono text-xs tracking-wide text-brand-900">
               {secret}
@@ -171,20 +172,19 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
                   disabled={isSubmitting}
                   className="flex-1 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-60"
                 >
-                  Bekor qilish
+                  {t('auth.twoFactorSetup.cancel')}
                 </button>
                 <Button type="submit" loading={isSubmitting} className="flex-1 !py-3 !text-sm">
-                  Yoqish
+                  {t('auth.twoFactorSetup.enable')}
                 </Button>
               </div>
             </form>
           </>
         ) : (
           <>
-            <h3 className="font-serif text-lg font-semibold text-brand-900">Zaxira kodlar</h3>
+            <h3 className="font-serif text-lg font-semibold text-brand-900">{t('auth.twoFactorSetup.recoveryTitle')}</h3>
             <p className="mt-1.5 text-[13px] leading-snug text-brand-700">
-              Ikki bosqichli autentifikatsiya <b>yoqildi</b>. Quyidagi kodlarni xavfsiz joyda saqlang — telefon
-              yo&#8216;qolsa, har biri BIR MARTA ishlatiladigan bu kodlar orqali kirishingiz mumkin bo&#8216;ladi.
+              {t('auth.twoFactorSetup.recoveryDescPrefix')} <b>{t('auth.twoFactorSetup.recoveryDescEnabled')}</b>{t('auth.twoFactorSetup.recoveryDescSuffix')}
             </p>
 
             <div className="mt-3 grid grid-cols-2 gap-2 rounded-field bg-neutral-50 p-3 font-mono text-[13px] text-brand-900">
@@ -198,11 +198,11 @@ export function TwoFactorSetupDialog({ open, onClose, onEnabled }: TwoFactorSetu
               onClick={() => void copyRecoveryCodes()}
               className="mt-3 w-full text-center text-sm font-medium text-link hover:underline"
             >
-              {copied ? 'Nusxalandi ✓' : 'Nusxalash'}
+              {copied ? t('auth.twoFactorSetup.copied') : t('auth.twoFactorSetup.copy')}
             </button>
 
             <Button type="button" onClick={finish} className="mt-4 !py-3 !text-sm">
-              Saqladim, yopish
+              {t('auth.twoFactorSetup.savedClose')}
             </Button>
           </>
         )}

@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
 import { Alert } from '@/shared/ui/Alert';
@@ -12,7 +13,7 @@ import { LockIcon } from '@/shared/ui/icons';
 import { authApi } from '@/features/auth/api/auth.api';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import {
-  disableTwoFactorSchema,
+  getDisableTwoFactorSchema,
   type DisableTwoFactorForm,
 } from '@/features/auth/model/auth.schemas';
 
@@ -24,9 +25,10 @@ interface TwoFactorDisableDialogProps {
 }
 
 export function TwoFactorDisableDialog({ open, onClose, onDisabled }: TwoFactorDisableDialogProps) {
+  const { t } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<DisableTwoFactorForm>({
-    resolver: zodResolver(disableTwoFactorSchema),
+    resolver: zodResolver(getDisableTwoFactorSchema()),
   });
 
   useEffect(() => {
@@ -62,15 +64,15 @@ export function TwoFactorDisableDialog({ open, onClose, onDisabled }: TwoFactorD
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Ikki bosqichli autentifikatsiyani o'chirish"
+        aria-label={t('auth.twoFactorDisable.ariaLabel')}
         className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-serif text-lg font-semibold text-brand-900">
-          Ikki bosqichli autentifikatsiyani o&#8216;chirish
+          {t('auth.twoFactorDisable.title')}
         </h3>
         <p className="mt-1.5 text-[13px] leading-snug text-brand-700">
-          Xavfsizlik uchun joriy parolingizni tasdiqlang.
+          {t('auth.twoFactorDisable.desc')}
         </p>
 
         <form onSubmit={submit} noValidate className="mt-4 space-y-2.5">
@@ -79,7 +81,7 @@ export function TwoFactorDisableDialog({ open, onClose, onDisabled }: TwoFactorD
             isPassword
             autoFocus
             autoComplete="current-password"
-            placeholder="Joriy parol"
+            placeholder={t('auth.twoFactorDisable.currentPasswordPlaceholder')}
             error={errors.password?.message}
             {...register('password')}
           />
@@ -93,10 +95,10 @@ export function TwoFactorDisableDialog({ open, onClose, onDisabled }: TwoFactorD
               disabled={isSubmitting}
               className="flex-1 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-60"
             >
-              Bekor qilish
+              {t('common.cancel')}
             </button>
             <Button type="submit" loading={isSubmitting} className="flex-1 !py-3 !text-sm">
-              O&#8216;chirish
+              {t('auth.twoFactorDisable.disable')}
             </Button>
           </div>
         </form>

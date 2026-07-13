@@ -8,6 +8,7 @@
 //   turmush o'rtog'imning otasi -> Qaynota   amakimning bolasi -> Amakivachcha
 import { relationLabel, type Gender, type RelationKey } from './relations';
 import type { FamilyEdgeDto, FamilyMemberDto } from '@/features/tree/types';
+import i18n from '@/i18n';
 
 const ANCESTOR = new Set<RelationKey>(['OTA', 'ONA', 'BOBO', 'BUVI']);
 const DESCEND = new Set<RelationKey>(['OGIL', 'QIZ']);
@@ -183,71 +184,87 @@ function step(ka: Kin, rel: RelationKey, g: Gender): Kin {
  *   gen6 Jizzabobo/Jizzabuvi, gen7 Zotabobo/Zotabuvi,
  *   gen8+ "N-avlod bobo/buvi" (an'anaviy atama mavjud emas).
  */
-const ANCESTOR_TERMS: Record<number, [male: string, female: string]> = {
-  1: ['Ota', 'Ona'],
-  2: ['Bobo', 'Buvi'],
-  3: ['Katta bobo', 'Katta buvi'],
-  4: ['Bobokalon', 'Momokalon'],
-  5: ["To'qabobo", "To'qabuvi"],
-  6: ['Jizzabobo', 'Jizzabuvi'],
-  7: ['Zotabobo', 'Zotabuvi'],
-};
-
+/**
+ * Ajdod yorlig'i — JORIY tildan i18n orqali o'qiladi (gen1-7 alohida
+ * kalitlar, gen8+ "N-avlod bobo/buvi" shabloni bilan).
+ */
 function ancestorLabel(gen: number, gender: Gender): string {
   const female = gender === 'FEMALE';
-  const term = ANCESTOR_TERMS[Math.max(gen, 1)];
-  if (term) return female ? term[1] : term[0];
-  return `${gen}-avlod ${female ? 'buvi' : 'bobo'}`;
+  const clamped = Math.max(gen, 1);
+  if (clamped <= 7) return i18n.t(`tree.kinship.ancestor${clamped}${female ? 'F' : 'M'}`);
+  return i18n.t('tree.kinship.genAncestorFallback', {
+    gen,
+    term: i18n.t(female ? 'tree.kinship.ancestorFallbackF' : 'tree.kinship.ancestorFallbackM'),
+  });
 }
 
 /**
- * Amaki/amma/tog'a/xola atamasi — degree (qavat) yuqorilashgan sari "Katta"
- * qo'shiladi: degree1 = Amaki, degree2 = Katta amaki, degree3 = Katta katta
- * amaki, ... Bobo/Buvi atamalari FAQAT to'g'ri chiziqdagi ajdodlarga qoladi.
+ * Bobo/buvi ajdod yorlig'iga "O'gay "/"Приёмная " kabi tilga mos prefiks
+ * qo'shadi (qondosh bo'lmagan qo'shimcha juft uchun).
+ */
+function stepAncestorLabel(base: string, gender: Gender): string {
+  const prefix = i18n.t(gender === 'FEMALE' ? 'tree.kinship.stepPrefixF' : 'tree.kinship.stepPrefixM');
+  return `${prefix}${base.charAt(0).toLowerCase()}${base.slice(1)}`;
+}
+
+/** O'gay ona/ota (qondosh bo'lmagan to'g'ridan-to'g'ri ota-ona) */
+function stepParentLabel(gender: Gender): string {
+  return i18n.t(gender === 'FEMALE' ? 'tree.kinship.stepMother' : 'tree.kinship.stepFather');
+}
+
+/**
+ * Amaki/amma/tog'a/xola atamasi — degree (qavat) yuqorilashgan sari
+ * kuchayadi: o'zbekchada "Katta " so'zi takrorlanadi (Amaki -> Katta amaki
+ * -> Katta katta amaki, ...), ruschada "Пра-" prefiksi qo'shiladi (Дядя ->
+ * Прадядя -> Прапрадядя, ...) — ajdod atamalari bilan bir xil andoza.
+ * Bobo/Buvi atamalari FAQAT to'g'ri chiziqdagi ajdodlarga qoladi.
  */
 function uncleTerm(maternal: boolean, female: boolean, degree = 1): string {
-  const base = maternal ? (female ? 'xola' : "tog'a") : female ? 'amma' : 'amaki';
-  if (degree <= 1) return base[0].toUpperCase() + base.slice(1);
-  return 'Katta ' + 'katta '.repeat(degree - 2) + base;
+  const baseKey = maternal ? (female ? 'auntM' : 'uncleM') : female ? 'auntP' : 'uncleP';
+  const base = i18n.t(`tree.kinship.${baseKey}`);
+  if (degree <= 1) return base;
+  if (i18n.language === 'ru') {
+    const pra = i18n.t('tree.kinship.greatPrefixRu').repeat(degree - 1);
+    return `${pra}${base.charAt(0).toLowerCase()}${base.slice(1)}`;
+  }
+  const great = i18n.t('tree.kinship.great');
+  const repeated = `${great} `.repeat(degree - 2).toLowerCase();
+  return `${great} ${repeated}${base.charAt(0).toLowerCase()}${base.slice(1)}`;
 }
 
 function label(kin: Kin): string {
   switch (kin.c) {
     case 'SELF':
-      return 'Men';
+      return i18n.t('tree.kinship.self');
     case 'ANC':
       return ancestorLabel(kin.gen, kin.gender);
     case 'DESC':
-      if (kin.gen >= 3) return 'Chevara';
-      if (kin.gen === 2) return 'Nabira';
-      return kin.gender === 'FEMALE' ? 'Qiz' : "O'g'il";
+      if (kin.gen >= 3) return i18n.t('tree.kinship.greatGrandchild');
+      if (kin.gen === 2) return i18n.t('tree.kinship.grandchild');
+      return relationLabel(kin.gender === 'FEMALE' ? 'QIZ' : 'OGIL');
     case 'SIB':
       if (kin.raw) return relationLabel(kin.raw);
-      return kin.gender === 'FEMALE' ? 'Opa' : 'Aka';
+      return relationLabel(kin.gender === 'FEMALE' ? 'OPA' : 'AKA');
     case 'PIB':
       return uncleTerm(kin.side === 'MATERNAL', kin.gender === 'FEMALE', kin.degree);
     case 'NIB':
-      return 'Jiyan';
+      return i18n.t('tree.kinship.niece');
     case 'COUSIN':
       // Ona tomoni: tog'a(M)->Tog'avachcha, xola(F)->Xolavachcha.
       // Ota tomoni: amaki(M)->Amakivachcha, amma(F)->Ammavachcha.
       return kin.side === 'MATERNAL'
-        ? kin.pibGender === 'MALE'
-          ? "Tog'avachcha"
-          : 'Xolavachcha'
-        : kin.pibGender === 'MALE'
-          ? 'Amakivachcha'
-          : 'Ammavachcha';
+        ? i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha')
+        : i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha');
     case 'SPOUSE':
-      return "Turmush o'rtog'i";
+      return i18n.t('tree.kinship.spouse');
     case 'INLAW_PARENT':
-      return kin.gender === 'FEMALE' ? 'Qaynona' : 'Qaynota';
+      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.motherInLaw' : 'tree.kinship.fatherInLaw');
     case 'INLAW_SIB':
-      return kin.gender === 'FEMALE' ? 'Qaynsingil' : "Qaynog'a";
+      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.sisterInLaw' : 'tree.kinship.brotherInLaw');
     case 'SIB_SPOUSE':
-      return kin.gender === 'FEMALE' ? 'Kelinoyi' : 'Pochcha';
+      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2');
     case 'CHILD_SPOUSE':
-      return kin.gender === 'FEMALE' ? 'Kelinoyi' : 'Kuyov';
+      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.daughterInLaw' : 'tree.kinship.sonInLaw');
     case 'OTHER':
       return relationLabel(kin.raw);
   }
@@ -574,28 +591,34 @@ export function relationInfoFrom(
   // TOIFAdan yorliq
   const ancLabel = (gen: number, gender: Gender) => ancestorLabel(gen, gender);
   const descLabel = (gen: number, gender: Gender) =>
-    gen >= 3 ? 'Chevara' : gen === 2 ? 'Nabira' : gender === 'FEMALE' ? 'Qiz' : "O'g'il";
+    gen >= 3
+      ? i18n.t('tree.kinship.greatGrandchild')
+      : gen === 2
+        ? i18n.t('tree.kinship.grandchild')
+        : relationLabel(gender === 'FEMALE' ? 'QIZ' : 'OGIL');
   const sibLabel = (id: string) => {
     const female = g(id) === 'FEMALE';
     const y = yr(id);
     const ay = yr(A);
     const younger = ay != null && y != null ? y > ay : false;
-    return female ? (younger ? 'Singil' : 'Opa') : younger ? 'Uka' : 'Aka';
+    return relationLabel(female ? (younger ? 'SINGIL' : 'OPA') : younger ? 'UKA' : 'AKA');
   };
   const uncleLabel = (side: KSide, gender: Gender, degree?: number) =>
     uncleTerm(side === 'M', gender === 'FEMALE', degree);
   const cousinLabel = (side: KSide, ug: Gender) =>
-    side === 'M' ? (ug === 'MALE' ? "Tog'avachcha" : 'Xolavachcha') : ug === 'MALE' ? 'Amakivachcha' : 'Ammavachcha';
+    side === 'M'
+      ? i18n.t(ug === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha')
+      : i18n.t(ug === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha');
 
   const labelFromCat = (id: string, c: Cat): string => {
     switch (c.t) {
-      case 'SELF': return 'Men';
-      case 'SPOUSE': return "Turmush o'rtog'i";
+      case 'SELF': return i18n.t('tree.kinship.self');
+      case 'SPOUSE': return i18n.t('tree.kinship.spouse');
       case 'ANC': return ancLabel(c.gen, g(id));
       case 'DESC': return descLabel(c.gen, g(id));
       case 'SIB': return sibLabel(id);
       case 'UNCLE': return uncleLabel(c.side, c.gender, c.degree);
-      case 'NEPHEW': return 'Jiyan';
+      case 'NEPHEW': return i18n.t('tree.kinship.niece');
       case 'COUSIN': return cousinLabel(c.side, c.uncleGender);
     }
   };
@@ -661,7 +684,7 @@ export function relationInfoFrom(
     let qayn = false;
     for (const s of aSpouses) {
       if ((parentLinks.get(s) ?? new Set()).has(X) || parentsOf(s).includes(X)) {
-        out.set(X, g(X) === 'FEMALE' ? 'Qaynona' : 'Qaynota');
+        out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.motherInLaw' : 'tree.kinship.fatherInLaw'));
         qayn = true;
         break;
       }
@@ -674,14 +697,13 @@ export function relationInfoFrom(
       if (c.t === 'ANC') {
         // Ajdodning QO'SHIMCHA jufti — QONDOSH EMAS (qondosh bo'lsa u allaqachon
         // cat'da ANC bo'lardi): bobo xotini -> O'gay buvi, ota xotini -> O'gay ona
-        const base = ancLabel(c.gen, g(X));
-        out.set(X, `O'gay ${base.charAt(0).toLowerCase()}${base.slice(1)}`);
+        out.set(X, stepAncestorLabel(ancLabel(c.gen, g(X)), g(X)));
       } else if (c.t === 'DESC') {
-        out.set(X, g(X) === 'FEMALE' ? 'Kelinoyi' : 'Kuyov'); // o'g'il xotini / qiz eri
+        out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.daughterInLaw' : 'tree.kinship.sonInLaw')); // o'g'il xotini / qiz eri
       } else if (c.t === 'SIB' || c.t === 'UNCLE' || c.t === 'COUSIN') {
-        out.set(X, g(X) === 'FEMALE' ? 'Kelinoyi' : 'Pochcha');
+        out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2'));
       } else if (c.t === 'SELF') {
-        out.set(X, "Turmush o'rtog'i");
+        out.set(X, i18n.t('tree.kinship.spouse'));
       }
       if (out.has(X)) break;
     }
@@ -850,26 +872,27 @@ export function closeFamilyLabels(
     return [...kids];
   };
 
-  set(root, 'Men');
-  for (const s of spousesOf(root)) set(s, "Turmush o'rtog'i");
+  set(root, i18n.t('tree.kinship.self'));
+  for (const s of spousesOf(root)) set(s, i18n.t('tree.kinship.spouse'));
   for (const c of coupleChildrenOf(root)) {
-    set(c, g(c) === 'FEMALE' ? 'Qiz' : "O'g'il");
+    set(c, relationLabel(g(c) === 'FEMALE' ? 'QIZ' : 'OGIL'));
     // kelin (o'g'ilning xotini) / kuyov (qizning eri) — jinsi bo'yicha
-    for (const sp of spousesOf(c)) set(sp, g(sp) === 'FEMALE' ? 'Kelin' : 'Kuyov');
-    for (const gc of coupleChildrenOf(c)) set(gc, 'Nevara'); // nevaralar (2-xotin ham)
+    for (const sp of spousesOf(c))
+      set(sp, g(sp) === 'FEMALE' ? i18n.t('tree.kinship.bride') : relationLabel('KUYOV'));
+    for (const gc of coupleChildrenOf(c)) set(gc, i18n.t('tree.kinship.grandchildClose')); // nevaralar (2-xotin ham)
   }
 
   const bloodParents = parentsOf(root);
-  for (const p of bloodParents) set(p, g(p) === 'FEMALE' ? 'Ona' : 'Ota');
+  for (const p of bloodParents) set(p, relationLabel(g(p) === 'FEMALE' ? 'ONA' : 'OTA'));
   if (bloodParents.length < 2) {
     // Ikkinchi ota-ona = qon-ota-onaning eri/xotini (masalan onaning eri = OTA)
     for (const p of bloodParents)
-      for (const s of spousesOf(p)) set(s, g(s) === 'FEMALE' ? 'Ona' : 'Ota');
+      for (const s of spousesOf(p)) set(s, relationLabel(g(s) === 'FEMALE' ? 'ONA' : 'OTA'));
   } else {
     // Ikkala ota-ona ma'lum — ularning boshqa juftlari O'GAY ota-ona
     for (const p of bloodParents)
       for (const s of spousesOf(p))
-        if (!bloodParents.includes(s)) set(s, g(s) === 'FEMALE' ? "O'gay ona" : "O'gay ota");
+        if (!bloodParents.includes(s)) set(s, stepParentLabel(g(s) ?? 'MALE'));
   }
 
   // aka-uka/opa-singil — yosh bo'yicha (ma'lum bo'lsa), aks holda Aka/Opa
@@ -878,7 +901,7 @@ export function closeFamilyLabels(
     const female = g(id) === 'FEMALE';
     const y = yr(id);
     const younger = rootYear != null && y != null ? y > rootYear : false;
-    return female ? (younger ? 'Singil' : 'Opa') : younger ? 'Uka' : 'Aka';
+    return relationLabel(female ? (younger ? 'SINGIL' : 'OPA') : younger ? 'UKA' : 'AKA');
   };
   const sibs = new Set<string>();
   for (const p of bloodParents) for (const c of coupleChildrenOf(p)) if (c !== root) sibs.add(c);
@@ -891,8 +914,9 @@ export function closeFamilyLabels(
   // aka-uka + xotini/eri (kelinoyi/pochcha) + bolalari (jiyan)
   for (const s of sibs) {
     set(s, labelSib(s));
-    for (const sp of spousesOf(s)) set(sp, g(sp) === 'FEMALE' ? 'Kelinoyi' : 'Pochcha');
-    for (const nib of coupleChildrenOf(s)) set(nib, 'Jiyan');
+    for (const sp of spousesOf(s))
+      set(sp, i18n.t(g(sp) === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2'));
+    for (const nib of coupleChildrenOf(s)) set(nib, i18n.t('tree.kinship.niece'));
   }
 
   // bobo-buvi va UNDAN YUQORI barcha ajdodlar (Katta bobo, Bobokalon, ...) —
@@ -918,8 +942,9 @@ export function closeFamilyLabels(
         const sps = spousesOf(gp).filter((s) => !gps.includes(s));
         const presumedReal = gps.length < 2 && sps.length === 1;
         for (const sp of sps) {
-          const base = ancestorLabel(gen, g(sp) ?? 'MALE');
-          set(sp, presumedReal ? base : `O'gay ${base.charAt(0).toLowerCase()}${base.slice(1)}`);
+          const spGender = g(sp) ?? 'MALE';
+          const base = ancestorLabel(gen, spGender);
+          set(sp, presumedReal ? base : stepAncestorLabel(base, spGender));
         }
         next.push(gp);
       }

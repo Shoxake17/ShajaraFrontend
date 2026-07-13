@@ -1,7 +1,8 @@
 // features/tree/components/ConnectRelativeDialog.tsx
 // Ikki mavjud a'zoni chiziq bilan bog'laganda "kim bo'ladi?" ni so'raydi.
 import { useEffect, useState } from 'react';
-import { RELATION_GROUPS, type RelationKey } from '@/features/tree/model/relations';
+import { useTranslation } from 'react-i18next';
+import { getRelationGroups, type RelationKey } from '@/features/tree/model/relations';
 import { Button } from '@/shared/ui/Button';
 
 export interface PendingConnect {
@@ -18,6 +19,7 @@ interface ConnectRelativeDialogProps {
 }
 
 export function ConnectRelativeDialog({ pending, onClose, onConfirm }: ConnectRelativeDialogProps) {
+  const { t } = useTranslation();
   const [relation, setRelation] = useState<RelationKey>('OGIL');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function ConnectRelativeDialog({ pending, onClose, onConfirm }: ConnectRe
       await onConfirm(relation);
       onClose();
     } catch {
-      setError("Bog'lab bo'lmadi. Qaytadan urinib ko'ring");
+      setError(t('tree.connectDialog.error'));
     } finally {
       setSaving(false);
     }
@@ -51,25 +53,26 @@ export function ConnectRelativeDialog({ pending, onClose, onConfirm }: ConnectRe
     >
       <div
         role="dialog"
-        aria-label="A'zolarni bog'lash"
+        aria-label={t('tree.connectDialog.ariaLabel')}
         className="w-full max-w-sm rounded-[22px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-center font-serif text-xl font-semibold text-brand-900">
-          A&#8216;zolarni bog&#8216;lash
+          {t('tree.connectDialog.title')}
         </h2>
         <p className="mt-2 text-center text-sm text-brand-700">
           <span className="font-semibold">{pending.toName}</span> —{' '}
-          <span className="font-semibold">{pending.fromName}</span>ga kim bo&#8216;ladi?
+          <span className="font-semibold">{pending.fromName}</span>
+          {t('tree.connectDialog.questionSuffix')}
         </p>
 
         <select
-          aria-label="Qarindoshlik turi"
+          aria-label={t('tree.connectDialog.relationTypeLabel')}
           value={relation}
           onChange={(e) => setRelation(e.target.value as RelationKey)}
           className="mt-4 w-full cursor-pointer rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none transition-colors focus:border-brand-600"
         >
-          {RELATION_GROUPS.map((g) => (
+          {getRelationGroups().map((g) => (
             <optgroup key={g.title} label={g.title}>
               {g.items.map((r) => (
                 <option key={r.value} value={r.value}>
@@ -88,10 +91,10 @@ export function ConnectRelativeDialog({ pending, onClose, onConfirm }: ConnectRe
             onClick={onClose}
             className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-brand-900 transition-colors hover:bg-brand-50"
           >
-            Bekor qilish
+            {t('common.cancel')}
           </button>
           <Button type="button" loading={saving} className="flex-1" onClick={submit}>
-            Bog&#8216;lash
+            {t('tree.connectDialog.confirm')}
           </Button>
         </div>
       </div>

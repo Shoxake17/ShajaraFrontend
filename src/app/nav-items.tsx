@@ -2,6 +2,7 @@
 // Asosiy navigatsiya ro'yxati — Sidebar (desktop) va BottomNav (mobil) IKKALASI
 // ham shu yerdan oladi, ikonkalar ikki marta yozilmasin uchun.
 import type { ReactElement, SVGProps } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type IconProps = SVGProps<SVGSVGElement>;
 const base = {
@@ -54,10 +55,32 @@ export interface NavItem {
   img?: string;
 }
 
-export const NAV: NavItem[] = [
-  { to: '/doska', label: 'Shajara doskasi', shortLabel: 'Doska', img: '/registertree.png', end: true },
-  { to: '/oila', label: "Oila a'zolarim", shortLabel: 'Oila', Icon: UsersIcon, end: false },
-  { to: '/media', label: 'Media galereya', shortLabel: 'Media', Icon: GalleryIcon, end: false },
-  { to: '/ai', label: 'Shajara AI', shortLabel: 'AI', Icon: AiIcon, end: false },
-  { to: '/sozlamalar', label: 'Sozlamalar', shortLabel: 'Sozlama', Icon: SettingsIcon, end: false },
+interface NavItemDef {
+  to: string;
+  labelKey: string;
+  shortLabelKey: string;
+  end: boolean;
+  Icon?: (p: IconProps) => ReactElement;
+  img?: string;
+}
+
+const NAV_ITEMS: NavItemDef[] = [
+  { to: '/doska', labelKey: 'nav.tree', shortLabelKey: 'nav.treeShort', img: '/registertree.png', end: true },
+  { to: '/oila', labelKey: 'nav.family', shortLabelKey: 'nav.familyShort', Icon: UsersIcon, end: false },
+  { to: '/media', labelKey: 'nav.media', shortLabelKey: 'nav.mediaShort', Icon: GalleryIcon, end: false },
+  { to: '/ai', labelKey: 'nav.ai', shortLabelKey: 'nav.aiShort', Icon: AiIcon, end: false },
+  { to: '/sozlamalar', labelKey: 'nav.settings', shortLabelKey: 'nav.settingsShort', Icon: SettingsIcon, end: false },
 ];
+
+/** Tarjima qilingan navigatsiya ro'yxati — Sidebar/BottomNav shu hook orqali oladi */
+export function useNavItems(): NavItem[] {
+  const { t } = useTranslation();
+  return NAV_ITEMS.map(({ to, labelKey, shortLabelKey, end, Icon, img }) => ({
+    to,
+    label: t(labelKey),
+    shortLabel: t(shortLabelKey),
+    end,
+    Icon,
+    img,
+  }));
+}

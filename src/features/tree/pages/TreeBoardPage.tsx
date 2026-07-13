@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Background,
   BackgroundVariant,
@@ -103,6 +104,7 @@ export function TreeBoardPage() {
 }
 
 function TreeBoard() {
+  const { t } = useTranslation();
   const { fitView, setCenter, getNode } = useReactFlow();
   const user = useAuthStore((s) => s.user);
   // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — shu yerga
@@ -347,9 +349,12 @@ function TreeBoard() {
                 uchun) — faqat planshet/desktop'da (sm: va undan katta)
                 ko'rinadi. */}
             <div className="hidden min-w-0 shrink-0 sm:block">
-              <p className="truncate text-sm font-semibold text-brand-900">Shajara Doska</p>
+              <p className="truncate text-sm font-semibold text-brand-900">{t('tree.board.title')}</p>
               <p className="truncate text-xs text-brand-500">
-                {sideFilter === 'PATERNAL' ? 'Ota tomon' : 'Ona tomon'} — {sideCount} ta a&#39;zo
+                {t('tree.board.memberCount', {
+                  side: sideFilter === 'PATERNAL' ? t('tree.board.paternalSide') : t('tree.board.maternalSide'),
+                  count: sideCount,
+                })}
               </p>
             </div>
             {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
@@ -362,13 +367,13 @@ function TreeBoard() {
                   birga yoki "hammasi" holati yo'q. Doira ikonkalar (♂/♀), o'z
                   bordered "bloki" ichida — app uslubi. Ona tomon tanlansa PUSHTI,
                   Ota tomon — brend yashili (o'z holicha). */}
-              <div role="radiogroup" aria-label="Qarindoshlik tomoni" className="flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
+              <div role="radiogroup" aria-label={t('tree.board.sideGroupLabel')} className="flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
                 <button
                   type="button"
                   onClick={() => setSideFilter('PATERNAL')}
                   role="radio"
                   aria-checked={sideFilter === 'PATERNAL'}
-                  title="Faqat ota tomon oila a'zolarini ko'rsatish"
+                  title={t('tree.board.paternalOnlyTitle')}
                   className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
                     sideFilter === 'PATERNAL'
                       ? 'bg-brand-700 text-white'
@@ -382,7 +387,7 @@ function TreeBoard() {
                   onClick={() => setSideFilter('MATERNAL')}
                   role="radio"
                   aria-checked={sideFilter === 'MATERNAL'}
-                  title="Faqat ona tomon oila a'zolarini ko'rsatish"
+                  title={t('tree.board.maternalOnlyTitle')}
                   className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 ${
                     sideFilter === 'MATERNAL'
                       ? 'bg-pink-600 text-white'
@@ -398,8 +403,8 @@ function TreeBoard() {
               <button
                 type="button"
                 onClick={() => setMobileSearchOpen((v) => !v)}
-                title="Qidirish"
-                aria-label="Qidirish"
+                title={t('common.search')}
+                aria-label={t('common.search')}
                 aria-pressed={mobileSearchOpen}
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
                   mobileSearchOpen
@@ -414,7 +419,7 @@ function TreeBoard() {
                 type="button"
                 onClick={goToMe}
                 disabled={!myId}
-                title="Menga o'tish (o'zimni ko'rsatish)"
+                title={t('tree.board.goToMeTitle')}
                 className="hidden items-center gap-1.5 rounded-full bg-brand-50 py-1.5 pl-1.5 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
                 <span
@@ -435,8 +440,8 @@ function TreeBoard() {
                   onClick={() => setLayoutEdit(!layoutEdit)}
                   title={
                     layoutEdit
-                      ? "Yakka surish rejimini o'chirish (karta oilasi bilan suriladi)"
-                      : "Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)"
+                      ? t('tree.board.singleDragOffTitle')
+                      : t('tree.board.singleDragOnTitle')
                   }
                   aria-pressed={layoutEdit}
                   className={`hidden h-9 w-9 items-center justify-center rounded-full transition-colors sm:flex ${
@@ -456,7 +461,7 @@ function TreeBoard() {
                 type="button"
                 onClick={onArrange}
                 disabled={arranging || nodes.length < 2}
-                aria-label="Tartiblash"
+                aria-label={t('tree.board.arrange')}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
               >
                 {/* Tartiblash (auto-arrange) ikonkasi — mobilда HAM ko'rinadi (faqat
@@ -464,17 +469,17 @@ function TreeBoard() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
                   <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
                 </svg>
-                <span className="hidden sm:inline">{arranging ? 'Tartiblanmoqda…' : 'Tartiblash'}</span>
+                <span className="hidden sm:inline">{arranging ? t('tree.board.arranging') : t('tree.board.arrange')}</span>
               </button>
               <button
                 type="button"
                 onClick={openAddDefault}
-                title="Qarindosh qo'shish"
-                aria-label="Qarindosh qo'shish"
+                title={t('tree.board.addRelative')}
+                aria-label={t('tree.board.addRelative')}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-2"
               >
                 <PlusIcon className="sm:hidden" />
-                <span className="hidden sm:inline text-sm font-semibold">+ Qarindosh qo&#8216;shish</span>
+                <span className="hidden sm:inline text-sm font-semibold">{t('tree.board.addRelativeShort')}</span>
               </button>
             </div>
           </>,
@@ -523,14 +528,14 @@ function TreeBoard() {
                 BottomNav'ni yashirib, doskaga ko'proq joy beradi. */}
             <ControlButton
               onClick={toggleFullscreen}
-              title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
+              title={boardFullscreen ? t('tree.board.fullscreenExit') : t('tree.board.fullscreenEnter')}
             >
               {boardFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
             </ControlButton>
             {/* "Menga o'tish" — zoom panelida, mobilda sarlavha tor bo'lgani
                 uchun (u yerdagi matnli tugma sm+da ko'rinadi) doim qo'l
                 yetadigan joyda turishi uchun. */}
-            <ControlButton onClick={goToMe} disabled={!myId} title="Menga o'tish (o'zimni ko'rsatish)">
+            <ControlButton onClick={goToMe} disabled={!myId} title={t('tree.board.goToMeTitle')}>
               <TargetIcon />
             </ControlButton>
           </Controls>
@@ -594,9 +599,9 @@ function TreeBoard() {
       />
       <ConfirmDialog
         open={deleteId !== null}
-        title="O'chirasizmi?"
-        message="Bu odam va uning rishtalari o'chiriladi. Bu amalni qaytarib bo'lmaydi."
-        confirmLabel="O'chirish"
+        title={t('tree.board.deleteTitle')}
+        message={t('tree.board.deleteMessage')}
+        confirmLabel={t('common.delete')}
         danger
         loading={deleting}
         onConfirm={confirmDelete}

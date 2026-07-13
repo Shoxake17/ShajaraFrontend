@@ -1,5 +1,7 @@
 // features/tree/components/PhotoPicker.tsx
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { uploadPhoto } from '@/features/tree/api/family.api';
 import { quotaMessage } from '@/features/storage/storage.store';
 
@@ -19,13 +21,14 @@ export function uploadErrorMessage(err: unknown): string {
   const quota = quotaMessage(err);
   if (quota) return quota;
   const status = (err as { response?: { status?: number } } | undefined)?.response?.status;
-  if (status === 401) return "Sessiyangiz tugagan. Sahifani yangilab, qaytadan kiring.";
-  if (status === 503) return "Rasm saqlash hali sozlanmagan (R2)";
-  return "Rasm yuklab bo'lmadi. Internet aloqasini tekshirib, qaytadan urinib ko'ring.";
+  if (status === 401) return i18n.t('tree.photoPicker.sessionExpired');
+  if (status === 503) return i18n.t('tree.photoPicker.storageNotConfigured');
+  return i18n.t('tree.photoPicker.uploadFailed');
 }
 
 /** Yumaloq rasm yuklash — Cloudflare R2'ga to'g'ridan-to'g'ri (Add va Edit dialoglarida) */
 export function PhotoPicker({ value, female, onChange, onError }: PhotoPickerProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   // Yuklashdan darhol keyin ko'rsatish uchun MAHALLIY (blob) oldindan ko'rish —
   // `onChange`ga uzatiladigan `url` endi R2 obyekt KALITI (masalan
@@ -79,9 +82,9 @@ export function PhotoPicker({ value, female, onChange, onError }: PhotoPickerPro
           {uploading ? (
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-brand-700" />
           ) : shown ? (
-            <img src={shown} alt="Rasm" className="h-full w-full object-cover" />
+            <img src={shown} alt={t('tree.photoPicker.alt')} className="h-full w-full object-cover" />
           ) : (
-            <span className="text-[11px] text-neutral-400">Rasm +</span>
+            <span className="text-[11px] text-neutral-400">{t('tree.photoPicker.addLabel')}</span>
           )}
         </span>
       </label>

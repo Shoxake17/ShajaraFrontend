@@ -3,11 +3,12 @@
 // Mobil/kichik ekranlarda buning o'rniga pastki tab-bar (`BottomNav.tsx`) ishlatiladi.
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
-import { NAV, LogoutIcon } from './nav-items';
+import { useNavItems, LogoutIcon } from './nav-items';
 
 const MB = 1024 * 1024;
 
@@ -17,6 +18,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ fullscreen }: SidebarProps) {
+  const { t } = useTranslation();
+  const NAV = useNavItems();
   const navigate = useNavigate();
   const clearSession = useAuthStore((s) => s.logout);
   const usedBytes = useStorageStore((s) => s.usedBytes);
@@ -88,7 +91,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
       <div className="hidden shrink-0 px-3 py-2 lg:block">
         <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-3 shadow-sm">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-brand-700">Xotira</span>
+            <span className="font-medium text-brand-700">{t('nav.memory')}</span>
             <span className={`font-semibold ${pctColor}`}>{percent}%</span>
           </div>
           <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
@@ -98,7 +101,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
             />
           </div>
           <p className="mt-1.5 text-[11px] text-brand-500">
-            {formatBytes(usedBytes)} / {formatBytes(limitBytes)} foydalanilgan
+            {t('nav.memoryUsed', { used: formatBytes(usedBytes), limit: formatBytes(limitBytes) })}
           </p>
         </div>
       </div>
@@ -112,7 +115,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
           className="flex w-full items-center justify-center gap-3 rounded-full border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 lg:justify-start"
         >
           <LogoutIcon className="shrink-0" />
-          <span className="hidden lg:block">Chiqish</span>
+          <span className="hidden lg:block">{t('common.logout')}</span>
         </button>
       </div>
     </aside>

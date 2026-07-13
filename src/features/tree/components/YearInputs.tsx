@@ -1,4 +1,7 @@
 // features/tree/components/YearInputs.tsx
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
+
 const CURRENT_YEAR = new Date().getFullYear();
 
 interface YearInputsProps {
@@ -13,6 +16,7 @@ const cls =
 
 /** Tug'ilgan va vafot yili (Add va Edit dialoglarida) */
 export function YearInputs({ birthYear, deathYear, onBirth, onDeath }: YearInputsProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-3">
       <input
@@ -20,7 +24,7 @@ export function YearInputs({ birthYear, deathYear, onBirth, onDeath }: YearInput
         inputMode="numeric"
         min={1000}
         max={CURRENT_YEAR}
-        placeholder="Tug'ilgan yil"
+        placeholder={t('tree.birthYearPlaceholder')}
         value={birthYear}
         onChange={(e) => onBirth(e.target.value)}
         className={cls}
@@ -30,7 +34,7 @@ export function YearInputs({ birthYear, deathYear, onBirth, onDeath }: YearInput
         inputMode="numeric"
         min={1000}
         max={CURRENT_YEAR}
-        placeholder="Vafot yili"
+        placeholder={t('tree.deathYearPlaceholder')}
         value={deathYear}
         onChange={(e) => onDeath(e.target.value)}
         className={cls}
@@ -43,6 +47,6 @@ export function YearInputs({ birthYear, deathYear, onBirth, onDeath }: YearInput
 export function validateYears(birthYear: string, deathYear: string): string | null {
   const by = birthYear ? Number(birthYear) : undefined;
   const dy = deathYear ? Number(deathYear) : undefined;
-  if (by && dy && dy < by) return "Vafot yili tug'ilgan yilidan keyin bo'lishi kerak";
+  if (by && dy && dy < by) return i18n.t('tree.yearOrderError');
   return null;
 }

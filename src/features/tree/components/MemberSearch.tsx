@@ -6,6 +6,7 @@
 //  - Kiritish uzunligi cheklangan, natijalar soni cheklangan (DoS'dan himoya).
 //  - Server so'rovi yo'q -> injection yo'q.
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface SearchItem {
   id: string;
@@ -52,6 +53,7 @@ interface Props {
 }
 
 export function MemberSearch({ items, onSelect }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -118,7 +120,7 @@ export function MemberSearch({ items, onSelect }: Props) {
           autoComplete="off"
           spellCheck={false}
           maxLength={MAX_QUERY}
-          placeholder="Qidirish..."
+          placeholder={t('tree.memberSearch.placeholder')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value.slice(0, MAX_QUERY));
@@ -137,7 +139,7 @@ export function MemberSearch({ items, onSelect }: Props) {
           className="no-scrollbar absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
         >
           {results.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-neutral-400">Hech kim topilmadi</li>
+            <li className="px-3 py-2 text-sm text-neutral-400">{t('tree.memberSearch.noResults')}</li>
           ) : (
             results.map((r, i) => (
               <li key={r.id} role="option" aria-selected={i === active}>

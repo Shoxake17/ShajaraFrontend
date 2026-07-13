@@ -1,34 +1,33 @@
 // src/features/landing/components/AppPromo.tsx
 // "Har doim yoningizda" (ilova targ'iboti) bo'limi — alohida, mustaqil
 // komponent. Stillar: ./AppPromo.css | Telefon logotipi: /phone.png rasmidan.
+import { useTranslation } from 'react-i18next';
 import { AppleIcon, PlayStoreIcon } from '@/shared/ui/icons';
 import './AppPromo.css';
 
 export function AppPromo() {
+  const { t } = useTranslation();
   return (
     <section className="appPromo">
       <div className="appPromo__inner">
         <div>
-          <p className="appPromo__eyebrow">Oson. Zamonaviy. Ishonchli.</p>
-          <h2 className="appPromo__title">Har doim yoningizda</h2>
-          <p className="appPromo__text">
-            Shajara ilovasi orqali oila tarixingizni istalgan vaqtda, istalgan joyda boshqaring va
-            boyiting.
-          </p>
+          <p className="appPromo__eyebrow">{t('landing.appPromo.eyebrow')}</p>
+          <h2 className="appPromo__title">{t('landing.appPromo.title')}</h2>
+          <p className="appPromo__text">{t('landing.appPromo.text')}</p>
 
           <div className="appPromo__stores">
             <a href="#" className="appPromo__storeBtn">
               <AppleIcon className="h-6 w-6" />
               <span>
-                <span className="appPromo__storeLabel">App Store&#8216;dan</span>
-                <span className="appPromo__storeName">yuklab oling</span>
+                <span className="appPromo__storeLabel">{t('landing.appPromo.appStoreLabel')}</span>
+                <span className="appPromo__storeName">{t('landing.appPromo.downloadSuffix')}</span>
               </span>
             </a>
             <a href="#" className="appPromo__storeBtn">
               <PlayStoreIcon />
               <span>
-                <span className="appPromo__storeLabel">Google Play&#8216;dan</span>
-                <span className="appPromo__storeName">yuklab oling</span>
+                <span className="appPromo__storeLabel">{t('landing.appPromo.googlePlayLabel')}</span>
+                <span className="appPromo__storeName">{t('landing.appPromo.downloadSuffix')}</span>
               </span>
             </a>
           </div>
@@ -37,7 +36,7 @@ export function AppPromo() {
         <div className="appPromo__phoneWrap">
             <img
               src="/phone.png"
-              alt="Shajara ilovasi logotipi"
+              alt={t('landing.appPromo.logoAlt')}
               draggable={false}
               className="appPromo__phoneLogo"
             />

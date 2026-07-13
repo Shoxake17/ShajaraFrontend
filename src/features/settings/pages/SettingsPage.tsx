@@ -6,7 +6,9 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
+import { useLanguage } from '@/shared/hooks/useLanguage';
 import {
   ChangePasswordDialog,
   LoginHistoryDialog,
@@ -55,19 +57,42 @@ import {
 } from '../components/settings-ui';
 
 const SECTIONS = [
-  { id: 'profil', label: "Profil ma'lumotlari", Icon: UserIcon2 },
-  { id: 'xavfsizlik', label: 'Hisob xavfsizligi', Icon: ShieldIcon },
-  { id: 'maxfiylik', label: 'Maxfiylik', Icon: LockIcon2 },
-  { id: 'bildirishnoma', label: 'Bildirishnomalar', Icon: BellIcon },
-  { id: 'til', label: 'Til va mintaqa', Icon: GlobeIcon },
-  { id: 'eksport', label: "Ma'lumotlar va eksport", Icon: DownloadIcon },
-  { id: 'yordam', label: "Yordam va qo'llab-quvvatlash", Icon: HelpIcon },
-  { id: 'tizim', label: 'Tizim haqida', Icon: InfoIcon },
+  { id: 'profil', labelKey: 'settings.sections.profile', Icon: UserIcon2 },
+  { id: 'xavfsizlik', labelKey: 'settings.sections.security', Icon: ShieldIcon },
+  { id: 'maxfiylik', labelKey: 'settings.sections.privacy', Icon: LockIcon2 },
+  { id: 'bildirishnoma', labelKey: 'settings.sections.notifications', Icon: BellIcon },
+  { id: 'til', labelKey: 'settings.sections.language', Icon: GlobeIcon },
+  { id: 'eksport', labelKey: 'settings.sections.export', Icon: DownloadIcon },
+  { id: 'yordam', labelKey: 'settings.sections.help', Icon: HelpIcon },
+  { id: 'tizim', labelKey: 'settings.sections.system', Icon: InfoIcon },
 ];
+
+/** Til almashtirgich — Sozlamalar'dagi "Til" qatorida, kompakt segmentli tugma */
+function LanguageSwitch() {
+  const { language, setLanguage } = useLanguage();
+  return (
+    <div className="flex items-center gap-0.5 rounded-full border border-neutral-200 bg-neutral-50 p-0.5">
+      {(['uz', 'ru'] as const).map((lang) => (
+        <button
+          key={lang}
+          type="button"
+          onClick={() => setLanguage(lang)}
+          aria-pressed={language === lang}
+          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase transition-colors ${
+            language === lang ? 'bg-brand-700 text-white' : 'text-neutral-500 hover:text-brand-700'
+          }`}
+        >
+          {lang}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const chevron = <ChevronIcon width={16} height={16} className="text-neutral-300" />;
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -166,8 +191,8 @@ export function SettingsPage() {
     const file = e.target.files?.[0];
     e.target.value = ''; // bir xil faylni qayta tanlash mumkin bo'lsin
     if (!file) return;
-    if (!file.type.startsWith('image/')) return setError('Faqat rasm faylini tanlang');
-    if (file.size > 5 * 1024 * 1024) return setError("Rasm 5 MB dan katta bo'lmasin");
+    if (!file.type.startsWith('image/')) return setError(t('settings.profile.imageOnly'));
+    if (file.size > 5 * 1024 * 1024) return setError(t('settings.profile.imageTooLarge'));
     setError(null);
     setSaving(true);
     if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
@@ -189,7 +214,7 @@ export function SettingsPage() {
   const onSave = async () => {
     if (!myMember) return;
     const name = `${ism} ${familiya}`.trim();
-    if (name.length < 2) return setError("Ism kamida 2 ta belgidan iborat bo'lsin");
+    if (name.length < 2) return setError(t('settings.profile.nameTooShort'));
     setError(null);
     setSaving(true);
     try {
@@ -208,7 +233,7 @@ export function SettingsPage() {
       setEditingProfile(false);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
-      setError(quotaMessage(err) ?? "Saqlab bo'lmadi. Qaytadan urinib ko'ring");
+      setError(quotaMessage(err) ?? t('settings.profile.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -237,19 +262,19 @@ export function SettingsPage() {
   const profileFieldsGrid = (
     <>
       <label className="block">
-        <span className="mb-1 block text-xs text-neutral-500">Ism</span>
+        <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.firstName')}</span>
         <input value={ism} onChange={(e) => setIsm(e.target.value)} maxLength={60} className={inputCls} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs text-neutral-500">Familiya</span>
+        <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.lastName')}</span>
         <input value={familiya} onChange={(e) => setFamiliya(e.target.value)} maxLength={60} className={inputCls} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs text-neutral-500">Email</span>
+        <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.email')}</span>
         <input value={user?.email ?? ''} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs text-neutral-500">Telefon raqami</span>
+        <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.phone')}</span>
         <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
       </label>
     </>
@@ -263,7 +288,7 @@ export function SettingsPage() {
       {topBarActionsEl &&
         createPortal(
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-brand-900">Sozlamalar</p>
+            <p className="truncate text-sm font-semibold text-brand-900">{t('settings.title')}</p>
           </div>,
           topBarActionsEl,
         )}
@@ -279,7 +304,7 @@ export function SettingsPage() {
         <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[230px_1fr]">
           {/* Ichki menyu — joyidan qimirlamaydi, faqat o'ng tomon scroll bo'ladi */}
           <nav className="hidden rounded-2xl border border-brand-100 bg-white p-2 lg:block lg:h-full lg:overflow-y-auto">
-            {SECTIONS.map(({ id, label, Icon }) => (
+            {SECTIONS.map(({ id, labelKey, Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -289,7 +314,7 @@ export function SettingsPage() {
                 }`}
               >
                 <Icon width={18} height={18} className="shrink-0" />
-                <span className="truncate">{label}</span>
+                <span className="truncate">{t(labelKey)}</span>
               </button>
             ))}
           </nav>
@@ -297,7 +322,7 @@ export function SettingsPage() {
           {/* Bo'limlar — faqat shu qism scroll bo'ladi (pastdan joy ochiladi) */}
           <div className="min-h-0 min-w-0 space-y-6 overflow-y-auto pb-6 pr-1">
             <div id="profil" className="scroll-mt-6">
-                <Card title="Profil ma'lumotlari" desc="Shaxsiy ma'lumotlaringizni yangilang va hisobingizni boshqaring.">
+                <Card title={t('settings.sections.profile')} desc={t('settings.profile.desc')}>
                   {/* Rasm tanlash input'i — BITTA, ikkala (desktop/mobil)
                       kamera tugmasi ham shu bitta ref orqali ochadi. */}
                   <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
@@ -327,14 +352,14 @@ export function SettingsPage() {
                     </div>
                     {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
                     <div className="mt-4 flex items-center justify-end gap-3">
-                      {saved && <span className="text-xs font-medium text-brand-600">Saqlandi ✓</span>}
+                      {saved && <span className="text-xs font-medium text-brand-600">{t('common.saved')}</span>}
                       <button
                         type="button"
                         onClick={onSave}
                         disabled={saving}
                         className="rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
                       >
-                        {saving ? 'Saqlanmoqda…' : 'Saqlash'}
+                        {saving ? t('common.saving') : t('common.save')}
                       </button>
                     </div>
                   </div>
@@ -369,14 +394,14 @@ export function SettingsPage() {
 
                         {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
                         <div className="mt-4 flex items-center justify-end gap-3">
-                          {saved && <span className="text-xs font-medium text-brand-600">Saqlandi ✓</span>}
+                          {saved && <span className="text-xs font-medium text-brand-600">{t('common.saved')}</span>}
                           <button
                             type="button"
                             onClick={cancelEdit}
                             disabled={saving}
                             className="rounded-field border border-neutral-200 px-5 py-2.5 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-50"
                           >
-                            Bekor qilish
+                            {t('common.cancel')}
                           </button>
                           <button
                             type="button"
@@ -384,7 +409,7 @@ export function SettingsPage() {
                             disabled={saving}
                             className="rounded-field bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
                           >
-                            {saving ? 'Saqlanmoqda…' : 'Saqlash'}
+                            {saving ? t('common.saving') : t('common.save')}
                           </button>
                         </div>
                       </>
@@ -403,7 +428,7 @@ export function SettingsPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-serif text-base font-semibold text-brand-900">
-                            {`${ism} ${familiya}`.trim() || "Noma'lum"}
+                            {`${ism} ${familiya}`.trim() || t('settings.profile.unknown')}
                           </p>
                           <p className="truncate text-sm text-neutral-500">{user?.email}</p>
                           <p className="truncate text-sm text-neutral-500">{user?.phone ?? '—'}</p>
@@ -413,7 +438,7 @@ export function SettingsPage() {
                           onClick={() => setEditingProfile(true)}
                           className="shrink-0 rounded-full bg-brand-50 px-3.5 py-2 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 sm:px-5 sm:py-2.5 sm:text-sm"
                         >
-                          Tahrirlash
+                          {t('common.edit')}
                         </button>
                       </div>
                     )}
@@ -422,12 +447,12 @@ export function SettingsPage() {
               </div>
 
               <div id="xavfsizlik" className="scroll-mt-6">
-                <Card title="Hisob xavfsizligi" desc="Hisobingiz xavfsizligini ta'minlash uchun parolingiz va sozlamalarni boshqaring.">
+                <Card title={t('settings.sections.security')} desc={t('settings.security.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={KeyIcon} label="Parolni o'zgartirish" onClick={() => setPasswordOpen(true)} right={chevron} />
+                    <Row Icon={KeyIcon} label={t('settings.security.changePassword')} onClick={() => setPasswordOpen(true)} right={chevron} />
                     <Row
                       Icon={ShieldIcon}
-                      label="Ikki bosqichli autentifikatsiya"
+                      label={t('settings.security.twoFactor')}
                       right={
                         <Toggle
                           on={!!twoFactorEnabled}
@@ -436,75 +461,75 @@ export function SettingsPage() {
                         />
                       }
                     />
-                    <Row Icon={DevicesIcon} label="Faol qurilmalar" onClick={() => setSessionsOpen(true)} right={chevron} />
-                    <Row Icon={ClockIcon} label="Kirish tarixi" onClick={() => setHistoryOpen(true)} right={chevron} />
+                    <Row Icon={DevicesIcon} label={t('settings.security.activeSessions')} onClick={() => setSessionsOpen(true)} right={chevron} />
+                    <Row Icon={ClockIcon} label={t('settings.security.loginHistory')} onClick={() => setHistoryOpen(true)} right={chevron} />
                   </div>
                 </Card>
               </div>
 
             <div id="maxfiylik" className="scroll-mt-6">
-                <Card title="Maxfiylik" desc="Ma'lumotlaringiz kimlar uchun ko'rinishini boshqaring.">
+                <Card title={t('settings.sections.privacy')} desc={t('settings.privacy.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={EyeIcon2} label="Profil ko'rinishi" right={<><span>Barcha uchun</span>{chevron}</>} />
-                    <Row Icon={ChatIcon} label="Kimlar sizga xabar yuborishi mumkin" right={<><span>Barcha</span>{chevron}</>} />
-                    <Row Icon={UsersIcon2} label="Kimlar sizni topa olishi mumkin" right={<><span>Barcha</span>{chevron}</>} />
-                    <Row Icon={LockIcon2} label="Ma'lumotlar ko'rinishi" right={<><span>Oila a'zolarim</span>{chevron}</>} />
+                    <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<><span>{t('settings.privacy.everyone')}</span>{chevron}</>} />
+                    <Row Icon={ChatIcon} label={t('settings.privacy.whoCanMessage')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
+                    <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
+                    <Row Icon={LockIcon2} label={t('settings.privacy.dataVisibility')} right={<><span>{t('settings.privacy.familyMembers')}</span>{chevron}</>} />
                   </div>
                 </Card>
               </div>
 
               <div id="bildirishnoma" className="scroll-mt-6">
-                <Card title="Bildirishnomalar" desc="Qaysi bildirishnomalarni va qanday usulda olishni tanlang.">
+                <Card title={t('settings.sections.notifications')} desc={t('settings.notifications.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={BellIcon} label="Push bildirishnomalar" right={<Toggle on={notif.push} onChange={(v) => setNotif((n) => ({ ...n, push: v }))} />} />
-                    <Row Icon={MailIcon2} label="Email bildirishnomalar" right={<Toggle on={notif.email} onChange={(v) => setNotif((n) => ({ ...n, email: v }))} />} />
-                    <Row Icon={SoundIcon} label="Tizim bildirishnomalari" right={<Toggle on={notif.system} onChange={(v) => setNotif((n) => ({ ...n, system: v }))} />} />
-                    <Row Icon={CalendarIcon} label="Tadbirlar eslatmalari" right={<Toggle on={notif.events} onChange={(v) => setNotif((n) => ({ ...n, events: v }))} />} />
+                    <Row Icon={BellIcon} label={t('settings.notifications.push')} right={<Toggle on={notif.push} onChange={(v) => setNotif((n) => ({ ...n, push: v }))} />} />
+                    <Row Icon={MailIcon2} label={t('settings.notifications.email')} right={<Toggle on={notif.email} onChange={(v) => setNotif((n) => ({ ...n, email: v }))} />} />
+                    <Row Icon={SoundIcon} label={t('settings.notifications.system')} right={<Toggle on={notif.system} onChange={(v) => setNotif((n) => ({ ...n, system: v }))} />} />
+                    <Row Icon={CalendarIcon} label={t('settings.notifications.events')} right={<Toggle on={notif.events} onChange={(v) => setNotif((n) => ({ ...n, events: v }))} />} />
                   </div>
                 </Card>
               </div>
 
             <div id="til" className="scroll-mt-6">
-                <Card title="Til va mintaqa" desc="Ilova tili va hududingizni tanlang.">
+                <Card title={t('settings.sections.language')} desc={t('settings.language.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={GlobeIcon} label="Til" right={<><span>O'zbekcha</span>{chevron}</>} />
-                    <Row Icon={PinIcon} label="Mintaqa" right={<><span>O'zbekiston</span>{chevron}</>} />
-                    <Row Icon={CalendarIcon} label="Sana formati" right={<><span>DD.MM.YYYY</span>{chevron}</>} />
-                    <Row Icon={ClockIcon} label="Vaqt formati" right={<><span>24 soat</span>{chevron}</>} />
+                    <Row Icon={GlobeIcon} label={t('settings.language.language')} right={<LanguageSwitch />} />
+                    <Row Icon={PinIcon} label={t('settings.language.region')} right={<><span>{t('settings.language.uzbekistan')}</span>{chevron}</>} />
+                    <Row Icon={CalendarIcon} label={t('settings.language.dateFormat')} right={<><span>DD.MM.YYYY</span>{chevron}</>} />
+                    <Row Icon={ClockIcon} label={t('settings.language.timeFormat')} right={<><span>{t('settings.language.hour24')}</span>{chevron}</>} />
                   </div>
                 </Card>
               </div>
 
               <div id="eksport" className="scroll-mt-6">
-                <Card title="Ma'lumotlar va eksport" desc="Ma'lumotlaringizni yuklab oling yoki eksport qiling.">
+                <Card title={t('settings.sections.export')} desc={t('settings.export.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={DownloadIcon} label="Ma'lumotlarni yuklab olish" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={FileIcon} label="Ma'lumotlarni eksport qilish" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={LayersIcon} label="Google Drive'ga eksport" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={TrashIcon} label="Hisobni o'chirish" danger right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={DownloadIcon} label={t('settings.export.download')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={FileIcon} label={t('settings.export.export')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={LayersIcon} label={t('settings.export.googleDrive')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={TrashIcon} label={t('settings.export.deleteAccount')} danger right={<><SoonBadge />{chevron}</>} />
                   </div>
                 </Card>
               </div>
 
               <div id="yordam" className="scroll-mt-6">
-                <Card title="Yordam va qo'llab-quvvatlash" desc="Savollaringiz bormi? Biz yordam berishga tayyormiz.">
+                <Card title={t('settings.sections.help')} desc={t('settings.help.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={HelpIcon} label="Yordam markazi" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={ChatIcon} label="Biz bilan bog'lanish" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={InfoIcon} label="Tez-tez so'raladigan savollar" right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={AlertIcon} label="Xato haqida xabar berish" right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={HelpIcon} label={t('settings.help.helpCenter')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={ChatIcon} label={t('settings.help.contact')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={InfoIcon} label={t('settings.help.faq')} right={<><SoonBadge />{chevron}</>} />
+                    <Row Icon={AlertIcon} label={t('settings.help.reportBug')} right={<><SoonBadge />{chevron}</>} />
                   </div>
                 </Card>
               </div>
 
             <div id="tizim" className="scroll-mt-6">
-              <Card title="Tizim haqida" desc="Ilova versiyasi va huquqiy ma'lumotlar.">
+              <Card title={t('settings.sections.system')} desc={t('settings.system.desc')}>
                 <div className="space-y-1">
-                  <Row Icon={LayersIcon} label="Ilova versiyasi" right={<span>1.0.0</span>} />
-                  <Row Icon={RefreshIcon} label="Yangilanishlarni tekshirish" right={<SoonBadge />} />
-                  <Row Icon={FileIcon} label="Foydalanish shartlari" right={<SoonBadge />} />
-                  <Row Icon={ShieldIcon} label="Maxfiylik siyosati" right={<SoonBadge />} />
-                  <Row Icon={AwardIcon} label="Litsenziyalar" right={<SoonBadge />} />
+                  <Row Icon={LayersIcon} label={t('settings.system.version')} right={<span>1.0.0</span>} />
+                  <Row Icon={RefreshIcon} label={t('settings.system.checkUpdates')} right={<SoonBadge />} />
+                  <Row Icon={FileIcon} label={t('settings.system.terms')} right={<SoonBadge />} />
+                  <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} right={<SoonBadge />} />
+                  <Row Icon={AwardIcon} label={t('settings.system.licenses')} right={<SoonBadge />} />
                 </div>
               </Card>
             </div>
@@ -519,7 +544,7 @@ export function SettingsPage() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-4 py-3.5 text-sm font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:opacity-50"
             >
               <LogoutIcon2 width={18} height={18} />
-              {loggingOut ? 'Chiqilmoqda…' : 'Hisobdan chiqish'}
+              {loggingOut ? t('common.loggingOut') : t('settings.logoutAccount')}
             </button>
           </div>
         </div>

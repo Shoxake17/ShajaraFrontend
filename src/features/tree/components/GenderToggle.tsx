@@ -1,4 +1,5 @@
 // features/tree/components/GenderToggle.tsx
+import { useTranslation } from 'react-i18next';
 import type { Gender } from '@/features/tree/model/relations';
 
 interface GenderToggleProps {
@@ -8,6 +9,7 @@ interface GenderToggleProps {
 
 /** Erkak / Ayol tanlash (Add va Edit dialoglarida) */
 export function GenderToggle({ value, onChange }: GenderToggleProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-2">
       <button
@@ -19,7 +21,7 @@ export function GenderToggle({ value, onChange }: GenderToggleProps) {
             : 'border-neutral-200 text-neutral-500'
         }`}
       >
-        Erkak
+        {t('common.male')}
       </button>
       <button
         type="button"
@@ -30,7 +32,7 @@ export function GenderToggle({ value, onChange }: GenderToggleProps) {
             : 'border-neutral-200 text-neutral-500'
         }`}
       >
-        Ayol
+        {t('common.female')}
       </button>
     </div>
   );

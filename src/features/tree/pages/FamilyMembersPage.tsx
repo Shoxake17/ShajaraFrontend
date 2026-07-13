@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Background,
   BackgroundVariant,
@@ -50,6 +51,7 @@ export function FamilyMembersPage() {
 }
 
 function FamilyMembersBoard() {
+  const { t } = useTranslation();
   const { setCenter, getNode } = useReactFlow();
   const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
   const members = useTreeStore((s) => s.members);
@@ -271,8 +273,8 @@ function FamilyMembersBoard() {
         createPortal(
           <>
             <div className="min-w-0 shrink-0">
-              <p className="truncate text-sm font-semibold text-brand-900">Oila a'zolarim</p>
-              <p className="hidden truncate text-xs text-brand-500 sm:block">Yaqin oila — {count} ta a'zo</p>
+              <p className="truncate text-sm font-semibold text-brand-900">{t('tree.familyPage.title')}</p>
+              <p className="hidden truncate text-xs text-brand-500 sm:block">{t('tree.familyPage.subtitle', { count })}</p>
             </div>
             {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
             <div className="mx-2 hidden flex-1 justify-center md:flex">
@@ -284,8 +286,8 @@ function FamilyMembersBoard() {
               <button
                 type="button"
                 onClick={() => setMobileSearchOpen((v) => !v)}
-                title="Qidirish"
-                aria-label="Qidirish"
+                title={t('common.search')}
+                aria-label={t('common.search')}
                 aria-pressed={mobileSearchOpen}
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
                   mobileSearchOpen
@@ -303,8 +305,8 @@ function FamilyMembersBoard() {
                 onClick={() => setEditMode((v) => !v)}
                 title={
                   editMode
-                    ? "Yakka surish rejimini o'chirish (karta oilasi bilan suriladi)"
-                    : 'Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)'
+                    ? t('tree.board.singleDragOffTitle')
+                    : t('tree.board.singleDragOnTitle')
                 }
                 aria-pressed={editMode}
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${
@@ -322,13 +324,13 @@ function FamilyMembersBoard() {
                 type="button"
                 onClick={onArrange}
                 disabled={nodes.length < 2}
-                aria-label="Tartiblash"
+                aria-label={t('tree.board.arrange')}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
                   <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
                 </svg>
-                <span className="hidden sm:inline">Tartiblash</span>
+                <span className="hidden sm:inline">{t('tree.board.arrange')}</span>
               </button>
             </div>
           </>,
@@ -373,7 +375,7 @@ function FamilyMembersBoard() {
                   (showFitView=false) — shu o'rniga TO'LIQ EKRAN tugmasi. */}
               <ControlButton
                 onClick={toggleFullscreen}
-                title={boardFullscreen ? "To'liq ekrandan chiqish" : "To'liq ekran"}
+                title={boardFullscreen ? t('tree.board.fullscreenExit') : t('tree.board.fullscreenEnter')}
               >
                 {boardFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
               </ControlButton>

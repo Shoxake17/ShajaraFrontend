@@ -5,7 +5,8 @@
 // mobil uchun BITTA komponent — MemberSearch'dagi dropdown bilan bir xil
 // andoza (o'zi joylashadigan/kesiladigan, border+rounded+shadow).
 import { useEffect, useId, useRef, useState, type SVGProps } from 'react';
-import { RELATION_GROUPS, relationLabel, type RelationKey } from '@/features/tree/model/relations';
+import { useTranslation } from 'react-i18next';
+import { getRelationGroups, relationLabel, type RelationKey } from '@/features/tree/model/relations';
 
 interface RelationPickerProps {
   value: RelationKey;
@@ -24,7 +25,9 @@ const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export function RelationPicker({ value, onChange, label = 'Qarindoshlik turi' }: RelationPickerProps) {
+export function RelationPicker({ value, onChange, label }: RelationPickerProps) {
+  const { t } = useTranslation();
+  const resolvedLabel = label ?? t('tree.relationPickerLabel');
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -54,7 +57,7 @@ export function RelationPicker({ value, onChange, label = 'Qarindoshlik turi' }:
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        aria-label={label}
+        aria-label={resolvedLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
@@ -71,10 +74,10 @@ export function RelationPicker({ value, onChange, label = 'Qarindoshlik turi' }:
         <div
           id={listId}
           role="listbox"
-          aria-label={label}
+          aria-label={resolvedLabel}
           className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
         >
-          {RELATION_GROUPS.map((g) => (
+          {getRelationGroups().map((g) => (
             <div key={g.title} className="mb-1 last:mb-0">
               <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                 {g.title}

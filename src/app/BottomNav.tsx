@@ -5,7 +5,8 @@
 // ostida. "Chiqish" bu yerda YO'Q (5 ta band joy yetarli) — u Sozlamalar
 // sahifasida (mobil va desktopда bir xil) joylashgan.
 import { NavLink } from 'react-router-dom';
-import { NAV } from './nav-items';
+import { useTranslation } from 'react-i18next';
+import { useNavItems } from './nav-items';
 
 interface BottomNavProps {
   /** Doska fullscreen rejimida bo'lsa — pastga suzuvchi yopiladi (animatsiya bilan) */
@@ -13,6 +14,8 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ fullscreen }: BottomNavProps) {
+  const { t } = useTranslation();
+  const NAV = useNavItems();
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
       'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
@@ -24,7 +27,7 @@ export function BottomNav({ fullscreen }: BottomNavProps) {
     // atrofida joy (mx/mb), ANIQ ko'rinadigan border + soya. Fullscreen'da
     // pastga siljib (translate) yopiladi.
     <nav
-      aria-label="Asosiy navigatsiya"
+      aria-label={t('nav.ariaLabel')}
       className={`mx-3 flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
         fullscreen
           ? 'mb-0 max-h-0 translate-y-6 opacity-0'

@@ -6,6 +6,7 @@
 // 2 yoki undan ortiq kishi (turmush o'rtoqlari bilan) bo'lsa TO'LIQ
 // ekranda ochiladi va sig'magani ichkarida scroll bo'ladi.
 import { useState, type SVGProps } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { PersonData } from '@/features/tree/model/tree.store';
 import type { Gender } from '@/features/tree/model/relations';
 import type { BoardAccess } from '@/features/tree/types';
@@ -45,6 +46,7 @@ const PlusCircleIcon = (p: SVGProps<SVGSVGElement>) => (
 
 /** 12 xonalik ulashish kodi + nusxalash (faqat OWNER'ga ko'rsatiladi) */
 function ShareCodeBox({ code }: { code: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const copy = () => {
     void navigator.clipboard?.writeText(code).then(() => {
@@ -54,7 +56,7 @@ function ShareCodeBox({ code }: { code: string }) {
   };
   return (
     <div className="mt-2 rounded-xl border border-brand-100 bg-white p-2.5">
-      <p className="mb-1 text-[11px] text-neutral-500">Ulashish kodi (taklif uchun)</p>
+      <p className="mb-1 text-[11px] text-neutral-500">{t('tree.profile.shareCodeLabel')}</p>
       <div className="flex items-center gap-2">
         <code className="min-w-0 flex-1 truncate rounded-md bg-brand-50 px-2 py-1.5 text-[13px] font-semibold tracking-wider text-brand-800">
           {code}
@@ -64,7 +66,7 @@ function ShareCodeBox({ code }: { code: string }) {
           onClick={copy}
           className="shrink-0 rounded-md bg-brand-700 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-800"
         >
-          {copied ? 'Nusxalandi ✓' : 'Nusxalash'}
+          {copied ? t('tree.profile.copied') : t('tree.profile.copy')}
         </button>
       </div>
     </div>
@@ -112,6 +114,7 @@ function Detail({
   shareCode,
   showShareCode,
 }: DetailProps) {
+  const { t } = useTranslation();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
 
@@ -135,18 +138,18 @@ function Detail({
 
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex justify-between">
-          <dt className="text-neutral-500">Jinsi</dt>
-          <dd className="font-medium text-brand-900">{female ? 'Ayol' : 'Erkak'}</dd>
+          <dt className="text-neutral-500">{t('tree.profile.genderLabel')}</dt>
+          <dd className="font-medium text-brand-900">{female ? t('common.female') : t('common.male')}</dd>
         </div>
         {years && (
           <div className="flex justify-between">
-            <dt className="text-neutral-500">Yillar</dt>
+            <dt className="text-neutral-500">{t('tree.profile.yearsLabel')}</dt>
             <dd className="font-medium text-brand-900">{years}</dd>
           </div>
         )}
         {age && (
           <div className="flex justify-between">
-            <dt className="text-neutral-500">Yoshi</dt>
+            <dt className="text-neutral-500">{t('tree.profile.ageLabel')}</dt>
             <dd className="font-medium text-brand-900">{age}</dd>
           </div>
         )}
@@ -160,7 +163,7 @@ function Detail({
               onClick={onEdit}
               className="flex-1 rounded-field bg-brand-700 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800"
             >
-              Tahrirlash
+              {t('common.edit')}
             </button>
           )}
           {onDelete && canDelete && (
@@ -169,7 +172,7 @@ function Detail({
               onClick={onDelete}
               className="rounded-field border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
             >
-              O&#8216;chirish
+              {t('common.delete')}
             </button>
           )}
         </div>
@@ -183,7 +186,8 @@ function Detail({
         onClick={onAddRelative}
         className="mt-2 w-full rounded-field border border-brand-200 bg-white py-2.5 text-sm font-semibold text-brand-800 transition-colors hover:bg-brand-50"
       >
-        + {name.split(/\s+/)[0]}ga qarindosh qo&#8216;shish
+        + {name.split(/\s+/)[0]}
+        {t('tree.profile.addRelativeSuffix')}
       </button>
     </div>
   );
@@ -207,6 +211,7 @@ function MobileDetail({
   shareCode,
   showShareCode,
 }: DetailProps) {
+  const { t } = useTranslation();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
 
@@ -236,7 +241,7 @@ function MobileDetail({
             </span>
             {generation != null && (
               <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-                {generation}-avlod
+                {t('tree.generationBadge', { gen: generation })}
               </span>
             )}
           </div>
@@ -245,18 +250,18 @@ function MobileDetail({
 
       <div className="mt-4 divide-y divide-brand-100 overflow-hidden rounded-2xl border border-brand-100">
         <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
-          <span className="text-neutral-500">Jinsi</span>
-          <span className="font-medium text-brand-900">{female ? 'Ayol' : 'Erkak'}</span>
+          <span className="text-neutral-500">{t('tree.profile.genderLabel')}</span>
+          <span className="font-medium text-brand-900">{female ? t('common.female') : t('common.male')}</span>
         </div>
         {years && (
           <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
-            <span className="text-neutral-500">Yillar</span>
+            <span className="text-neutral-500">{t('tree.profile.yearsLabel')}</span>
             <span className="font-medium text-brand-900">{years}</span>
           </div>
         )}
         {age && (
           <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
-            <span className="text-neutral-500">Yoshi</span>
+            <span className="text-neutral-500">{t('tree.profile.ageLabel')}</span>
             <span className="font-medium text-brand-900">{age}</span>
           </div>
         )}
@@ -270,7 +275,7 @@ function MobileDetail({
               onClick={onEdit}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-700 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-800"
             >
-              <PencilIcon /> Tahrirlash
+              <PencilIcon /> {t('common.edit')}
             </button>
           )}
           {onDelete && canDelete && (
@@ -279,7 +284,7 @@ function MobileDetail({
               onClick={onDelete}
               className="flex items-center justify-center gap-1.5 rounded-full bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
             >
-              <TrashIcon /> O&#8216;chirish
+              <TrashIcon /> {t('common.delete')}
             </button>
           )}
         </div>
@@ -292,13 +297,15 @@ function MobileDetail({
         onClick={onAddRelative}
         className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-200 bg-white py-2.5 text-sm font-semibold text-brand-800 transition-colors hover:bg-brand-50"
       >
-        <PlusCircleIcon /> {name.split(/\s+/)[0]}ga qarindosh qo&#8216;shish
+        <PlusCircleIcon /> {name.split(/\s+/)[0]}
+        {t('tree.profile.addRelativeSuffix')}
       </button>
     </div>
   );
 }
 
 export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, access }: ProfilePanelProps) {
+  const { t } = useTranslation();
   if (!node) return null;
   const isOwner = (access?.role ?? 'OWNER') === 'OWNER';
   const uid = access?.userId;
@@ -379,11 +386,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
           (header to'silmaydi). */}
       <aside className="no-scrollbar absolute bottom-3 right-3 top-3 z-40 hidden w-80 max-w-[85vw] flex-col gap-4 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-4 shadow-sm lg:flex">
         <div className="flex items-center justify-between">
-          <span className="font-serif text-lg font-semibold text-brand-900">Profil</span>
+          <span className="font-serif text-lg font-semibold text-brand-900">{t('tree.profile.title')}</span>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Yopish"
+            aria-label={t('common.close')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-brand-50"
           >
             ✕
@@ -398,7 +405,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
           <button
             type="button"
             onClick={onClose}
-            aria-label="Yopish"
+            aria-label={t('common.close')}
             className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-neutral-500 transition-colors hover:bg-brand-100"
           >
             ✕

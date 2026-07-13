@@ -1,4 +1,5 @@
 import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -9,6 +10,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ icon, error, isPassword, type, className = '', ...rest }, ref) => {
+    const { t } = useTranslation();
     const [visible, setVisible] = useState(false);
     const inputType = isPassword ? (visible ? 'text' : 'password') : type;
 
@@ -30,7 +32,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             <button
               type="button"
               tabIndex={-1}
-              aria-label={visible ? 'Parolni yashirish' : "Parolni ko'rsatish"}
+              aria-label={visible ? t('shared.textField.hidePassword') : t('shared.textField.showPassword')}
               onClick={() => setVisible((v) => !v)}
               className="-m-2 shrink-0 p-2 text-neutral-500 transition-colors hover:text-brand-700"
             >

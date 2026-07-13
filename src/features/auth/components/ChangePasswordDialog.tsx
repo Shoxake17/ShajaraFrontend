@@ -8,6 +8,7 @@
 //     eski sessiyalarni bekor qiladi.
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -18,8 +19,8 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/model/auth.store';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import {
-  changePasswordSchema,
-  verifyCodeSchema,
+  getChangePasswordSchema,
+  getVerifyCodeSchema,
   type ChangePasswordForm,
   type VerifyCodeForm,
 } from '@/features/auth/model/auth.schemas';
@@ -32,6 +33,7 @@ interface ChangePasswordDialogProps {
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProps) {
+  const { t } = useTranslation();
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [serverError, setServerError] = useState<string | null>(null);
@@ -39,8 +41,8 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resent, setResent] = useState(false);
 
-  const form = useForm<ChangePasswordForm>({ resolver: zodResolver(changePasswordSchema) });
-  const codeForm = useForm<VerifyCodeForm>({ resolver: zodResolver(verifyCodeSchema) });
+  const form = useForm<ChangePasswordForm>({ resolver: zodResolver(getChangePasswordSchema()) });
+  const codeForm = useForm<VerifyCodeForm>({ resolver: zodResolver(getVerifyCodeSchema()) });
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = form;
   const {
     handleSubmit: handleCodeSubmit,
@@ -140,31 +142,29 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Parolni o'zgartirish"
+        aria-label={t('auth.changePassword.ariaLabel')}
         className="w-full max-w-sm rounded-[20px] bg-white p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         {success ? (
           <>
             <h3 className="font-serif text-lg font-semibold text-brand-900">
-              Parolni o&#8216;zgartirish
+              {t('auth.changePassword.title')}
             </h3>
             <p className="mt-3 text-sm text-brand-700">
-              Parolingiz muvaffaqiyatli o&#8216;zgartirildi. Xavfsizlik uchun boshqa barcha
-              qurilmalardagi sessiyalar yakunlandi.
+              {t('auth.changePassword.successDesc')}
             </p>
             <Button type="button" onClick={onClose} className="mt-5 !py-3 !text-sm">
-              Yopish
+              {t('common.close')}
             </Button>
           </>
         ) : step === 'form' ? (
           <>
             <h3 className="font-serif text-lg font-semibold text-brand-900">
-              Parolni o&#8216;zgartirish
+              {t('auth.changePassword.title')}
             </h3>
             <p className="mt-1 text-xs text-brand-500">
-              Yangi parol kamida 8 ta belgi, bitta katta harf va bitta raqamdan iborat
-              bo&#8216;lishi kerak.
+              {t('auth.changePassword.formDesc')}
             </p>
 
             <form onSubmit={submit} noValidate className="mt-4 space-y-2.5">
@@ -173,7 +173,7 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                 isPassword
                 autoFocus
                 autoComplete="current-password"
-                placeholder="Joriy parol"
+                placeholder={t('auth.changePassword.currentPasswordPlaceholder')}
                 error={errors.currentPassword?.message}
                 {...register('currentPassword')}
               />
@@ -181,7 +181,7 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                 icon={<LockIcon />}
                 isPassword
                 autoComplete="new-password"
-                placeholder="Yangi parol"
+                placeholder={t('auth.changePassword.newPasswordPlaceholder')}
                 error={errors.newPassword?.message}
                 {...register('newPassword')}
               />
@@ -189,7 +189,7 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                 icon={<LockIcon />}
                 isPassword
                 autoComplete="new-password"
-                placeholder="Yangi parolni tasdiqlang"
+                placeholder={t('auth.changePassword.confirmNewPasswordPlaceholder')}
                 error={errors.confirmPassword?.message}
                 {...register('confirmPassword')}
               />
@@ -203,10 +203,10 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                   disabled={isSubmitting}
                   className="flex-1 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-60"
                 >
-                  Bekor qilish
+                  {t('common.cancel')}
                 </button>
                 <Button type="submit" loading={isSubmitting} className="flex-1 !py-3 !text-sm">
-                  Davom etish
+                  {t('auth.changePassword.continue')}
                 </Button>
               </div>
             </form>
@@ -219,15 +219,14 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               className="flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:text-brand-900"
             >
               <ArrowLeftIcon width={16} height={16} />
-              Orqaga
+              {t('common.back')}
             </button>
 
             <h3 className="mt-2 font-serif text-lg font-semibold text-brand-900">
-              Emailni tasdiqlang
+              {t('auth.changePassword.confirmEmailTitle')}
             </h3>
             <p className="mt-1.5 text-[13px] leading-snug text-brand-700">
-              Xavfsizlik uchun emailingizga 6 xonali tasdiqlash kodi yubordik. Parol faqat
-              shu kod kiritilgandan so&#8216;ng o&#8216;zgaradi.
+              {t('auth.changePassword.confirmDesc')}
             </p>
 
             <form onSubmit={confirm} noValidate className="mt-4 space-y-2.5">
@@ -247,7 +246,7 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               {serverError && <Alert>{serverError}</Alert>}
               {resent && (
                 <p className="text-center text-xs font-medium text-brand-600">
-                  Yangi kod yuborildi ✓
+                  {t('auth.changePassword.codeResent')}
                 </p>
               )}
 
@@ -258,10 +257,10 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                   disabled={confirming}
                   className="flex-1 rounded-field border border-neutral-200 py-3 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-50 disabled:opacity-60"
                 >
-                  Bekor qilish
+                  {t('common.cancel')}
                 </button>
                 <Button type="submit" loading={confirming} className="flex-1 !py-3 !text-sm">
-                  Tasdiqlash
+                  {t('auth.changePassword.confirm')}
                 </Button>
               </div>
             </form>
@@ -272,7 +271,9 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               disabled={resendCooldown > 0}
               className="mt-3 w-full text-center text-sm font-medium text-link hover:underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
             >
-              {resendCooldown > 0 ? `Qayta yuborish (${resendCooldown}s)` : "Kodni qayta yuborish"}
+              {resendCooldown > 0
+                ? t('auth.changePassword.resendWithCooldown', { seconds: resendCooldown })
+                : t('auth.changePassword.resend')}
             </button>
           </>
         )}

@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore } from '@/features/storage/storage.store';
@@ -23,8 +24,6 @@ interface Item {
   year: number | null;
 }
 
-const TYPE_LABEL: Record<MediaType, string> = { IMAGE: 'Rasm', VIDEO: 'Video', DOCUMENT: 'Hujjat' };
-
 const svg = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 const CameraI = () => (<svg viewBox="0 0 24 24" width="13" height="13" {...svg}><path d="M4.5 8.5h3l1.2-2h6.6l1.2 2h3v9.5h-15Z" /><circle cx="12" cy="13" r="3" /></svg>);
 const VideoI = () => (<svg viewBox="0 0 24 24" width="13" height="13" {...svg}><rect x="3.5" y="6" width="12" height="12" rx="2" /><path d="m16 10 4.5-2.5v9L16 14" /></svg>);
@@ -42,6 +41,7 @@ const CheckI = () => (<svg viewBox="0 0 24 24" width="14" height="14" fill="none
 
 /** Karta ustidagi ⋮ menyu — Tahrirlash / O'chirish */
 function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -57,7 +57,7 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Amallar"
+        aria-label={t('media.actions')}
         className="rounded-lg p-2.5 text-neutral-400 transition-colors hover:bg-brand-50 hover:text-brand-700"
       >
         <DotsI />
@@ -65,10 +65,10 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
       {open && (
         <div className="absolute right-0 top-full z-10 mt-1 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-card">
           <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-brand-800 transition-colors hover:bg-brand-50">
-            <EditI /> Tahrirlash
+            <EditI /> {t('common.edit')}
           </button>
           <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
-            <TrashI /> O&#8216;chirish
+            <TrashI /> {t('common.delete')}
           </button>
         </div>
       )}
@@ -76,12 +76,15 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
   );
 }
 
-const TypeBadge = ({ type }: { type: MediaType }) => (
-  <span className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-lg bg-white/90 px-2 py-1 text-[11px] font-medium text-brand-700 shadow-sm">
-    {type === 'VIDEO' ? <VideoI /> : type === 'DOCUMENT' ? <DocI /> : <CameraI />}
-    {TYPE_LABEL[type]}
-  </span>
-);
+const TypeBadge = ({ type }: { type: MediaType }) => {
+  const { t } = useTranslation();
+  return (
+    <span className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-lg bg-white/90 px-2 py-1 text-[11px] font-medium text-brand-700 shadow-sm">
+      {type === 'VIDEO' ? <VideoI /> : type === 'DOCUMENT' ? <DocI /> : <CameraI />}
+      {t(`media.typeLabels.${type}`)}
+    </span>
+  );
+};
 
 interface FilterOption {
   value: string;
@@ -168,6 +171,7 @@ function FilterPicker({
 }
 
 export function MediaGalleryPage() {
+  const { t } = useTranslation();
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const nodes = useTreeStore((s) => s.nodes);
   const members = useTreeStore((s) => s.members);
@@ -202,7 +206,7 @@ export function MediaGalleryPage() {
       type: m.type,
       url: m.url,
       title: m.title,
-      subtitle: TYPE_LABEL[m.type],
+      subtitle: t(`media.typeLabels.${m.type}`),
       year: m.year,
     }));
     for (const n of nodes) {
@@ -214,7 +218,7 @@ export function MediaGalleryPage() {
       }
     }
     return out;
-  }, [media, nodes]);
+  }, [media, nodes, t]);
 
   const years = useMemo(
     () => [...new Set(items.map((i) => i.year).filter((y): y is number => y != null))].sort((a, b) => b - a),
@@ -248,20 +252,20 @@ export function MediaGalleryPage() {
         createPortal(
           <>
             <div className="min-w-0 shrink-0">
-              <p className="truncate text-sm font-semibold text-brand-900">Media Galereya</p>
+              <p className="truncate text-sm font-semibold text-brand-900">{t('media.title')}</p>
               <p className="hidden truncate text-xs text-brand-500 sm:block">
-                Barcha hujjatlar — {items.length} ta
+                {t('media.subtitle', { count: items.length })}
               </p>
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setUploadOpen(true)}
-                aria-label="Yangi yuklash"
+                aria-label={t('media.uploadNew')}
                 className="flex h-9 w-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-5 sm:py-2"
               >
                 <UploadI />
-                <span className="hidden text-sm font-semibold sm:inline">Yangi yuklash</span>
+                <span className="hidden text-sm font-semibold sm:inline">{t('media.uploadNew')}</span>
               </button>
             </div>
           </>,
@@ -278,23 +282,23 @@ export function MediaGalleryPage() {
             qo'shish blogi) bilan bir xil Apple uslubida. */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <FilterPicker
-            label="Tur"
+            label={t('media.filterType')}
             value={typeFilter}
             onChange={(v) => setTypeFilter(v as 'all' | MediaType)}
             options={[
-              { value: 'all', label: 'Barchasi' },
-              { value: 'IMAGE', label: 'Rasmlar' },
-              { value: 'VIDEO', label: 'Videolar' },
-              { value: 'DOCUMENT', label: 'Hujjatlar' },
+              { value: 'all', label: t('media.filterAll') },
+              { value: 'IMAGE', label: t('media.filterImages') },
+              { value: 'VIDEO', label: t('media.filterVideos') },
+              { value: 'DOCUMENT', label: t('media.filterDocuments') },
             ]}
           />
           <FilterPicker
-            label="Yil"
+            label={t('media.filterYear')}
             value={year}
             onChange={setYear}
             options={[
-              { value: 'all', label: 'Yil: Barchasi' },
-              ...years.map((y) => ({ value: String(y), label: `${y}-yil` })),
+              { value: 'all', label: t('media.filterYearAll') },
+              ...years.map((y) => ({ value: String(y), label: t('media.yearSuffix', { year: y }) })),
             ]}
           />
         </div>
@@ -305,13 +309,11 @@ export function MediaGalleryPage() {
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
               <GalleryI />
             </span>
-            <p className="text-sm font-medium text-brand-800">Hali media yo&#8216;q</p>
-            <p className="max-w-xs text-xs text-neutral-500">
-              &#8220;Yangi yuklash&#8221; orqali rasm, video yoki hujjat qo&#8216;shing.
-            </p>
+            <p className="text-sm font-medium text-brand-800">{t('media.emptyTitle')}</p>
+            <p className="max-w-xs text-xs text-neutral-500">{t('media.emptyDesc')}</p>
           </div>
         ) : shown.length === 0 ? (
-          <p className="mt-8 py-16 text-center text-sm text-neutral-500">Filtr bo&#8216;yicha hech narsa topilmadi</p>
+          <p className="mt-8 py-16 text-center text-sm text-neutral-500">{t('media.noFilterResults')}</p>
         ) : (
           <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {shown.map((it) => (
@@ -334,7 +336,7 @@ export function MediaGalleryPage() {
                         <path d="M7 3.5h6l4 4v13H7Z" />
                         <path d="M13 3.5v4h4M9.5 13h5M9.5 16h5" />
                       </svg>
-                      <span className="px-4 text-center text-xs font-medium">PDF hujjat</span>
+                      <span className="px-4 text-center text-xs font-medium">{t('media.pdfDocument')}</span>
                     </span>
                   )}
                   <TypeBadge type={it.type} />
@@ -343,7 +345,7 @@ export function MediaGalleryPage() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-brand-900">{it.title}</p>
                     <div className="mt-1.5 flex items-center gap-3 text-xs text-neutral-500">
-                      <span className="flex items-center gap-1"><CalI />{it.year ? `${it.year}-yil` : '—'}</span>
+                      <span className="flex items-center gap-1"><CalI />{it.year ? t('media.yearSuffix', { year: it.year }) : '—'}</span>
                       <span className="flex items-center gap-1"><TagI />{it.subtitle}</span>
                     </div>
                   </div>
@@ -376,7 +378,7 @@ export function MediaGalleryPage() {
                 <p className="truncate font-semibold text-brand-900">{lightbox.title}</p>
                 <p className="truncate text-xs text-brand-500">
                   {lightbox.subtitle}
-                  {lightbox.year ? ` · ${lightbox.year}-yil` : ''}
+                  {lightbox.year ? ` · ${t('media.yearSuffix', { year: lightbox.year })}` : ''}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">
@@ -390,7 +392,7 @@ export function MediaGalleryPage() {
                   onClick={() => setLightbox(null)}
                   className="rounded-field bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800"
                 >
-                  Yopish
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -402,9 +404,9 @@ export function MediaGalleryPage() {
       <MediaEditDialog item={editItem} onClose={() => setEditItem(null)} onSaved={reloadMedia} />
       <ConfirmDialog
         open={deleteId !== null}
-        title="O'chirasizmi?"
-        message="Bu media o'chiriladi. Bu amalni qaytarib bo'lmaydi."
-        confirmLabel="O'chirish"
+        title={t('media.deleteTitle')}
+        message={t('media.deleteMessage')}
+        confirmLabel={t('common.delete')}
         danger
         loading={deleting}
         onConfirm={confirmDelete}

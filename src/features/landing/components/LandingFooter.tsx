@@ -1,34 +1,37 @@
 // src/features/landing/components/LandingFooter.tsx
 // Landing sahifa footer bo'limi — alohida, mustaqil komponent.
 // Stillar: ./LandingFooter.css
+import { useTranslation } from 'react-i18next';
 import { ArrowRightIcon, FacebookIcon, InstagramIcon, TelegramIcon } from '@/shared/ui/icons';
 import { TreeLogo } from '@/shared/ui/TreeLogo';
+import { useLanguage } from '@/shared/hooks/useLanguage';
 import './LandingFooter.css';
 
-const FOOTER_SECTIONS = [
-  {
-    title: "Bo'limlar",
-    links: [
-      { href: '#asosiy', label: 'Asosiy' },
-      { href: '#imkoniyatlar', label: 'Imkoniyatlar' },
-      { href: '#afzalliklar', label: 'Afzalliklar' },
-      { href: '#tariflar', label: 'Tariflar' },
-      { href: '#faq', label: 'F.A.Q' },
-    ],
-  },
-  {
-    title: 'Foydali havolalar',
-    links: [
-      { href: '#', label: 'Blog' },
-      { href: '#', label: "Qo'llanma" },
-      { href: '#', label: 'Maxfiylik siyosati' },
-      { href: '#', label: 'Foydalanish shartlari' },
-      { href: '#', label: 'Biz haqimizda' },
-    ],
-  },
-];
-
 export function LandingFooter() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const FOOTER_SECTIONS = [
+    {
+      title: t('landing.footer.sectionsTitle'),
+      links: [
+        { href: '#asosiy', label: t('landing.navbar.links.home') },
+        { href: '#imkoniyatlar', label: t('landing.navbar.links.features') },
+        { href: '#afzalliklar', label: t('landing.navbar.links.benefits') },
+        { href: '#tariflar', label: t('landing.navbar.links.pricing') },
+        { href: '#faq', label: t('landing.navbar.links.faq') },
+      ],
+    },
+    {
+      title: t('landing.footer.usefulLinksTitle'),
+      links: [
+        { href: '#', label: t('landing.footer.links.blog') },
+        { href: '#', label: t('landing.footer.links.guide') },
+        { href: '#', label: t('landing.footer.links.privacy') },
+        { href: '#', label: t('landing.footer.links.terms') },
+        { href: '#', label: t('landing.footer.links.about') },
+      ],
+    },
+  ];
   return (
     <footer id="faq" className="landingFooter">
       <div className="landingFooter__inner">
@@ -38,10 +41,7 @@ export function LandingFooter() {
               <TreeLogo className="h-7 w-7 text-brand-800" />
               <span className="landingFooter__brandName">Shajara</span>
             </div>
-            <p className="landingFooter__desc">
-              Shajara — oila tarixini saqlash, avlodlarni bog&#8216;lash va kelajak uchun meros
-              qoldirish platformasi.
-            </p>
+            <p className="landingFooter__desc">{t('landing.footer.desc')}</p>
             <div className="landingFooter__social">
               <a href="#" aria-label="Telegram" className="landingFooter__socialBtn">
                 <TelegramIcon width={16} height={16} />
@@ -69,18 +69,16 @@ export function LandingFooter() {
           ))}
 
           <div>
-            <h4 className="landingFooter__heading">Yangiliklar</h4>
-            <p className="landingFooter__newsText">
-              Yangiliklar va foydali maqolalar dastlab sizda bo&#8216;lsin.
-            </p>
+            <h4 className="landingFooter__heading">{t('landing.footer.newsTitle')}</h4>
+            <p className="landingFooter__newsText">{t('landing.footer.newsText')}</p>
             <form onSubmit={(e) => e.preventDefault()} className="landingFooter__newsForm">
               <input
                 type="email"
                 required
-                placeholder="Email manzilingiz"
+                placeholder={t('landing.footer.emailPlaceholder')}
                 className="landingFooter__newsInput"
               />
-              <button type="submit" aria-label="Obuna bo'lish" className="landingFooter__newsBtn">
+              <button type="submit" aria-label={t('landing.footer.subscribe')} className="landingFooter__newsBtn">
                 <ArrowRightIcon width={16} height={16} />
               </button>
             </form>
@@ -88,8 +86,8 @@ export function LandingFooter() {
         </div>
 
         <div className="landingFooter__bottom">
-          <p>&copy; 2024 Shajara. Barcha huquqlar himoyalangan.</p>
-          <span>UZ O&#8216;zbekcha</span>
+          <p>{t('landing.footer.copyright')}</p>
+          <span>{language === 'ru' ? t('landing.footer.langRu') : t('landing.footer.langUz')}</span>
         </div>
       </div>
     </footer>

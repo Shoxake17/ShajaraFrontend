@@ -2,8 +2,10 @@
 // Faqat UI — butun logika useLogin() hook'ida.
 import { Link } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import styles from './LoginPage.module.css';
 import { useLogin } from '@/features/auth/hooks/useLogin';
+import { useLanguage } from '@/shared/hooks/useLanguage';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -31,6 +33,8 @@ const treeMask =
   'radial-gradient(ellipse 60% 56% at 50% 47%, black 60%, transparent 92%)';
 
 export function LoginPage() {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
   const {
     form,
     submit,
@@ -67,16 +71,16 @@ export function LoginPage() {
             className={styles.heroImage}
             style={{ maskImage: treeMask, WebkitMaskImage: treeMask }}
           />
-          <h1 className={styles.heroTitle}>Shajara</h1>
+          <h1 className={styles.heroTitle}>{t('auth.brand')}</h1>
           <p className={styles.heroTagline}>
-            Oila daraxtingizni yarating
+            {t('auth.login.heroTaglineLine1')}
             <br />
-            va avlodlaringizni bog&#8216;lang
+            {t('auth.login.heroTaglineLine2')}
           </p>
         </header>
       ) : (
         <header className={styles.heroCompact}>
-          <h1 className={styles.heroCompactTitle}>Shajara</h1>
+          <h1 className={styles.heroCompactTitle}>{t('auth.brand')}</h1>
         </header>
       )}
 
@@ -89,21 +93,25 @@ export function LoginPage() {
         <div className={styles.desktopTopBar}>
           <div className={styles.desktopLogo}>
             <TreeLogo className="h-7 w-7 text-brand-800" />
-            <span className={styles.desktopLogoText}>Shajara</span>
+            <span className={styles.desktopLogoText}>{t('auth.brand')}</span>
           </div>
-          <div className={styles.desktopLangBtn}>
+          <button
+            type="button"
+            onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+            className={styles.desktopLangBtn}
+          >
             <GlobeIcon />
-            O&#8216;zbekcha
+            {language === 'uz' ? 'O‘zbekcha' : 'Русский'}
             <ChevronDownIcon />
-          </div>
+          </button>
         </div>
 
         <div className={styles.desktopFormColumn}>
         {step === 'form' ? (
           <>
-            <h2 className="text-center font-serif text-[22px] font-semibold text-brand-900 sm:text-[26px] lg:text-left lg:text-[28px]">Kirish</h2>
+            <h2 className="text-center font-serif text-[22px] font-semibold text-brand-900 sm:text-[26px] lg:text-left lg:text-[28px]">{t('auth.login.title')}</h2>
             <p className={styles.desktopSubtitle}>
-              Hisobingizga kirish uchun ma&#8216;lumotlaringizni kiriting
+              {t('auth.login.subtitle')}
             </p>
 
             <form onSubmit={submit} noValidate className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3">
@@ -111,7 +119,7 @@ export function LoginPage() {
                 icon={<PhoneIcon />}
                 type="text"
                 autoComplete="username"
-                placeholder="Telefon raqam yoki email"
+                placeholder={t('auth.login.identifierPlaceholder')}
                 error={errors.identifier?.message}
                 {...register('identifier')}
               />
@@ -119,7 +127,7 @@ export function LoginPage() {
                 icon={<LockIcon />}
                 isPassword
                 autoComplete="current-password"
-                placeholder="Parol"
+                placeholder={t('auth.login.passwordPlaceholder')}
                 error={errors.password?.message}
                 {...register('password')}
               />
@@ -130,30 +138,30 @@ export function LoginPage() {
                   onClick={goToForgotPassword}
                   className="text-sm font-medium text-link hover:underline"
                 >
-                  Parolni unutdingizmi?
+                  {t('auth.login.forgotPassword')}
                 </button>
               </div>
 
               {serverError && <Alert>{serverError}</Alert>}
 
               <Button type="submit" loading={isSubmitting}>
-                Kirish
+                {t('auth.login.submit')}
               </Button>
             </form>
 
             {/* yoki */}
             <div className="my-3 flex items-center gap-4 sm:my-4">
               <span className="h-px flex-1 bg-neutral-200" />
-              <span className="text-sm text-neutral-400">yoki</span>
+              <span className="text-sm text-neutral-400">{t('auth.login.or')}</span>
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
             <SocialButtons dense />
 
             <p className="mt-3 text-center text-[15px] text-brand-900 sm:mt-4">
-              Hisobingiz yo&#8216;qmi?{' '}
+              {t('auth.login.noAccount')}{' '}
               <Link to="/register" className="font-semibold text-link hover:underline">
-                Ro&#8216;yxatdan o&#8216;tish
+                {t('auth.login.registerLink')}
               </Link>
             </p>
           </>
@@ -167,7 +175,7 @@ export function LoginPage() {
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100">
                 <ArrowLeftIcon width={18} height={18} />
               </span>
-              Orqaga
+              {t('auth.login.back')}
             </button>
 
             <div className="mt-3 flex justify-center">
@@ -177,12 +185,12 @@ export function LoginPage() {
             </div>
 
             <h2 className="mt-3 text-center font-serif text-[21px] font-semibold text-brand-900">
-              Ikki bosqichli autentifikatsiya
+              {t('auth.login.twoFactorTitle')}
             </h2>
             <p className="mt-1.5 text-center text-[13px] leading-snug text-brand-700">
               {codeMode === 'totp'
-                ? 'Google Authenticator ilovasidagi 6 xonali kodni kiriting.'
-                : '10 belgili zaxira kodingizni kiriting.'}
+                ? t('auth.login.twoFactorTotpDesc')
+                : t('auth.login.twoFactorBackupDesc')}
             </p>
 
             <form onSubmit={confirmTwoFactor} noValidate className="mt-4 space-y-4">
@@ -204,7 +212,7 @@ export function LoginPage() {
                   icon={<KeyIcon />}
                   autoFocus
                   autoComplete="one-time-code"
-                  placeholder="Zaxira kod"
+                  placeholder={t('auth.login.backupCodePlaceholder')}
                   maxLength={10}
                   error={twoFactorErrors.code?.message}
                   {...registerTwoFactor('code')}
@@ -215,8 +223,7 @@ export function LoginPage() {
                 <div className="flex items-start gap-3 rounded-2xl bg-brand-50 p-3.5">
                   <ShieldCheckIcon width={18} height={18} className="mt-0.5 shrink-0 text-brand-700" />
                   <p className="text-[13px] leading-snug text-brand-800">
-                    Agar kodni kirita olmasangiz, zaxira kodlardan yoki boshqa usullardan
-                    foydalanishingiz mumkin.
+                    {t('auth.login.totpHelp')}
                   </p>
                 </div>
               )}
@@ -224,13 +231,13 @@ export function LoginPage() {
               {serverError && <Alert>{serverError}</Alert>}
 
               <Button type="submit" loading={confirmingTwoFactor}>
-                Kodni tekshirish
+                {t('auth.login.verifyCode')}
               </Button>
             </form>
 
             <div className="my-4 flex items-center gap-4">
               <span className="h-px flex-1 bg-neutral-200" />
-              <span className="text-xs font-medium tracking-wide text-neutral-400">YOKI</span>
+              <span className="text-xs font-medium tracking-wide text-neutral-400">{t('auth.login.orUpper')}</span>
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
@@ -241,14 +248,14 @@ export function LoginPage() {
             >
               <KeyIcon width={20} height={20} className="shrink-0 text-brand-700" />
               <span className="flex-1 text-sm font-medium text-brand-900">
-                {codeMode === 'totp' ? 'Zaxira koddan foydalanish' : 'Authenticator koddan foydalanish'}
+                {codeMode === 'totp' ? t('auth.login.useBackupCode') : t('auth.login.useAuthenticatorCode')}
               </span>
               <ChevronRightIcon width={18} height={18} className="shrink-0 text-neutral-300" />
             </button>
 
             <p className="mt-4 flex items-center justify-center gap-1.5 text-sm font-medium text-brand-600">
               <HelpCircleIcon width={16} height={16} />
-              Yordam kerakmi?
+              {t('auth.login.needHelp')}
             </p>
           </>
         )}

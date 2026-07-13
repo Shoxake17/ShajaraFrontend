@@ -2,6 +2,7 @@
 // Akkaunt xotira sarfi (500 MB free tier) — sidebar bloki uchun.
 import { create } from 'zustand';
 import { http } from '@/shared/api/http';
+import i18n from '@/i18n';
 
 interface UsageResponse {
   usedBytes: number;
@@ -36,7 +37,7 @@ export const useStorageStore = create<StorageState>((set) => ({
 export function quotaMessage(err: unknown): string | null {
   const e = err as { response?: { status?: number; data?: { message?: string } } };
   if (e?.response?.status === 413) {
-    return e.response?.data?.message ?? "Xotira to'lgan. Joy bo'shatib qayta urinib ko'ring.";
+    return e.response?.data?.message ?? i18n.t('common.storageQuotaExceeded');
   }
   return null;
 }

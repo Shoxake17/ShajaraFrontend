@@ -5,6 +5,7 @@
 // quvvatlanadi. react-hook-form bilan `Controller` orqali ishlatiladi
 // (bir nechta <input> bitta maydon qiymatini ifodalaydi).
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SegmentedCodeInputProps {
   length?: number;
@@ -23,6 +24,7 @@ export function SegmentedCodeInput({
   autoFocus,
   disabled,
 }: SegmentedCodeInputProps) {
+  const { t } = useTranslation();
   const refs = useRef<Array<HTMLInputElement | null>>([]);
   const digits = Array.from({ length }, (_, i) => value[i] ?? '');
 
@@ -71,7 +73,7 @@ export function SegmentedCodeInput({
 
   return (
     <div>
-      <div role="group" aria-label="Tasdiqlash kodi" className="flex justify-center gap-2">
+      <div role="group" aria-label={t('shared.segmentedCode.groupLabel')} className="flex justify-center gap-2">
         {digits.map((digit, i) => (
           <input
             key={i}
@@ -80,7 +82,7 @@ export function SegmentedCodeInput({
             }}
             type="text"
             inputMode="numeric"
-            aria-label={`Kod, ${i + 1}-xona`}
+            aria-label={t('shared.segmentedCode.boxLabel', { n: i + 1 })}
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
             maxLength={1}
             value={digit}

@@ -1,5 +1,6 @@
 // features/tree/components/PersonNode.tsx
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { useTranslation } from 'react-i18next';
 import type { PersonNodeType } from '@/features/tree/model/tree.store';
 import type { Gender } from '@/features/tree/model/relations';
 import { describeLife } from '@/features/tree/model/age';
@@ -35,6 +36,7 @@ function Person({
   photoUrl: string | null;
   generation: number | null;
 }) {
+  const { t: translate } = useTranslation();
   const female = gender === 'FEMALE';
   const t = themeFor(female);
   const { years, age } = describeLife(birthYear, deathYear);
@@ -63,7 +65,7 @@ function Person({
       {/* Ajdod avlod raqami — nechanchi avlod ekani kartada ko'rinib turadi */}
       {generation != null && (
         <span className="rounded-full bg-brand-50 px-1.5 py-px text-[9px] font-semibold leading-3 text-brand-700 ring-1 ring-brand-200">
-          {generation}-avlod
+          {translate('tree.generationBadge', { gen: generation })}
         </span>
       )}
       {years && <span className="text-[10px] text-neutral-400">{years}</span>}
