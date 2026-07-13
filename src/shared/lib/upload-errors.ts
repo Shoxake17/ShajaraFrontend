@@ -7,7 +7,8 @@ import i18n from '@/i18n';
 export function r2UploadErrorMessage(err: unknown): string | null {
   const msg = err instanceof Error ? err.message : '';
   if (msg.startsWith('R2_NETWORK_ERROR')) {
-    return i18n.t('shared.upload.networkError');
+    const host = msg.match(/\[([^\]]+)]$/)?.[1];
+    return host ? `${i18n.t('shared.upload.networkError')} [${host}]` : i18n.t('shared.upload.networkError');
   }
   if (msg.startsWith('R2_HTTP_ERROR')) {
     const status = msg.match(/R2_HTTP_ERROR:\s*(\d+)/)?.[1];

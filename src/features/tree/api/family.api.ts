@@ -93,8 +93,17 @@ export async function uploadPhoto(file: File): Promise<{ url: string; size: numb
   } catch (err) {
     // fetch() javob OLMASDAN rad etsa — CORS yoki tarmoq darajasidagi xato
     // (masalan R2 bucket'ning o'z CORS siyosati so'rov manbasiga ruxsat
-    // bermayapti). HTTP status YO'Q — shu bois alohida turkum.
-    throw new Error(`R2_NETWORK_ERROR: ${(err as Error).message}`);
+    // bermayapti). HTTP status YO'Q — shu bois alohida turkum. Host nomini
+    // ham qo'shamiz — CORS siyosati NOTO'G'RI bucket/domenga qo'yilgan
+    // bo'lishi mumkinligini tekshirish uchun.
+    const host = (() => {
+      try {
+        return new URL(uploadUrl).host;
+      } catch {
+        return '?';
+      }
+    })();
+    throw new Error(`R2_NETWORK_ERROR: ${(err as Error).message} [${host}]`);
   }
   if (!res.ok) {
     throw new Error(`R2_HTTP_ERROR: ${res.status} ${res.statusText}`.trim());

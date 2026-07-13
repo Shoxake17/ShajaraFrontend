@@ -46,9 +46,14 @@ export function useGoogleAuth() {
       }
       // Nativ plugin xatosi backend javobi EMAS (axios emas) — authErrorMessage
       // buni umumiy "Xatolik yuz berdi"ga aylantirardi, aniq sababni yashirib.
-      // Diagnostika uchun XOM xabarni ham qo'shib ko'rsatamiz.
+      // Diagnostika uchun XOM xabar + STATUS KODINI ham qo'shib ko'rsatamiz
+      // (kod muhim: masalan 10 = DEVELOPER_ERROR — OAuth client/SHA-1/consent
+      // screen sozlamasida xato, https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes).
       const base = authErrorMessage(e);
-      const raw = !Capacitor.isNativePlatform() || typeof e !== 'object' ? null : err.message;
+      const isNativePluginError = Capacitor.isNativePlatform() && typeof e === 'object' && e !== null;
+      const raw = isNativePluginError
+        ? [err.message, err.code ? `kod: ${err.code}` : null].filter(Boolean).join(', ')
+        : null;
       setError(raw && raw !== base ? `${base} (${raw})` : base);
     } finally {
       setLoading(false);
