@@ -1,10 +1,12 @@
 // features/auth/hooks/useGoogleAuth.ts
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/model/auth.store';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import { requestGoogleAccessToken } from '@/shared/lib/google';
+import { requestGoogleAccessTokenNative } from '@/shared/lib/google-native';
 import { env } from '@/shared/config/env';
 
 /**
@@ -25,7 +27,11 @@ export function useGoogleAuth() {
     }
     setLoading(true);
     try {
-      const googleToken = await requestGoogleAccessToken(env.googleClientId);
+      // Nativ ilovada GIS popup ishlamaydi (Google WebView'ni bloklaydi) —
+      // Play Services'ning o'z hisob tanlash oynasi ishlatiladi.
+      const googleToken = Capacitor.isNativePlatform()
+        ? await requestGoogleAccessTokenNative()
+        : await requestGoogleAccessToken(env.googleClientId);
       const { user, accessToken } = await authApi.google({ accessToken: googleToken });
       setSession(user, accessToken);
       navigate('/doska');

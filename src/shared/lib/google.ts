@@ -1,6 +1,14 @@
 // shared/lib/google.ts
 // Google Identity Services (GIS) — akkaunt tanlash popupini ochib,
 // OAuth2 access token qaytaradi. SDK faqat kerak bo'lganda yuklanadi.
+//
+// MUHIM: bu FAQAT VEB brauzerda ishlaydi — Google GIS popup/token flow'i
+// nativ ilova (Capacitor) WebView'ini avtomatik aniqlab, "disallowed_
+// useragent" xatosi bilan RAD ETADI (bu Google'ning o'zining xavfsizlik
+// siyosati, bizning kodimizdagi xato emas). Nativ ilovada shu sabab
+// google-native.ts'dagi @codetrix-studio/capacitor-google-auth (Android
+// Play Services'ning o'z hisob tanlash oynasi) ishlatiladi — useGoogleAuth
+// hook'i Capacitor.isNativePlatform()ga qarab ikkovidan birini tanlaydi.
 
 interface TokenResponse {
   access_token?: string;
