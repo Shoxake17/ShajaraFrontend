@@ -54,8 +54,11 @@ type Kin =
   // degree — qavat: 1=Amaki, 2=Katta amaki, 3=Katta katta amaki, ...
   | { c: 'PIB'; side: Side; gender: Gender; degree?: number } // amaki/amma/tog'a/xola
   | { c: 'NIB'; gender: Gender } // jiyan
-  // pibGender — ota-onaning (amaki/amma/tog'a/xola) jinsi: vachcha turini belgilaydi
-  | { c: 'COUSIN'; side: Side; pibGender: Gender } // amaki/amma/tog'a/xolavachcha
+  // pibGender — ota-onaning (amaki/amma/tog'a/xola) jinsi: vachcha turini
+  // belgilaydi (o'zbekcha so'z shu asosda tanlanadi). gender — VACHCHANING
+  // O'ZINING jinsi: o'zbekchada axamiyatsiz (Tog'avachcha unisex), lekin
+  // ruschada kerak (брат/сестра — vachchaning o'z jinsiga qarab).
+  | { c: 'COUSIN'; side: Side; pibGender: Gender; gender: Gender } // amaki/amma/tog'a/xolavachcha
   | { c: 'SPOUSE'; gender: Gender } // turmush o'rtog'i
   | { c: 'INLAW_PARENT'; gender: Gender } // qaynota/qaynona
   | { c: 'INLAW_SIB'; gender: Gender } // qaynog'a/qaynsingil
@@ -112,7 +115,7 @@ function step(ka: Kin, rel: RelationKey, g: Gender): Kin {
         // amaki/tog'a/amma/xolamning farzandi = ...vachcha (tomon + jinsga qarab)
         if ((ka.degree ?? 1) > 1)
           return { c: 'PIB', side: ka.side, gender: g, degree: (ka.degree ?? 1) - 1 };
-        return { c: 'COUSIN', side: ka.side, pibGender: ka.gender };
+        return { c: 'COUSIN', side: ka.side, pibGender: ka.gender, gender: g };
       default:
         return { c: 'OTHER', raw: rel };
     }
@@ -252,9 +255,16 @@ function label(kin: Kin): string {
     case 'COUSIN':
       // Ona tomoni: tog'a(M)->Tog'avachcha, xola(F)->Xolavachcha.
       // Ota tomoni: amaki(M)->Amakivachcha, amma(F)->Ammavachcha.
+      // context: o'zbekchada e'tiborga olinmaydi (unisex so'z), ruschada
+      // vachchaning O'Z jinsi asosida брат/сестра tanlanadi (locale'da
+      // _male/_female kalitlari orqali).
       return kin.side === 'MATERNAL'
-        ? i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha')
-        : i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha');
+        ? i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha', {
+            context: kin.gender.toLowerCase(),
+          })
+        : i18n.t(kin.pibGender === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha', {
+            context: kin.gender.toLowerCase(),
+          });
     case 'SPOUSE':
       return i18n.t('tree.kinship.spouse');
     case 'INLAW_PARENT':
@@ -605,10 +615,14 @@ export function relationInfoFrom(
   };
   const uncleLabel = (side: KSide, gender: Gender, degree?: number) =>
     uncleTerm(side === 'M', gender === 'FEMALE', degree);
-  const cousinLabel = (side: KSide, ug: Gender) =>
+  const cousinLabel = (side: KSide, ug: Gender, ownGender: Gender) =>
     side === 'M'
-      ? i18n.t(ug === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha')
-      : i18n.t(ug === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha');
+      ? i18n.t(ug === 'MALE' ? 'tree.kinship.cousinTogavachcha' : 'tree.kinship.cousinXolavachcha', {
+          context: ownGender.toLowerCase(),
+        })
+      : i18n.t(ug === 'MALE' ? 'tree.kinship.cousinAmakivachcha' : 'tree.kinship.cousinAmmavachcha', {
+          context: ownGender.toLowerCase(),
+        });
 
   const labelFromCat = (id: string, c: Cat): string => {
     switch (c.t) {
@@ -619,7 +633,7 @@ export function relationInfoFrom(
       case 'SIB': return sibLabel(id);
       case 'UNCLE': return uncleLabel(c.side, c.gender, c.degree);
       case 'NEPHEW': return i18n.t('tree.kinship.niece');
-      case 'COUSIN': return cousinLabel(c.side, c.uncleGender);
+      case 'COUSIN': return cousinLabel(c.side, c.uncleGender, g(id));
     }
   };
   for (const [id, c] of cat) out.set(id, labelFromCat(id, c));
