@@ -87,7 +87,9 @@ export function LandingFooter() {
 
         <div className="landingFooter__bottom">
           <p>{t('landing.footer.copyright')}</p>
-          <span>{language === 'ru' ? t('landing.footer.langRu') : t('landing.footer.langUz')}</span>
+          <span>
+            {language === 'ru' ? t('landing.footer.langRu') : language === 'en' ? t('landing.footer.langEn') : t('landing.footer.langUz')}
+          </span>
         </div>
       </div>
     </footer>

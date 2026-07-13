@@ -6,7 +6,7 @@ import './Navbar.css';
 
 export function Navbar() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useLanguage();
+  const { language, cycleLanguage } = useLanguage();
   const NAV_LINKS = [
     { href: '#asosiy', label: t('landing.navbar.links.home') },
     { href: '#imkoniyatlar', label: t('landing.navbar.links.features') },
@@ -43,7 +43,7 @@ export function Navbar() {
             type="button"
             className="navbar__lang"
             aria-label={t('landing.navbar.langLabel')}
-            onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+            onClick={cycleLanguage}
           >
             {/* Globus ikonkasi */}
             <svg

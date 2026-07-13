@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useRegister } from '@/features/auth/hooks/useRegister';
-import { useLanguage } from '@/shared/hooks/useLanguage';
+import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -33,7 +33,7 @@ const treeMask =
 
 export function RegisterPage() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useLanguage();
+  const { language, cycleLanguage } = useLanguage();
   const {
     step,
     form,
@@ -91,11 +91,11 @@ export function RegisterPage() {
             </div>
             <button
               type="button"
-              onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+              onClick={cycleLanguage}
               className="flex items-center gap-1.5 text-sm font-medium text-brand-700"
             >
               <GlobeIcon />
-              {language === 'uz' ? 'O‘zbekcha' : 'Русский'}
+              {LANGUAGE_NAMES[language]}
               <ChevronDownIcon />
             </button>
           </div>

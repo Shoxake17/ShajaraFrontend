@@ -334,9 +334,17 @@
     "kinship": {
       "self": "Я",
       "grandchild": "Внук/внучка",
+      "grandchild_male": "Внук",
+      "grandchild_female": "Внучка",
       "greatGrandchild": "Правнук/правнучка",
+      "greatGrandchild_male": "Правнук",
+      "greatGrandchild_female": "Правнучка",
       "niece": "Племянник/племянница",
+      "niece_male": "Племянник",
+      "niece_female": "Племянница",
       "spouse": "Супруг(а)",
+      "spouse_male": "Супруг",
+      "spouse_female": "Супруга",
       "motherInLaw": "Свекровь/тёща",
       "fatherInLaw": "Свёкор/тесть",
       "sisterInLaw": "Золовка",
@@ -381,11 +389,13 @@
       "ancestorFallbackF": "бабушка",
       "bride": "Невестка",
       "grandchildClose": "Внук/внучка",
+      "grandchildClose_male": "Внук",
+      "grandchildClose_female": "Внучка",
       "stepMother": "Мачеха",
       "stepFather": "Отчим",
       "stepPrefixM": "Приёмный ",
       "stepPrefixF": "Приёмная ",
-      "greatPrefixRu": "Пра"
+      "greatPrefixRu": "пра"
     },
     "connectDialog": {
       "ariaLabel": "Связать участников",

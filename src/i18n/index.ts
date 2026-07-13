@@ -1,12 +1,13 @@
 // i18n/index.ts
-// Ilova tili — foydalanuvchi Sozlamalar'dan tanlaydi (O'zbek/Rus), tanlov
-// localStorage'da saqlanadi (keyingi safar ilovani ochganda eslab qoladi).
+// Ilova tili — foydalanuvchi Sozlamalar'dan tanlaydi (O'zbek/Rus/Ingliz),
+// tanlov localStorage'da saqlanadi (keyingi safar ilovani ochganda eslab qoladi).
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import uz from './locales/uz.json';
 import ru from './locales/ru.json';
+import en from './locales/en.json';
 
-export const SUPPORTED_LANGUAGES = ['uz', 'ru'] as const;
+export const SUPPORTED_LANGUAGES = ['uz', 'ru', 'en'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'uz';
 const STORAGE_KEY = 'shajara.lang';
@@ -36,6 +37,7 @@ void i18n
     resources: {
       uz: { translation: uz },
       ru: { translation: ru },
+      en: { translation: en },
     },
     lng: loadSavedLanguage(),
     fallbackLng: DEFAULT_LANGUAGE,

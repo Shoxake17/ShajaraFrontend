@@ -5,7 +5,7 @@ import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import styles from './LoginPage.module.css';
 import { useLogin } from '@/features/auth/hooks/useLogin';
-import { useLanguage } from '@/shared/hooks/useLanguage';
+import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
@@ -34,7 +34,7 @@ const treeMask =
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const { language, setLanguage } = useLanguage();
+  const { language, cycleLanguage } = useLanguage();
   const {
     form,
     submit,
@@ -97,11 +97,11 @@ export function LoginPage() {
           </div>
           <button
             type="button"
-            onClick={() => setLanguage(language === 'uz' ? 'ru' : 'uz')}
+            onClick={cycleLanguage}
             className={styles.desktopLangBtn}
           >
             <GlobeIcon />
-            {language === 'uz' ? 'O‘zbekcha' : 'Русский'}
+            {LANGUAGE_NAMES[language]}
             <ChevronDownIcon />
           </button>
         </div>

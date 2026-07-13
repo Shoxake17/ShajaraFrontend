@@ -8,7 +8,8 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
-import { useLanguage } from '@/shared/hooks/useLanguage';
+import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
+import { SelectPicker } from '@/shared/ui/SelectPicker';
 import {
   ChangePasswordDialog,
   LoginHistoryDialog,
@@ -67,25 +68,17 @@ const SECTIONS = [
   { id: 'tizim', labelKey: 'settings.sections.system', Icon: InfoIcon },
 ];
 
-/** Til almashtirgich — Sozlamalar'dagi "Til" qatorida, kompakt segmentli tugma */
+/** Til tanlagich — Sozlamalar'dagi "Til" qatorida, MediaGalleryPage'dagi
+    filtr-dropdown bilan bir xil Apple uslubidagi ochiladigan ro'yxat */
 function LanguageSwitch() {
   const { language, setLanguage } = useLanguage();
   return (
-    <div className="flex items-center gap-0.5 rounded-full border border-neutral-200 bg-neutral-50 p-0.5">
-      {(['uz', 'ru'] as const).map((lang) => (
-        <button
-          key={lang}
-          type="button"
-          onClick={() => setLanguage(lang)}
-          aria-pressed={language === lang}
-          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase transition-colors ${
-            language === lang ? 'bg-brand-700 text-white' : 'text-neutral-500 hover:text-brand-700'
-          }`}
-        >
-          {lang}
-        </button>
-      ))}
-    </div>
+    <SelectPicker
+      value={language}
+      onChange={(v) => setLanguage(v as 'uz' | 'ru' | 'en')}
+      label={LANGUAGE_NAMES[language]}
+      options={(['uz', 'ru', 'en'] as const).map((lang) => ({ value: lang, label: LANGUAGE_NAMES[lang] }))}
+    />
   );
 }
 
