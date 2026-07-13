@@ -34,6 +34,7 @@ import {
   type PendingConnect,
 } from '@/features/tree/components/ConnectRelativeDialog';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
+import { MobileStorageChip } from '@/features/storage/components/MobileStorageChip';
 
 // Modul darajasida — har renderda qayta yaratilmaydi (React Flow talabi)
 const nodeTypes = { person: PersonNode };
@@ -501,7 +502,10 @@ function TreeBoard() {
           </div>
         )}
 
-       
+        {/* Mobilda Sidebar ko'rinmagani uchun xotira ko'rsatkichi yo'qolib
+            qolgan edi — endi zoom panelining PASTIDA (quyida, Controls
+            className bilan yuqoriga surilgan) qayta joylashtirildi. */}
+        <MobileStorageChip />
 
         <ReactFlow
           nodes={displayedNodes}
@@ -522,7 +526,16 @@ function TreeBoard() {
           proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
-          <Controls position="bottom-right" showFitView={false} showInteractive={false}>
+          {/* Mobilda MobileStorageChip pastda joylashgani uchun panel ozgina
+              YUQORIGA suriladi (!bottom-[74px] — pill balandligiga mos, ortiqcha
+              emas) — desktopda (md+, Sidebar'da xotira bloki bor) odatdagi
+              joyida (!bottom-[10px]) qoladi. */}
+          <Controls
+            position="bottom-right"
+            showFitView={false}
+            showInteractive={false}
+            className="!bottom-[74px] md:!bottom-[10px]"
+          >
             {/* Standart "fit view" tugmasi butunlay o'chirilgan (showFitView=false)
                 — shu o'rniga TO'LIQ EKRAN tugmasi turadi: Sidebar/header/
                 BottomNav'ni yashirib, doskaga ko'proq joy beradi. */}

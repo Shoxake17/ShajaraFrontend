@@ -23,6 +23,7 @@ import { useTreeStore } from '@/features/tree/model/tree.store';
 import { familyApi, uploadPhoto } from '@/features/tree/api/family.api';
 import { uploadErrorMessage } from '@/features/tree/components/PhotoPicker';
 import { useStorageStore, quotaMessage } from '@/features/storage/storage.store';
+import { PricingModal } from '@/features/billing/components/PricingModal';
 import {
   Card,
   Row,
@@ -59,6 +60,7 @@ import {
 
 const SECTIONS = [
   { id: 'profil', labelKey: 'settings.sections.profile', Icon: UserIcon2 },
+  { id: 'obuna', labelKey: 'settings.sections.billing', Icon: AwardIcon },
   { id: 'xavfsizlik', labelKey: 'settings.sections.security', Icon: ShieldIcon },
   { id: 'maxfiylik', labelKey: 'settings.sections.privacy', Icon: LockIcon2 },
   { id: 'bildirishnoma', labelKey: 'settings.sections.notifications', Icon: BellIcon },
@@ -139,6 +141,7 @@ export function SettingsPage() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean | null>(null);
   const [twoFactorSetupOpen, setTwoFactorSetupOpen] = useState(false);
   const [twoFactorDisableOpen, setTwoFactorDisableOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -439,6 +442,14 @@ export function SettingsPage() {
                 </Card>
               </div>
 
+              <div id="obuna" className="scroll-mt-6">
+                <Card title={t('settings.sections.billing')} desc={t('settings.billing.desc')}>
+                  <div className="space-y-1">
+                    <Row Icon={AwardIcon} label={t('settings.billing.plan')} onClick={() => setPricingOpen(true)} right={chevron} />
+                  </div>
+                </Card>
+              </div>
+
               <div id="xavfsizlik" className="scroll-mt-6">
                 <Card title={t('settings.sections.security')} desc={t('settings.security.desc')}>
                   <div className="space-y-1">
@@ -556,6 +567,7 @@ export function SettingsPage() {
         onClose={() => setTwoFactorDisableOpen(false)}
         onDisabled={() => setTwoFactorEnabled(false)}
       />
+      <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
+import { PricingModal } from '@/features/billing/components/PricingModal';
 import { useNavItems, LogoutIcon } from './nav-items';
 
 const MB = 1024 * 1024;
@@ -26,6 +27,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
   const limitBytes = useStorageStore((s) => s.limitBytes);
   const loadUsage = useStorageStore((s) => s.loadUsage);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
 
   // Xotira sarfini yuklaymiz (a'zo/media o'zgarganда qayta yuklanadi)
   useEffect(() => {
@@ -87,9 +89,13 @@ export function Sidebar({ fullscreen }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Xotira (free tier) — sidebardan ajralib turadigan yumaloq karta */}
+      {/* Xotira (tarif) — bosilsa tarif rejalari oynasi ochiladi */}
       <div className="hidden shrink-0 px-3 py-2 lg:block">
-        <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-3 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setPricingOpen(true)}
+          className="w-full rounded-2xl border border-brand-100 bg-brand-50/60 p-3 text-left shadow-sm transition-colors hover:border-brand-200 hover:bg-brand-50"
+        >
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-brand-700">{t('nav.memory')}</span>
             <span className={`font-semibold ${pctColor}`}>{percent}%</span>
@@ -103,8 +109,9 @@ export function Sidebar({ fullscreen }: SidebarProps) {
           <p className="mt-1.5 text-[11px] text-brand-500">
             {t('nav.memoryUsed', { used: formatBytes(usedBytes), limit: formatBytes(limitBytes) })}
           </p>
-        </div>
+        </button>
       </div>
+      <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
 
       {/* Chiqish */}
       <div className="shrink-0 border-t border-brand-100 p-2 lg:p-3">

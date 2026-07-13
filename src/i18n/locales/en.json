@@ -29,6 +29,7 @@
     "title": "Settings",
     "sections": {
       "profile": "Profile information",
+      "billing": "Subscription plan",
       "security": "Account security",
       "privacy": "Privacy",
       "notifications": "Notifications",
@@ -48,6 +49,10 @@
       "imageOnly": "Please select an image file",
       "imageTooLarge": "Image must be under 5 MB",
       "saveFailed": "Couldn't save. Please try again"
+    },
+    "billing": {
+      "desc": "See your current plan and raise your storage/member limits.",
+      "plan": "Subscription plan"
     },
     "security": {
       "desc": "Manage your password and settings to keep your account secure.",
@@ -585,6 +590,38 @@
       "langUz": "UZ O‘zbekcha",
       "langRu": "RU Русский",
       "langEn": "EN English"
+    }
+  },
+  "billing": {
+    "title": "Storage & pricing plans",
+    "currentPlan": "Current plan: {{plan}}",
+    "loadError": "Couldn't load plan information",
+    "purchaseFailed": "Purchase failed. Please try again",
+    "webOnlyView": "Use the mobile app to purchase",
+    "buyInApp": "Buy in the app",
+    "viewerReadOnly": "Only the tree owner can change the plan",
+    "mostPopular": "Most popular",
+    "perYear": "year",
+    "currentPlanBtn": "Your current plan",
+    "expand": "Expand",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "footerNote": "Extra slots on Pro and Premium: $6 per 100 members — cancel anytime",
+    "plan": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "feature": {
+      "storage": "cloud storage",
+      "members": "family members",
+      "mediaFull": "Media: full quality",
+      "mediaCompressed": "Media: compressed quality",
+      "noSlots": "No extra slots",
+      "slotPrice": "Slot: $6 / per 100"
+    },
+    "slot": {
+      "title": "Add +{{count}} members",
+      "desc": "Currently {{extraSlots}} extra slots (up to {{maxMembers}} members)"
     }
   },
   "shared": {

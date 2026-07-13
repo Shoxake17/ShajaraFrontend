@@ -29,6 +29,7 @@
     "title": "Sozlamalar",
     "sections": {
       "profile": "Profil ma'lumotlari",
+      "billing": "Obuna rejasi",
       "security": "Hisob xavfsizligi",
       "privacy": "Maxfiylik",
       "notifications": "Bildirishnomalar",
@@ -48,6 +49,10 @@
       "imageOnly": "Faqat rasm faylini tanlang",
       "imageTooLarge": "Rasm 5 MB dan katta bo'lmasin",
       "saveFailed": "Saqlab bo'lmadi. Qaytadan urinib ko'ring"
+    },
+    "billing": {
+      "desc": "Joriy tarifingizni ko'ring va xotira/a'zolar limitini oshiring.",
+      "plan": "Tarif rejasi"
     },
     "security": {
       "desc": "Hisobingiz xavfsizligini ta'minlash uchun parolingiz va sozlamalarni boshqaring.",
@@ -573,6 +578,38 @@
       "copyright": "© 2024 Shajara. Barcha huquqlar himoyalangan.",
       "langUz": "UZ O‘zbekcha",
       "langRu": "RU Русский"
+    }
+  },
+  "billing": {
+    "title": "Xotira va tarif rejalari",
+    "currentPlan": "Joriy tarif: {{plan}}",
+    "loadError": "Tarif ma'lumotini yuklab bo'lmadi",
+    "purchaseFailed": "Xarid muvaffaqiyatsiz bo'ldi. Qaytadan urinib ko'ring",
+    "webOnlyView": "Xarid qilish uchun mobil ilovadan foydalaning",
+    "buyInApp": "Ilovada xarid qiling",
+    "viewerReadOnly": "Faqat daraxt egasi tarifni o'zgartira oladi",
+    "mostPopular": "Eng ommabop",
+    "perYear": "yil",
+    "currentPlanBtn": "Joriy tarifingiz",
+    "expand": "Kengaytirish",
+    "upgradeTo": "{{plan}}'ga o'tish",
+    "footerNote": "Qo'shimcha slotlar Pro va Premium tariflarida: har 100 a'zo uchun $6 — istalgan vaqtda bekor qilish mumkin",
+    "plan": {
+      "free": "Bepul",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "feature": {
+      "storage": "cloud xotira",
+      "members": "ta oila a'zosi",
+      "mediaFull": "Media: to'liq sifat",
+      "mediaCompressed": "Media: siqilgan sifat",
+      "noSlots": "Qo'shimcha slot yo'q",
+      "slotPrice": "Slot: $6 / har 100 ta"
+    },
+    "slot": {
+      "title": "+{{count}} a'zo qo'shish",
+      "desc": "Hozir {{extraSlots}} ta qo'shimcha slot ({{maxMembers}} a'zogacha)"
     }
   },
   "shared": {

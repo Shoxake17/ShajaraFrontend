@@ -24,6 +24,7 @@ import { closeFamilyIds, closeFamilyLabels, relationInfoFrom } from '@/features/
 import { PersonNode } from '@/features/tree/components/PersonNode';
 import { TreeEdge } from '@/features/tree/components/TreeEdge';
 import { MemberSearch, type SearchItem } from '@/features/tree/components/MemberSearch';
+import { MobileStorageChip } from '@/features/storage/components/MobileStorageChip';
 
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { tree: TreeEdge };
@@ -345,7 +346,8 @@ function FamilyMembersBoard() {
       )}
 
       <div className="relative min-h-0 flex-1 bg-brand-50">
-       
+        <MobileStorageChip />
+
         {loading && members.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
@@ -370,7 +372,15 @@ function FamilyMembersBoard() {
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
-            <Controls position="bottom-right" showFitView={false} showInteractive={false}>
+            {/* Mobilda MobileStorageChip pastda joylashgani uchun panel ozgina
+                YUQORIGA suriladi — desktopda (Sidebar'da xotira bloki bor)
+                odatdagi joyida qoladi. */}
+            <Controls
+              position="bottom-right"
+              showFitView={false}
+              showInteractive={false}
+              className="!bottom-[74px] md:!bottom-[10px]"
+            >
               {/* Standart "fit view" tugmasi butunlay o'chirilgan
                   (showFitView=false) — shu o'rniga TO'LIQ EKRAN tugmasi. */}
               <ControlButton
