@@ -13,6 +13,8 @@ export interface AuthUser {
   profileVisibility: ProfileVisibility;
   /** Sozlamalar → Maxfiylik → "Kimlar sizni topa olishi mumkin" — qidiruv (MemberSearch) orqali topilish */
   searchVisibility: ProfileVisibility;
+  /** Sozlamalar → Maxfiylik → "Ma'lumotlar ko'rinishi" — men yuklagan rasm/video/hujjatlarni kimlar ko'rishi */
+  dataVisibility: ProfileVisibility;
 }
 
 export interface RegisterDto {

@@ -117,7 +117,7 @@ function VisibilitySwitch({
   field,
   update,
 }: {
-  field: 'profileVisibility' | 'searchVisibility';
+  field: 'profileVisibility' | 'searchVisibility' | 'dataVisibility';
   update: (v: ProfileVisibility) => Promise<AuthUser>;
 }) {
   const { t } = useTranslation();
@@ -164,6 +164,9 @@ const ProfileVisibilitySwitch = () => (
 );
 const SearchVisibilitySwitch = () => (
   <VisibilitySwitch field="searchVisibility" update={authApi.updateSearchVisibility} />
+);
+const DataVisibilitySwitch = () => (
+  <VisibilitySwitch field="dataVisibility" update={authApi.updateDataVisibility} />
 );
 
 const chevron = <ChevronIcon width={16} height={16} className="text-neutral-300" />;
@@ -562,7 +565,7 @@ export function SettingsPage() {
                     <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<ProfileVisibilitySwitch />} />
                     <Row Icon={ChatIcon} label={t('settings.privacy.whoCanMessage')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
                     <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<SearchVisibilitySwitch />} />
-                    <Row Icon={LockIcon2} label={t('settings.privacy.dataVisibility')} right={<><span>{t('settings.privacy.familyMembers')}</span>{chevron}</>} />
+                    <Row Icon={LockIcon2} label={t('settings.privacy.dataVisibility')} right={<DataVisibilitySwitch />} />
                   </div>
                 </Card>
               </div>

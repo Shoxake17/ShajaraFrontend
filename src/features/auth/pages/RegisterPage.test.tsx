@@ -79,7 +79,7 @@ describe('RegisterPage (ikki bosqichli: forma -> kod)', () => {
   it("to'g'ri kod kiritilgach sessiya ochiladi va bosh sahifaga o'tadi", async () => {
     mockApi.register.mockResolvedValue({ email: 'test@example.com', expiresInSeconds: 600 });
     mockApi.confirmRegister.mockResolvedValue({
-      user: { id: 'u1', fullName: 'Test Foydalanuvchi', phone: '+998901234567', email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC' },
+      user: { id: 'u1', fullName: 'Test Foydalanuvchi', phone: '+998901234567', email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC' },
       accessToken: 'at-123',
     });
     render(
