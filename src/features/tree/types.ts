@@ -12,11 +12,17 @@ export interface FamilyMemberDto {
   photoUrl: string | null;
   photoSizeBytes: number | null;
   isRoot: boolean;
-  /** true — bu ROOT karta "Profil ko'rinishi" (Sozlamalar → Maxfiylik)
-   * sozlamasiga ko'ra SHU foydalanuvchidan (VIEWER) yashirilgan — ism/rasm/
-   * yillar backend'da ALLAQACHON bo'sh yuborilgan, faqat ekranda qulf
-   * ko'rinishini ko'rsatish uchun. */
+  /** true — "Profil ko'rinishi" sozlamasiga ko'ra SHU VIEWER'dan bu odamning
+   * PROFIL PANELI (Tahrirlash/O'chirish) cheklangan — ism/rasm/yillar doskadagi
+   * kartada baribir to'liq keladi, faqat panel yashirin bo'ladi. */
   profileHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" sozlamasiga ko'ra bu odam
+   * qidiruv (MemberSearch) natijalaridan chiqarib tashlanishi kerak. */
+  searchHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" = PRIVATE bo'lgani uchun
+   * doskadagi KARTANING O'ZI ham bloklangan — backend ism/rasm/yillarni
+   * BO'SH yuborgan (fullName=''), UI generic "berkitilgan" karta chizadi. */
+  cardHidden?: boolean;
   /** Nechanchi turmush o'rtog'i (qo'lda: 2, 3, ...). null — avtomatik. */
   spouseOrder: number | null;
   /** 12 xonalik ulashish kodi (bu karta orqali daraxtga taklif qilish) */

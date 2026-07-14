@@ -11,6 +11,8 @@ export interface AuthUser {
   email: string;
   /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" — Shajara doskasidagi o'z ROOT kartasini kimlar ko'rishi */
   profileVisibility: ProfileVisibility;
+  /** Sozlamalar → Maxfiylik → "Kimlar sizni topa olishi mumkin" — qidiruv (MemberSearch) orqali topilish */
+  searchVisibility: ProfileVisibility;
 }
 
 export interface RegisterDto {

@@ -431,6 +431,7 @@
     },
     "generationBadge": "{{gen}}-е поколение",
     "profileHidden": "Скрытый профиль",
+    "cardHidden": "Скрыто",
     "addDialog": {
       "ariaLabel": "Добавить члена семьи",
       "title": "Добавить члена семьи",

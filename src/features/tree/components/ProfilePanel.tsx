@@ -369,7 +369,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
       canEdit={canEditM(node.createdById)}
       shareCode={node.shareCode}
       showShareCode={isOwner}
-      hidden={node.profileHidden}
+      hidden={node.profileHidden || node.cardHidden}
       onEdit={() =>
         onEdit({
           id: node.memberId,
@@ -403,7 +403,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
         canEdit={canEditM(sp.createdById)}
         shareCode={sp.shareCode}
         showShareCode={isOwner}
-        hidden={sp.profileHidden}
+        hidden={sp.profileHidden || sp.cardHidden}
         onEdit={() =>
           onEdit({
             id: sp.id,

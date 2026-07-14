@@ -412,6 +412,7 @@
     },
     "generationBadge": "{{gen}}-avlod",
     "profileHidden": "Yashirin profil",
+    "cardHidden": "Berkitilgan",
     "addDialog": {
       "ariaLabel": "Oila a‘zosini qo‘shish",
       "title": "Oila a‘zosini qo‘shish",

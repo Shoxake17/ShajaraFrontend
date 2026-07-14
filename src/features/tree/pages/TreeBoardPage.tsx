@@ -248,13 +248,16 @@ function TreeBoard() {
     setTimeout(() => fitView({ padding: 0.15, maxZoom: 1.2, duration: 400 }), 60);
   };
 
-  // Qidiruv ro'yxati — har kartadagi asosiy odam va turmush o'rtoqlar
+  // Qidiruv ro'yxati — har kartadagi asosiy odam va turmush o'rtoqlar.
+  // "Kimlar sizni topa olishi mumkin" bo'yicha searchHidden bo'lganlar
+  // (backend hisoblagan — qondosh bo'lmagan FAMILY yoki PRIVATE) ro'yxatga
+  // umuman qo'shilmaydi, ism yozib topib bo'lmaydi.
   const searchItems = useMemo<SearchItem[]>(() => {
     const items: SearchItem[] = [];
     for (const n of displayedNodes) {
-      items.push({ id: n.id, name: n.data.name, relation: n.data.relation });
+      if (!n.data.searchHidden) items.push({ id: n.id, name: n.data.name, relation: n.data.relation });
       for (const sp of n.data.spouses) {
-        items.push({ id: sp.id, name: sp.name, relation: sp.relation });
+        if (!sp.searchHidden) items.push({ id: sp.id, name: sp.name, relation: sp.relation });
       }
     }
     return items;

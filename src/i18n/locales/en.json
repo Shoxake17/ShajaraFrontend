@@ -423,6 +423,7 @@
     },
     "generationBadge": "gen. {{gen}}",
     "profileHidden": "Hidden profile",
+    "cardHidden": "Hidden",
     "addDialog": {
       "ariaLabel": "Add family member",
       "title": "Add family member",

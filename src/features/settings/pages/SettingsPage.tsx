@@ -18,6 +18,7 @@ import {
   TwoFactorDisableDialog,
   TwoFactorSetupDialog,
   useAuthStore,
+  type AuthUser,
   type ProfileVisibility,
 } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
@@ -108,17 +109,23 @@ function RegionSwitch() {
 
 const PROFILE_VISIBILITY_VALUES: ProfileVisibility[] = ['PUBLIC', 'FAMILY', 'PRIVATE'];
 
-/** "Profil ko'rinishi" — Shajara doskasidagi o'z ROOT kartamni kimlar
-    ko'rishini boshqaradi. Backend'da HAQIQATAN tekshiriladi (family.service.ts
-    getBoard() — qondosh bo'lmagan VIEWERlardan ism/rasm/yillar yashiriladi),
-    bu yerda faqat tanlov UI'si. */
-function ProfileVisibilitySwitch() {
+/** "Profil ko'rinishi" / "Kimlar sizni topa olishi mumkin" — ikkalasi ham bir
+    xil PUBLIC/FAMILY/PRIVATE tanlovi, faqat qaysi maydonni (`field`) o'zgartirishi
+    va qaysi API chaqirig'ini ishlatishi farq qiladi. Backend'da HAQIQATAN
+    tekshiriladi (family.service.ts getBoard()), bu yerda faqat tanlov UI'si. */
+function VisibilitySwitch({
+  field,
+  update,
+}: {
+  field: 'profileVisibility' | 'searchVisibility';
+  update: (v: ProfileVisibility) => Promise<AuthUser>;
+}) {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const visibility = user?.profileVisibility ?? 'PUBLIC';
+  const visibility = user?.[field] ?? 'PUBLIC';
 
   const VISIBILITY_NAMES: Record<ProfileVisibility, string> = {
     PUBLIC: t('settings.privacy.everyone'),
@@ -130,7 +137,7 @@ function ProfileVisibilitySwitch() {
     setError(null);
     setSaving(true);
     try {
-      const updated = await authApi.updateProfileVisibility(v);
+      const updated = await update(v);
       setUser(updated);
     } catch {
       setError(t('settings.profile.saveFailed'));
@@ -151,6 +158,13 @@ function ProfileVisibilitySwitch() {
     </span>
   );
 }
+
+const ProfileVisibilitySwitch = () => (
+  <VisibilitySwitch field="profileVisibility" update={authApi.updateProfileVisibility} />
+);
+const SearchVisibilitySwitch = () => (
+  <VisibilitySwitch field="searchVisibility" update={authApi.updateSearchVisibility} />
+);
 
 const chevron = <ChevronIcon width={16} height={16} className="text-neutral-300" />;
 
@@ -547,7 +561,7 @@ export function SettingsPage() {
                   <div className="space-y-1">
                     <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<ProfileVisibilitySwitch />} />
                     <Row Icon={ChatIcon} label={t('settings.privacy.whoCanMessage')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
-                    <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
+                    <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<SearchVisibilitySwitch />} />
                     <Row Icon={LockIcon2} label={t('settings.privacy.dataVisibility')} right={<><span>{t('settings.privacy.familyMembers')}</span>{chevron}</>} />
                   </div>
                 </Card>

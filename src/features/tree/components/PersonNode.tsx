@@ -18,10 +18,40 @@ const themeFor = (female: boolean) =>
     ? { avatar: 'bg-pink-100 text-pink-700', sub: 'text-pink-500' }
     : { avatar: 'bg-brand-100 text-brand-800', sub: 'text-brand-500' };
 
+/** Ism o'rniga umumiy siluet — cardHidden bo'lgan (ya'ni "Kimlar sizni topa
+    olishi mumkin" = "Hech kim" tanlangan) kartalar uchun. */
+function GenericAvatarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+/** "Kimlar sizni topa olishi mumkin" = PRIVATE bo'lgan karta — backend
+    ism/rasm/yillarni allaqachon bo'sh yuborgan, bu yerda faqat generic
+    ko'rinish chiziladi (ProfilePanel.tsx'dagi HiddenDetail bilan bir uslub). */
+function HiddenPerson() {
+  const { t: translate } = useTranslation();
+  return (
+    <div className="flex w-32 flex-col items-center gap-1.5 text-center">
+      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400">
+        <GenericAvatarIcon />
+      </span>
+      <span className="line-clamp-2 w-full break-words text-[13px] font-semibold leading-tight text-neutral-400">
+        {translate('tree.cardHidden')}
+      </span>
+    </div>
+  );
+}
+
 /** Kartadagi bitta odam (avatar + ism + yosh). "Profil ko'rinishi"
     sozlamasi doskadagi KARTAGA ta'sir qilmaydi (ism/rasm/yosh har doim
     to'liq ko'rinadi) — faqat kartaga bosilganda ochiladigan Profil
-    panelini (ProfilePanel.tsx) cheklaydi (mahsulot qarori). */
+    panelini (ProfilePanel.tsx) cheklaydi (mahsulot qarori). "Kimlar sizni
+    topa olishi mumkin" = PRIVATE bo'lsa esa (`cardHidden`) — bu KARTANING
+    O'ZI ham generic ko'rinishga o'tadi (foydalanuvchi ANIQ shunday so'ragan). */
 function Person({
   name,
   gender,
@@ -30,6 +60,7 @@ function Person({
   sub,
   photoUrl,
   generation,
+  cardHidden,
 }: {
   name: string;
   gender: Gender;
@@ -38,11 +69,14 @@ function Person({
   sub: string;
   photoUrl: string | null;
   generation: number | null;
+  cardHidden?: boolean;
 }) {
   const { t: translate } = useTranslation();
   const female = gender === 'FEMALE';
   const t = themeFor(female);
   const { years, age } = describeLife(birthYear, deathYear);
+
+  if (cardHidden) return <HiddenPerson />;
 
   return (
     <div className="flex w-32 flex-col items-center gap-1.5 text-center">
@@ -95,6 +129,7 @@ interface Cell {
   sub: string;
   photoUrl: string | null;
   generation: number | null;
+  cardHidden?: boolean;
 }
 
 export function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
@@ -116,6 +151,7 @@ export function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
     sub: data.relation,
     photoUrl: data.photoUrl,
     generation: data.generation,
+    cardHidden: data.cardHidden,
   };
   const spouseCells: Cell[] = data.spouses.map((sp) => ({
     id: sp.id,
@@ -126,6 +162,7 @@ export function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
     sub: sp.relation,
     photoUrl: sp.photoUrl,
     generation: sp.generation,
+    cardHidden: sp.cardHidden,
   }));
   const cells: Cell[] =
     spouseCells.length >= 2
@@ -180,6 +217,7 @@ export function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               sub={c.sub}
               photoUrl={c.photoUrl}
               generation={c.generation}
+              cardHidden={c.cardHidden}
             />
             {/* Pastdan (bolalari) chiquvchi. Yakka juftlikда markaziy handle
                 ishlatiladi (pastda), shuning uchun bu yerда faqat yolg'iz yoki

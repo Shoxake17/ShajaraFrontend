@@ -22,8 +22,12 @@ export interface SpouseData {
   birthYear: number | null;
   deathYear: number | null;
   photoUrl: string | null;
-  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu karta shu VIEWER'dan yashirilgan */
+  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu kartaning PROFIL PANELI shu VIEWER'dan yashirilgan */
   profileHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" bo'yicha qidiruvda topilmasligi kerak */
+  searchHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" = PRIVATE, KARTANING O'ZI bloklangan */
+  cardHidden?: boolean;
   /** Tahrirlash uchun xom rishta */
   rawRelation: RelationKey;
   /** Qo'lda belgilangan turmush o'rtoq tartibi (null — avtomatik) */
@@ -49,8 +53,12 @@ export interface PersonData extends Record<string, unknown> {
   deathYear: number | null;
   photoUrl: string | null;
   isRoot: boolean;
-  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu ROOT karta shu VIEWER'dan yashirilgan */
+  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu kartaning PROFIL PANELI shu VIEWER'dan yashirilgan */
   profileHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" bo'yicha qidiruvda topilmasligi kerak */
+  searchHidden?: boolean;
+  /** true — "Kimlar sizni topa olishi mumkin" = PRIVATE, KARTANING O'ZI bloklangan */
+  cardHidden?: boolean;
   /** Qo'lda belgilangan turmush o'rtoq tartibi (null — avtomatik) */
   spouseOrder: number | null;
   /** 12 xonalik ulashish kodi */
@@ -250,6 +258,8 @@ export function buildBoard(
         deathYear: s.deathYear,
         photoUrl: s.photoUrl,
         profileHidden: s.profileHidden,
+        searchHidden: s.searchHidden,
+        cardHidden: s.cardHidden,
         rawRelation: (s.relation as RelationKey) ?? 'TURMUSH',
         spouseOrder: s.spouseOrder,
         shareCode: s.shareCode,
@@ -273,6 +283,8 @@ export function buildBoard(
         photoUrl: m.photoUrl,
         isRoot: m.isRoot,
         profileHidden: m.profileHidden,
+        searchHidden: m.searchHidden,
+        cardHidden: m.cardHidden,
         spouseOrder: m.spouseOrder,
         shareCode: m.shareCode,
         createdById: m.createdById,
