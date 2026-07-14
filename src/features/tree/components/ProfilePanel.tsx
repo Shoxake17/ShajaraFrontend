@@ -81,6 +81,41 @@ function initials(name: string): string {
     .join('');
 }
 
+/** Ism o'rniga umumiy siluet — PersonNode.tsx'dagi bilan bir xil belgi */
+function GenericAvatarIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+/** "Profil ko'rinishi" bo'yicha yashirilgan a'zo uchun — tahrirlash/o'chirish/
+    ulashish kodi/qarindosh qo'shish TUGMALARI YO'Q (bular orqali bilvosita
+    ma'lumot chiqarib olish yoki o'zgartirishning oldi olinadi). Backend
+    allaqachon ism/rasm/yillarni bo'sh yuborgan — bu yerda faqat izoh matni. */
+function HiddenDetail({ relation, mobile }: { relation: string; mobile?: boolean }) {
+  const { t } = useTranslation();
+  const size = mobile ? 'h-14 w-14' : 'h-20 w-20';
+  return (
+    <div className={mobile ? 'flex items-start gap-3 py-4 first:pt-0' : 'rounded-2xl border border-neutral-200 bg-neutral-50/50 p-4'}>
+      <div className={mobile ? 'contents' : 'flex flex-col items-center text-center'}>
+        <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400`}>
+          <GenericAvatarIcon />
+        </span>
+        <div className={mobile ? 'min-w-0 flex-1 pt-1' : ''}>
+          <h3 className={`font-serif font-semibold text-neutral-500 ${mobile ? 'text-base' : 'mt-3 text-lg'}`}>
+            {t('tree.profileHidden')}
+          </h3>
+          <span className="text-sm text-neutral-400">{relation}</span>
+          <p className="mt-2 text-xs text-neutral-400">{t('tree.profile.hiddenDesc')}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface DetailProps {
   name: string;
   gender: Gender;
@@ -96,6 +131,7 @@ interface DetailProps {
   canEdit: boolean;
   shareCode?: string | null;
   showShareCode?: boolean;
+  hidden?: boolean;
 }
 
 /** Desktop drawer'dagi kartochka — bitta rangli chegaralangan blok. */
@@ -113,10 +149,13 @@ function Detail({
   canEdit,
   shareCode,
   showShareCode,
+  hidden,
 }: DetailProps) {
   const { t } = useTranslation();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
+
+  if (hidden) return <HiddenDetail relation={relation} />;
 
   return (
     <div className={`rounded-2xl border p-4 ${female ? 'border-pink-200 bg-pink-50/50' : 'border-brand-100 bg-brand-50/50'}`}>
@@ -210,10 +249,13 @@ function MobileDetail({
   canEdit,
   shareCode,
   showShareCode,
+  hidden,
 }: DetailProps) {
   const { t } = useTranslation();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
+
+  if (hidden) return <HiddenDetail relation={relation} mobile />;
 
   return (
     <div className="py-4 first:pt-0">
@@ -327,6 +369,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
       canEdit={canEditM(node.createdById)}
       shareCode={node.shareCode}
       showShareCode={isOwner}
+      hidden={node.profileHidden}
       onEdit={() =>
         onEdit({
           id: node.memberId,
@@ -360,6 +403,7 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
         canEdit={canEditM(sp.createdById)}
         shareCode={sp.shareCode}
         showShareCode={isOwner}
+        hidden={sp.profileHidden}
         onEdit={() =>
           onEdit({
             id: sp.id,

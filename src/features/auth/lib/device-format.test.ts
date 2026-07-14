@@ -1,16 +1,33 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { fmtIp, fmtTime } from './device-format';
+import { DEFAULT_REGION, useRegionStore } from '@/shared/hooks/useRegion';
 
 describe('fmtTime', () => {
+  afterEach(() => {
+    useRegionStore.setState({ region: DEFAULT_REGION });
+  });
+
   it("bo'sh yoki yaroqsiz qiymatda tire qaytaradi", () => {
     expect(fmtTime('')).toBe('—');
     expect(fmtTime('not-a-date')).toBe('—');
   });
 
-  it('ISO vaqtni DD.MM.YYYY, HH:mm formatiga keltiradi', () => {
+  it("O'zbekiston (sukut bo'yicha) — DD.MM.YYYY, HH:mm (24 soat)", () => {
     // Lokal vaqt zonasidan qat'iy nazar, format shakli to'g'ri bo'lishi kerak
     const result = fmtTime('2026-01-05T09:07:00.000Z');
     expect(result).toMatch(/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}$/);
+  });
+
+  it('Rossiya — O\'zbekiston bilan bir xil format (DD.MM.YYYY, 24 soat)', () => {
+    useRegionStore.setState({ region: 'RU' });
+    const result = fmtTime('2026-01-05T09:07:00.000Z');
+    expect(result).toMatch(/^\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}$/);
+  });
+
+  it('AQSH — MM/DD/YYYY, h:mm AM/PM formatiga keltiradi', () => {
+    useRegionStore.setState({ region: 'US' });
+    const result = fmtTime('2026-01-05T09:07:00.000Z');
+    expect(result).toMatch(/^\d{2}\/\d{2}\/\d{4}, \d{1,2}:\d{2} (AM|PM)$/);
   });
 });
 

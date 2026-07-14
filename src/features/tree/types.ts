@@ -12,6 +12,11 @@ export interface FamilyMemberDto {
   photoUrl: string | null;
   photoSizeBytes: number | null;
   isRoot: boolean;
+  /** true — bu ROOT karta "Profil ko'rinishi" (Sozlamalar → Maxfiylik)
+   * sozlamasiga ko'ra SHU foydalanuvchidan (VIEWER) yashirilgan — ism/rasm/
+   * yillar backend'da ALLAQACHON bo'sh yuborilgan, faqat ekranda qulf
+   * ko'rinishini ko'rsatish uchun. */
+  profileHidden?: boolean;
   /** Nechanchi turmush o'rtog'i (qo'lda: 2, 3, ...). null — avtomatik. */
   spouseOrder: number | null;
   /** 12 xonalik ulashish kodi (bu karta orqali daraxtga taklif qilish) */

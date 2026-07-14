@@ -6,6 +6,7 @@
 //  - Kiritish uzunligi cheklangan, natijalar soni cheklangan (DoS'dan himoya).
 //  - Server so'rovi yo'q -> injection yo'q.
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 export interface SearchItem {
@@ -58,15 +59,20 @@ export function MemberSearch({ items, onSelect }: Props) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const boxRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
 
   const results = useMemo(() => filterMembers(items, query, MAX_RESULTS), [query, items]);
 
-  // Tashqariga bosilganda yopiladi
+  // Tashqariga bosilganda yopiladi (natijalar ro'yxati document.body'ga
+  // portal qilingani uchun — pastdagi izohga qarang — boxRef'dan tashqarida,
+  // shu bois listRef ham tekshiriladi)
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (boxRef.current?.contains(target) || listRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -102,6 +108,28 @@ export function MemberSearch({ items, onSelect }: Props) {
 
   const showList = open && query.trim().length > 0;
 
+  // Natijalar ro'yxati document.body'ga PORTAL qilinadi: qidiruv qatori
+  // header ichida (rounded-full pill, overflow-hidden) — agar ro'yxat
+  // shu header ichida qolsa, header chetidan tashqariga chiqqan qismi
+  // KESILIB QOLARDI (Sidebar'dagi transform/fixed muammosi bilan bir xil
+  // sinf xato — bu safar overflow-hidden). Shu bois joyi qo'lda hisoblanadi.
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  useEffect(() => {
+    if (!showList) return;
+    const update = () => {
+      if (!boxRef.current) return;
+      const r = boxRef.current.getBoundingClientRect();
+      setRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [showList]);
+
   return (
     <div ref={boxRef} className="relative w-full max-w-xs">
       <div className="relative">
@@ -132,33 +160,38 @@ export function MemberSearch({ items, onSelect }: Props) {
         />
       </div>
 
-      {showList && (
-        <ul
-          id={listId}
-          role="listbox"
-          className="no-scrollbar absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
-        >
-          {results.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-neutral-400">{t('tree.memberSearch.noResults')}</li>
-          ) : (
-            results.map((r, i) => (
-              <li key={r.id} role="option" aria-selected={i === active}>
-                <button
-                  type="button"
-                  onMouseEnter={() => setActive(i)}
-                  onClick={() => choose(r.id)}
-                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
-                    i === active ? 'bg-brand-50' : 'hover:bg-brand-50'
-                  }`}
-                >
-                  <span className="truncate font-medium text-brand-900">{r.name}</span>
-                  <span className="shrink-0 text-xs text-brand-500">{r.relation}</span>
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
+      {showList &&
+        rect &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            style={{ position: 'fixed', top: rect.top, left: rect.left, width: rect.width }}
+            className="no-scrollbar z-[60] max-h-72 overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
+          >
+            {results.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-neutral-400">{t('tree.memberSearch.noResults')}</li>
+            ) : (
+              results.map((r, i) => (
+                <li key={r.id} role="option" aria-selected={i === active}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => choose(r.id)}
+                    className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                      i === active ? 'bg-brand-50' : 'hover:bg-brand-50'
+                    }`}
+                  >
+                    <span className="truncate font-medium text-brand-900">{r.name}</span>
+                    <span className="shrink-0 text-xs text-brand-500">{r.relation}</span>
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }

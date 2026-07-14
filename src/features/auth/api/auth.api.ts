@@ -15,6 +15,7 @@ import type {
   ForgotPasswordStartResponse,
   LoginDto,
   LoginEvent,
+  ProfileVisibility,
   RegisterDto,
   RegisterStartResponse,
   ResendCodeDto,
@@ -57,6 +58,9 @@ export const authApi = {
     http.post<AuthResponse>('/auth/google', dto).then((r) => r.data),
   /** Joriy sessiya egasi. 401 bo'lsa interceptor cookie orqali avtomatik yangilaydi. */
   me: () => http.get<AuthUser>('/auth/me').then((r) => r.data),
+  /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" */
+  updateProfileVisibility: (visibility: ProfileVisibility) =>
+    http.patch<AuthUser>('/auth/me/profile-visibility', { visibility }).then((r) => r.data),
   logout: () => http.post<void>('/auth/logout').then((r) => r.data),
   /** Parolni o'zgartirish — 1-bosqich: parol HALI o'zgarmaydi, emailga kod yuboriladi */
   changePassword: (dto: ChangePasswordDto) =>

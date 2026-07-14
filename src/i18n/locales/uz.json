@@ -69,7 +69,8 @@
       "dataVisibility": "Ma'lumotlar ko'rinishi",
       "everyone": "Barcha uchun",
       "everyoneShort": "Barcha",
-      "familyMembers": "Oila a'zolarim"
+      "familyMembers": "Oila a'zolarim",
+      "noOne": "Hech kim"
     },
     "notifications": {
       "desc": "Qaysi bildirishnomalarni va qanday usulda olishni tanlang.",
@@ -85,7 +86,10 @@
       "dateFormat": "Sana formati",
       "timeFormat": "Vaqt formati",
       "uzbekistan": "O'zbekiston",
-      "hour24": "24 soat"
+      "russia": "Rossiya",
+      "usa": "AQSH",
+      "hour24": "24 soat",
+      "hour12": "12 soat (AM/PM)"
     },
     "export": {
       "desc": "Ma'lumotlaringizni yuklab oling yoki eksport qiling.",
@@ -407,6 +411,7 @@
       "diedAtAge": "{{n}} yoshda vafot etgan"
     },
     "generationBadge": "{{gen}}-avlod",
+    "profileHidden": "Yashirin profil",
     "addDialog": {
       "ariaLabel": "Oila a‘zosini qo‘shish",
       "title": "Oila a‘zosini qo‘shish",
@@ -432,7 +437,8 @@
       "genderLabel": "Jinsi",
       "yearsLabel": "Yillar",
       "ageLabel": "Yoshi",
-      "addRelativeSuffix": "ga qarindosh qo‘shish"
+      "addRelativeSuffix": "ga qarindosh qo‘shish",
+      "hiddenDesc": "Bu shaxs \"Profil ko'rinishi\" sozlamasida ma'lumotini yashirgan."
     },
     "board": {
       "title": "Shajara Doska",
@@ -594,6 +600,10 @@
     "expand": "Kengaytirish",
     "upgradeTo": "{{plan}}'ga o'tish",
     "footerNote": "Qo'shimcha slotlar Pro va Premium tariflarida: har 100 a'zo uchun $6 — istalgan vaqtda bekor qilish mumkin",
+    "tabs": {
+      "storage": "Xotira",
+      "slot": "Slot"
+    },
     "plan": {
       "free": "Bepul",
       "pro": "Pro",
@@ -609,7 +619,10 @@
     },
     "slot": {
       "title": "+{{count}} a'zo qo'shish",
-      "desc": "Hozir {{extraSlots}} ta qo'shimcha slot ({{maxMembers}} a'zogacha)"
+      "desc": "Hozir {{extraSlots}} ta qo'shimcha slot ({{maxMembers}} a'zogacha)",
+      "shortLabel": "Slot",
+      "buy": "Sotib olish",
+      "freeBlocked": "Slot faqat Pro yoki Premium tarifida sotib olinadi"
     }
   },
   "shared": {

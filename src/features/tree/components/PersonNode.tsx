@@ -18,7 +18,10 @@ const themeFor = (female: boolean) =>
     ? { avatar: 'bg-pink-100 text-pink-700', sub: 'text-pink-500' }
     : { avatar: 'bg-brand-100 text-brand-800', sub: 'text-brand-500' };
 
-/** Kartadagi bitta odam (avatar + ism + yosh) */
+/** Kartadagi bitta odam (avatar + ism + yosh). "Profil ko'rinishi"
+    sozlamasi doskadagi KARTAGA ta'sir qilmaydi (ism/rasm/yosh har doim
+    to'liq ko'rinadi) — faqat kartaga bosilganda ochiladigan Profil
+    panelini (ProfilePanel.tsx) cheklaydi (mahsulot qarori). */
 function Person({
   name,
   gender,

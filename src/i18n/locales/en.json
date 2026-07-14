@@ -69,7 +69,8 @@
       "dataVisibility": "Data visibility",
       "everyone": "Everyone",
       "everyoneShort": "Everyone",
-      "familyMembers": "My family members"
+      "familyMembers": "My family members",
+      "noOne": "No one"
     },
     "notifications": {
       "desc": "Choose which notifications you receive and how.",
@@ -85,7 +86,10 @@
       "dateFormat": "Date format",
       "timeFormat": "Time format",
       "uzbekistan": "Uzbekistan",
-      "hour24": "24-hour"
+      "russia": "Russia",
+      "usa": "USA",
+      "hour24": "24-hour",
+      "hour12": "12-hour (AM/PM)"
     },
     "export": {
       "desc": "Download or export your data.",
@@ -418,6 +422,7 @@
       "diedAtAge": "died at age {{n}}"
     },
     "generationBadge": "gen. {{gen}}",
+    "profileHidden": "Hidden profile",
     "addDialog": {
       "ariaLabel": "Add family member",
       "title": "Add family member",
@@ -443,7 +448,8 @@
       "genderLabel": "Gender",
       "yearsLabel": "Years",
       "ageLabel": "Age",
-      "addRelativeSuffix": "'s relative"
+      "addRelativeSuffix": "'s relative",
+      "hiddenDesc": "This person has hidden their information in \"Profile visibility\" settings."
     },
     "board": {
       "title": "Shajara Board",
@@ -606,6 +612,10 @@
     "expand": "Expand",
     "upgradeTo": "Upgrade to {{plan}}",
     "footerNote": "Extra slots on Pro and Premium: $6 per 100 members — cancel anytime",
+    "tabs": {
+      "storage": "Storage",
+      "slot": "Slot"
+    },
     "plan": {
       "free": "Free",
       "pro": "Pro",
@@ -621,7 +631,10 @@
     },
     "slot": {
       "title": "Add +{{count}} members",
-      "desc": "Currently {{extraSlots}} extra slots (up to {{maxMembers}} members)"
+      "desc": "Currently {{extraSlots}} extra slots (up to {{maxMembers}} members)",
+      "shortLabel": "Slot",
+      "buy": "Buy",
+      "freeBlocked": "Slots are only available on the Pro or Premium plan"
     }
   },
   "shared": {

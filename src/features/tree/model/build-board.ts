@@ -22,6 +22,8 @@ export interface SpouseData {
   birthYear: number | null;
   deathYear: number | null;
   photoUrl: string | null;
+  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu karta shu VIEWER'dan yashirilgan */
+  profileHidden?: boolean;
   /** Tahrirlash uchun xom rishta */
   rawRelation: RelationKey;
   /** Qo'lda belgilangan turmush o'rtoq tartibi (null — avtomatik) */
@@ -47,6 +49,8 @@ export interface PersonData extends Record<string, unknown> {
   deathYear: number | null;
   photoUrl: string | null;
   isRoot: boolean;
+  /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu ROOT karta shu VIEWER'dan yashirilgan */
+  profileHidden?: boolean;
   /** Qo'lda belgilangan turmush o'rtoq tartibi (null — avtomatik) */
   spouseOrder: number | null;
   /** 12 xonalik ulashish kodi */
@@ -245,6 +249,7 @@ export function buildBoard(
         birthYear: s.birthYear,
         deathYear: s.deathYear,
         photoUrl: s.photoUrl,
+        profileHidden: s.profileHidden,
         rawRelation: (s.relation as RelationKey) ?? 'TURMUSH',
         spouseOrder: s.spouseOrder,
         shareCode: s.shareCode,
@@ -267,6 +272,7 @@ export function buildBoard(
         deathYear: m.deathYear,
         photoUrl: m.photoUrl,
         isRoot: m.isRoot,
+        profileHidden: m.profileHidden,
         spouseOrder: m.spouseOrder,
         shareCode: m.shareCode,
         createdById: m.createdById,

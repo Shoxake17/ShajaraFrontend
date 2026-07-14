@@ -24,7 +24,7 @@ import { closeFamilyIds, closeFamilyLabels, relationInfoFrom } from '@/features/
 import { PersonNode } from '@/features/tree/components/PersonNode';
 import { TreeEdge } from '@/features/tree/components/TreeEdge';
 import { MemberSearch, type SearchItem } from '@/features/tree/components/MemberSearch';
-import { MobileStorageChip } from '@/features/storage/components/MobileStorageChip';
+import { MobileStorageChip, useStorageChipVisibility } from '@/features/storage/components/MobileStorageChip';
 
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { tree: TreeEdge };
@@ -55,6 +55,7 @@ function FamilyMembersBoard() {
   const { t } = useTranslation();
   const { setCenter, getNode } = useReactFlow();
   const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
+  const { effectivelyHidden: storageChipHidden } = useStorageChipVisibility();
   const members = useTreeStore((s) => s.members);
   const rawEdges = useTreeStore((s) => s.rawEdges);
   const loadBoard = useTreeStore((s) => s.loadBoard);
@@ -373,13 +374,14 @@ function FamilyMembersBoard() {
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
             {/* Mobilda MobileStorageChip pastda joylashgani uchun panel ozgina
-                YUQORIGA suriladi — desktopda (Sidebar'da xotira bloki bor)
-                odatdagi joyida qoladi. */}
+                YUQORIGA suriladi; chip yashirilgan bo'lsa bo'shliq shart
+                emas — desktopda (Sidebar'da xotira bloki bor) odatdagi
+                joyida qoladi. */}
             <Controls
               position="bottom-right"
               showFitView={false}
               showInteractive={false}
-              className="!bottom-[74px] md:!bottom-[10px]"
+              className={`${storageChipHidden ? '!bottom-[18px]' : '!bottom-[74px]'} md:!bottom-[10px]`}
             >
               {/* Standart "fit view" tugmasi butunlay o'chirilgan
                   (showFitView=false) — shu o'rniga TO'LIQ EKRAN tugmasi. */}

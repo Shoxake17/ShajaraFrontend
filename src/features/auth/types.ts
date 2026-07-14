@@ -1,12 +1,16 @@
 // features/auth/types.ts
 // Auth feature'ning BARCHA tiplari bitta joyda — store, api, hooks shu yerdan oladi.
 
+export type ProfileVisibility = 'PUBLIC' | 'FAMILY' | 'PRIVATE';
+
 export interface AuthUser {
   id: string;
   fullName: string;
   /** Google orqali ochilgan akkauntlarda telefon bo'lmasligi mumkin */
   phone: string | null;
   email: string;
+  /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" — Shajara doskasidagi o'z ROOT kartasini kimlar ko'rishi */
+  profileVisibility: ProfileVisibility;
 }
 
 export interface RegisterDto {

@@ -34,7 +34,7 @@ import {
   type PendingConnect,
 } from '@/features/tree/components/ConnectRelativeDialog';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
-import { MobileStorageChip } from '@/features/storage/components/MobileStorageChip';
+import { MobileStorageChip, useStorageChipVisibility } from '@/features/storage/components/MobileStorageChip';
 
 // Modul darajasida — har renderda qayta yaratilmaydi (React Flow talabi)
 const nodeTypes = { person: PersonNode };
@@ -112,6 +112,9 @@ function TreeBoard() {
   // qidiruv/filtr/tugmalarni portal qilamiz (logotip AJDO ikki marta
   // takrorlanmasin uchun, u AppLayout'ning o'zida).
   const { topBarActionsEl, boardFullscreen, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
+  // Storage chip yashirin bo'lsa — zoom paneli uchun katta bo'shliq shart emas,
+  // pastroqqa (deyarli desktopdagidek) tushadi.
+  const { effectivelyHidden: storageChipHidden } = useStorageChipVisibility();
 
   const nodes = useTreeStore((s) => s.nodes);
   const edges = useTreeStore((s) => s.edges);
@@ -527,14 +530,15 @@ function TreeBoard() {
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
           {/* Mobilda MobileStorageChip pastda joylashgani uchun panel ozgina
-              YUQORIGA suriladi (!bottom-[74px] — pill balandligiga mos, ortiqcha
-              emas) — desktopda (md+, Sidebar'da xotira bloki bor) odatdagi
-              joyida (!bottom-[10px]) qoladi. */}
+              YUQORIGA suriladi (pill balandligiga mos) — chip foydalanuvchi
+              tomonidan o'ngga surib yashirilgan bo'lsa, bo'shliq shart emas,
+              panel deyarli desktopdagidek pastroq turadi. Desktopda (md+,
+              Sidebar'da xotira bloki bor) har doim odatdagi joyida. */}
           <Controls
             position="bottom-right"
             showFitView={false}
             showInteractive={false}
-            className="!bottom-[74px] md:!bottom-[10px]"
+            className={`${storageChipHidden ? '!bottom-[18px]' : '!bottom-[74px]'} md:!bottom-[10px]`}
           >
             {/* Standart "fit view" tugmasi butunlay o'chirilgan (showFitView=false)
                 — shu o'rniga TO'LIQ EKRAN tugmasi turadi: Sidebar/header/

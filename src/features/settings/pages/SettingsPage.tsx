@@ -9,6 +9,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
+import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/shared/hooks/useRegion';
 import { SelectPicker } from '@/shared/ui/SelectPicker';
 import {
   ChangePasswordDialog,
@@ -17,6 +18,7 @@ import {
   TwoFactorDisableDialog,
   TwoFactorSetupDialog,
   useAuthStore,
+  type ProfileVisibility,
 } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
@@ -84,6 +86,72 @@ function LanguageSwitch() {
   );
 }
 
+/** Mintaqa tanlagich — tanlangan mintaqaga qarab Sana/Vaqt formati qatorlari
+    AVTOMATIK yangilanadi (quyida REGION_FORMATS orqali, alohida sozlash shart emas). */
+function RegionSwitch() {
+  const { t } = useTranslation();
+  const { region, setRegion } = useRegion();
+  const REGION_NAMES: Record<Region, string> = {
+    UZ: t('settings.language.uzbekistan'),
+    RU: t('settings.language.russia'),
+    US: t('settings.language.usa'),
+  };
+  return (
+    <SelectPicker
+      value={region}
+      onChange={(v) => setRegion(v as Region)}
+      label={REGION_NAMES[region]}
+      options={SUPPORTED_REGIONS.map((r) => ({ value: r, label: REGION_NAMES[r] }))}
+    />
+  );
+}
+
+const PROFILE_VISIBILITY_VALUES: ProfileVisibility[] = ['PUBLIC', 'FAMILY', 'PRIVATE'];
+
+/** "Profil ko'rinishi" — Shajara doskasidagi o'z ROOT kartamni kimlar
+    ko'rishini boshqaradi. Backend'da HAQIQATAN tekshiriladi (family.service.ts
+    getBoard() — qondosh bo'lmagan VIEWERlardan ism/rasm/yillar yashiriladi),
+    bu yerda faqat tanlov UI'si. */
+function ProfileVisibilitySwitch() {
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const visibility = user?.profileVisibility ?? 'PUBLIC';
+
+  const VISIBILITY_NAMES: Record<ProfileVisibility, string> = {
+    PUBLIC: t('settings.privacy.everyone'),
+    FAMILY: t('settings.privacy.familyMembers'),
+    PRIVATE: t('settings.privacy.noOne'),
+  };
+
+  const onChange = async (v: ProfileVisibility) => {
+    setError(null);
+    setSaving(true);
+    try {
+      const updated = await authApi.updateProfileVisibility(v);
+      setUser(updated);
+    } catch {
+      setError(t('settings.profile.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <span className="flex items-center gap-2">
+      {error && <span className="text-[11px] text-red-500">{error}</span>}
+      <SelectPicker
+        value={visibility}
+        onChange={(v) => void onChange(v as ProfileVisibility)}
+        label={saving ? t('common.saving') : VISIBILITY_NAMES[visibility]}
+        options={PROFILE_VISIBILITY_VALUES.map((v) => ({ value: v, label: VISIBILITY_NAMES[v] }))}
+      />
+    </span>
+  );
+}
+
 const chevron = <ChevronIcon width={16} height={16} className="text-neutral-300" />;
 
 export function SettingsPage() {
@@ -91,6 +159,9 @@ export function SettingsPage() {
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  // Sana/Vaqt formati — Mintaqa tanloviga qarab AVTOMATIK (qo'lda sozlanmaydi)
+  const { region } = useRegion();
+  const regionFormat = REGION_FORMATS[region];
   const clearSession = useAuthStore((s) => s.logout);
   const members = useTreeStore((s) => s.members);
   const access = useTreeStore((s) => s.access);
@@ -474,7 +545,7 @@ export function SettingsPage() {
             <div id="maxfiylik" className="scroll-mt-6">
                 <Card title={t('settings.sections.privacy')} desc={t('settings.privacy.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<><span>{t('settings.privacy.everyone')}</span>{chevron}</>} />
+                    <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<ProfileVisibilitySwitch />} />
                     <Row Icon={ChatIcon} label={t('settings.privacy.whoCanMessage')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
                     <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<><span>{t('settings.privacy.everyoneShort')}</span>{chevron}</>} />
                     <Row Icon={LockIcon2} label={t('settings.privacy.dataVisibility')} right={<><span>{t('settings.privacy.familyMembers')}</span>{chevron}</>} />
@@ -497,9 +568,18 @@ export function SettingsPage() {
                 <Card title={t('settings.sections.language')} desc={t('settings.language.desc')}>
                   <div className="space-y-1">
                     <Row Icon={GlobeIcon} label={t('settings.language.language')} right={<LanguageSwitch />} />
-                    <Row Icon={PinIcon} label={t('settings.language.region')} right={<><span>{t('settings.language.uzbekistan')}</span>{chevron}</>} />
-                    <Row Icon={CalendarIcon} label={t('settings.language.dateFormat')} right={<><span>DD.MM.YYYY</span>{chevron}</>} />
-                    <Row Icon={ClockIcon} label={t('settings.language.timeFormat')} right={<><span>{t('settings.language.hour24')}</span>{chevron}</>} />
+                    <Row Icon={PinIcon} label={t('settings.language.region')} right={<RegionSwitch />} />
+                    {/* Sana/Vaqt formati — mintaqaga qarab AVTOMATIK, qo'lda o'zgartirilmaydi (chevron yo'q) */}
+                    <Row
+                      Icon={CalendarIcon}
+                      label={t('settings.language.dateFormat')}
+                      right={<span className="text-brand-500">{regionFormat.dateFormat === 'MDY_SLASH' ? 'MM/DD/YYYY' : 'DD.MM.YYYY'}</span>}
+                    />
+                    <Row
+                      Icon={ClockIcon}
+                      label={t('settings.language.timeFormat')}
+                      right={<span className="text-brand-500">{t(regionFormat.hour12 ? 'settings.language.hour12' : 'settings.language.hour24')}</span>}
+                    />
                   </div>
                 </Card>
               </div>

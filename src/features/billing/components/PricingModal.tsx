@@ -29,6 +29,9 @@ export function PricingModal({ open, onClose }: Props) {
   const { status, loaded, error, loadStatus, setStatus } = useBillingStore();
   const [busyProductId, setBusyProductId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'storage' | 'slot'>('storage');
+  const [slotQty, setSlotQty] = useState(1);
+  const [slotProgress, setSlotProgress] = useState<{ done: number; total: number } | null>(null);
   const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export function PricingModal({ open, onClose }: Props) {
 
   if (!open) return null;
 
-  const buy = async (productId: string, kind: 'plan' | 'slot') => {
+  const buy = async (productId: string) => {
     if (!isNative) {
       setActionError(t('billing.webOnlyView'));
       return;
@@ -45,7 +48,7 @@ export function PricingModal({ open, onClose }: Props) {
     setActionError(null);
     setBusyProductId(productId);
     try {
-      const result = kind === 'plan' ? await purchasePlan(productId) : await purchaseSlot(productId);
+      const result = await purchasePlan(productId);
       const newStatus = await billingApi.verifyPurchase({
         productId: result.productId,
         purchaseToken: result.purchaseToken,
@@ -60,10 +63,42 @@ export function PricingModal({ open, onClose }: Props) {
     }
   };
 
+  /** Play Billing bir so'rovda BITTA birlik sotadi — N ta slot ketma-ket
+   * xarid qilinadi, har biri backend'da alohida tekshiriladi/beriladi.
+   * Foydalanuvchi bekor qilsa — shu paytgacha muvaffaqiyatli bo'lganlari
+   * saqlanib qoladi (backend idempotent, har biri alohida grant qilingan). */
+  const buySlots = async () => {
+    if (!isNative) {
+      setActionError(t('billing.webOnlyView'));
+      return;
+    }
+    if (!status) return;
+    setActionError(null);
+    setSlotProgress({ done: 0, total: slotQty });
+    for (let i = 0; i < slotQty; i++) {
+      try {
+        const result = await purchaseSlot(status.slotProduct.productId);
+        const newStatus = await billingApi.verifyPurchase({
+          productId: result.productId,
+          purchaseToken: result.purchaseToken,
+        });
+        setStatus(newStatus);
+        setSlotProgress({ done: i + 1, total: slotQty });
+      } catch (e) {
+        const err = e as { message?: string; code?: string };
+        if (err.code !== 'USER_CANCELED') setActionError(err.message ?? t('billing.purchaseFailed'));
+        break;
+      }
+    }
+    setSlotProgress(null);
+    setSlotQty(1);
+  };
+
   const usagePercent = status
     ? Math.min(100, Math.round((status.storageUsedBytes / status.storageLimitBytes) * 100))
     : 0;
   const canBuy = !!status?.canPurchase && isNative;
+  const canBuySlot = canBuy && status?.plan !== 'FREE';
 
   // Portal — document.body'ga to'g'ridan-to'g'ri chiqadi. Sidebar kabi
   // transform (translate-x) ishlatuvchi ajdodlar `position: fixed`ni o'zining
@@ -131,39 +166,89 @@ export function PricingModal({ open, onClose }: Props) {
 
         {status && (
           <>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {status.plans.map((p) => (
-                <PlanCard
-                  key={p.id}
-                  plan={p}
-                  isCurrent={p.id === status.plan}
-                  canBuy={canBuy}
-                  webOnly={!isNative}
-                  busy={!!p.productId && busyProductId === p.productId}
-                  onBuy={() => p.productId && buy(p.productId, 'plan')}
-                />
-              ))}
+            {/* Xotira/Slot toggle — ikkalasi ham shu BITTA Plan oynasi ICHIDA, tashqarida alohida tugma YO'Q */}
+            <div className="mt-4 inline-flex w-full rounded-full border-2 border-brand-100 bg-brand-50/60 p-1">
+              <button
+                type="button"
+                onClick={() => setTab('storage')}
+                className={`flex-1 rounded-full py-2 text-[13px] font-semibold transition-colors ${
+                  tab === 'storage' ? 'bg-white text-brand-900 shadow-sm' : 'text-brand-500'
+                }`}
+              >
+                {t('billing.tabs.storage')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('slot')}
+                className={`flex-1 rounded-full py-2 text-[13px] font-semibold transition-colors ${
+                  tab === 'slot' ? 'bg-white text-brand-900 shadow-sm' : 'text-brand-500'
+                }`}
+              >
+                {t('billing.tabs.slot')}
+              </button>
             </div>
 
-            {status.plan !== 'FREE' && canBuy && (
-              <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-brand-900">
-                      {t('billing.slot.title', { count: status.slotProduct.membersPerSlot })}
-                    </p>
-                    <p className="text-xs text-brand-500">
-                      {t('billing.slot.desc', { extraSlots: status.extraSlots, maxMembers: status.maxMembers })}
-                    </p>
-                  </div>
-                  <Button
-                    className="!w-auto shrink-0 !py-3 !px-4 !text-sm"
-                    loading={busyProductId === status.slotProduct.productId}
-                    onClick={() => buy(status.slotProduct.productId, 'slot')}
+            {tab === 'storage' ? (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {status.plans.map((p) => (
+                  <PlanCard
+                    key={p.id}
+                    plan={p}
+                    isCurrent={p.id === status.plan}
+                    canBuy={canBuy}
+                    webOnly={!isNative}
+                    busy={!!p.productId && busyProductId === p.productId}
+                    onBuy={() => p.productId && buy(p.productId)}
+                  />
+                ))}
+              </div>
+            ) : status.plan === 'FREE' ? (
+              <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50/60 p-5 text-center">
+                <p className="text-sm font-medium text-brand-700">{t('billing.slot.freeBlocked')}</p>
+                <button
+                  type="button"
+                  onClick={() => setTab('storage')}
+                  className="mt-3 text-[13px] font-semibold text-brand-600"
+                >
+                  {t('billing.tabs.storage')} →
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50/60 p-5">
+                <p className="text-center text-xs text-brand-500">
+                  {t('billing.slot.desc', { extraSlots: status.extraSlots, maxMembers: status.maxMembers })}
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-5">
+                  <button
+                    type="button"
+                    onClick={() => setSlotQty((q) => Math.max(1, q - 1))}
+                    disabled={slotQty <= 1 || !!slotProgress}
+                    aria-label="-"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-brand-200 bg-white text-xl font-semibold text-brand-700 disabled:opacity-40"
                   >
-                    +{status.slotProduct.membersPerSlot} · ${status.slotProduct.priceUsd}
-                  </Button>
+                    −
+                  </button>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-brand-900">+{slotQty * status.slotProduct.membersPerSlot}</p>
+                    <p className="text-xs text-brand-500">{t('billing.feature.members')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSlotQty((q) => Math.min(20, q + 1))}
+                    disabled={slotQty >= 20 || !!slotProgress}
+                    aria-label="+"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-brand-200 bg-white text-xl font-semibold text-brand-700 disabled:opacity-40"
+                  >
+                    +
+                  </button>
                 </div>
+                <Button className="mt-4 !py-3 !text-sm" loading={!!slotProgress} disabled={!canBuySlot} onClick={buySlots}>
+                  {slotProgress
+                    ? `${slotProgress.done}/${slotProgress.total}…`
+                    : isNative
+                      ? `${t('billing.slot.buy')} — $${slotQty * status.slotProduct.priceUsd}`
+                      : t('billing.buyInApp')}
+                </Button>
               </div>
             )}
 

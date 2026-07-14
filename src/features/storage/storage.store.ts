@@ -14,6 +14,16 @@ interface StorageState {
   usedBytes: number;
   limitBytes: number;
   loaded: boolean;
+  /** Mobilda foydalanuvchi storage chip'ni o'ngga surib yashirganmi (70%+
+   * to'lganda bu e'tiborga olinmaydi — MobileStorageChip/tree sahifalarida
+   * har doim `storagePercent(...) < 70` bilan birga tekshiriladi). */
+  chipHidden: boolean;
+  setChipHidden: (v: boolean) => void;
+  /** Yashirin holatdagi tortib-chiqarish tutqichining vertikal joyi (0-100%,
+   * konteyner balandligiga nisbatan) — foydalanuvchi tepaga/pastga surib
+   * o'zgartira oladi, qotib qolmaydi. */
+  chipTabPercentY: number;
+  setChipTabPercentY: (v: number) => void;
   loadUsage: () => Promise<void>;
   reset: () => void;
 }
@@ -22,6 +32,10 @@ export const useStorageStore = create<StorageState>((set) => ({
   usedBytes: 0,
   limitBytes: 100 * 1024 * 1024,
   loaded: false,
+  chipHidden: false,
+  setChipHidden: (v) => set({ chipHidden: v }),
+  chipTabPercentY: 50,
+  setChipTabPercentY: (v) => set({ chipTabPercentY: Math.min(88, Math.max(12, v)) }),
   loadUsage: async () => {
     try {
       const { data } = await http.get<UsageResponse>('/storage/usage');
@@ -30,8 +44,16 @@ export const useStorageStore = create<StorageState>((set) => ({
       // jim — sidebar shunchaki 0 ko'rsatadi
     }
   },
-  reset: () => set({ usedBytes: 0, loaded: false }),
+  reset: () => set({ usedBytes: 0, loaded: false, chipHidden: false, chipTabPercentY: 50 }),
 }));
+
+/** Foizni bir joyda hisoblaymiz — Sidebar/MobileStorageChip/tree sahifalari barchasi shundan foydalanadi */
+export function storagePercent(usedBytes: number, limitBytes: number): number {
+  return limitBytes > 0 ? Math.min(100, Math.round((usedBytes / limitBytes) * 100)) : 0;
+}
+
+/** 70%+ to'lgan bo'lsa storage chip'ni yashirish TAQIQLANADI (ogohlantirish ko'rinishi shart) */
+export const HIDE_CHIP_MAX_PERCENT = 70;
 
 /** 413 (kvota to'lgan) xatosidan xabar matnini ajratadi (aks holda null) */
 export function quotaMessage(err: unknown): string | null {

@@ -10,4 +10,4 @@ export { SessionsDialog } from './components/SessionsDialog';
 export { LoginHistoryDialog } from './components/LoginHistoryDialog';
 export { TwoFactorSetupDialog } from './components/TwoFactorSetupDialog';
 export { TwoFactorDisableDialog } from './components/TwoFactorDisableDialog';
-export type { AuthUser } from './types';
+export type { AuthUser, ProfileVisibility } from './types';

@@ -38,7 +38,7 @@ export function AppLayout() {
         className={`mx-3 flex h-14 shrink-0 items-center gap-2.5 overflow-hidden rounded-full border bg-white px-3 shadow-sm transition-all duration-300 ${EASE} sm:gap-3 sm:px-4 ${
           boardFullscreen
             ? 'mt-0 max-h-0 border-transparent opacity-0'
-            : 'mt-3 max-h-14 border-brand-100 opacity-100'
+            : 'mt-6 max-h-14 border-brand-100 opacity-100 lg:mt-3'
         }`}
       >
         <img src="/shajaratree.png" alt="AJDO" className="h-8 w-8 shrink-0 rounded-full object-cover" />

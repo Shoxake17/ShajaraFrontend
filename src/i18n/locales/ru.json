@@ -69,7 +69,8 @@
       "dataVisibility": "Видимость данных",
       "everyone": "Для всех",
       "everyoneShort": "Все",
-      "familyMembers": "Члены моей семьи"
+      "familyMembers": "Члены моей семьи",
+      "noOne": "Никто"
     },
     "notifications": {
       "desc": "Выберите, какие уведомления и как получать.",
@@ -85,7 +86,10 @@
       "dateFormat": "Формат даты",
       "timeFormat": "Формат времени",
       "uzbekistan": "Узбекистан",
-      "hour24": "24 часа"
+      "russia": "Россия",
+      "usa": "США",
+      "hour24": "24 часа",
+      "hour12": "12 часов (AM/PM)"
     },
     "export": {
       "desc": "Скачайте или экспортируйте свои данные.",
@@ -426,6 +430,7 @@
       "diedAtAge": "Умер(ла) в {{n}} лет"
     },
     "generationBadge": "{{gen}}-е поколение",
+    "profileHidden": "Скрытый профиль",
     "addDialog": {
       "ariaLabel": "Добавить члена семьи",
       "title": "Добавить члена семьи",
@@ -451,7 +456,8 @@
       "genderLabel": "Пол",
       "yearsLabel": "Годы",
       "ageLabel": "Возраст",
-      "addRelativeSuffix": ": добавить родственника"
+      "addRelativeSuffix": ": добавить родственника",
+      "hiddenDesc": "Этот человек скрыл свою информацию в настройках \"Видимость профиля\"."
     },
     "board": {
       "title": "Древо Шаджара",
@@ -613,6 +619,10 @@
     "expand": "Расширить",
     "upgradeTo": "Перейти на {{plan}}",
     "footerNote": "Дополнительные слоты в Pro и Premium: $6 за каждые 100 участников — можно отменить в любое время",
+    "tabs": {
+      "storage": "Память",
+      "slot": "Слот"
+    },
     "plan": {
       "free": "Бесплатный",
       "pro": "Pro",
@@ -628,7 +638,10 @@
     },
     "slot": {
       "title": "Добавить +{{count}} участников",
-      "desc": "Сейчас {{extraSlots}} доп. слотов (до {{maxMembers}} участников)"
+      "desc": "Сейчас {{extraSlots}} доп. слотов (до {{maxMembers}} участников)",
+      "shortLabel": "Слот",
+      "buy": "Купить",
+      "freeBlocked": "Слоты доступны только на тарифах Pro или Premium"
     }
   },
   "shared": {
