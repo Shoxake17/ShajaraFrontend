@@ -29,6 +29,7 @@ import { usePipStore } from '@/features/chat/model/pip.store';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
 import { quotaMessage } from '@/features/storage/storage.store';
 import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 
 function initials(name: string): string {
   return name
@@ -113,19 +114,21 @@ function MediaLightbox({
   mine,
   contactName,
   onClose,
-  onDelete,
+  onRequestDelete,
 }: {
   message: ChatMessage;
   mine: boolean;
   contactName: string;
   onClose: () => void;
-  onDelete: () => void;
+  /** Tasdiqlash oynasi Thread darajasida ko'rsatiladi — shu bois bu yerda
+      faqat SO'RALADI, lightbox esa darhol yopiladi (z-index ustma-ust
+      tushmasligi uchun — ConfirmDialog oddiy fon ustida ko'rinadi). */
+  onRequestDelete: () => void;
 }) {
   const { t } = useTranslation();
   const openPip = usePipStore((s) => s.open);
   const [speed, setSpeed] = useState(1);
   const [speedOpen, setSpeedOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -147,16 +150,6 @@ function MediaLightbox({
     document.body.appendChild(a);
     a.click();
     a.remove();
-  };
-
-  const handleDelete = async () => {
-    if (deleting) return;
-    setDeleting(true);
-    try {
-      await onDelete();
-    } finally {
-      setDeleting(false);
-    }
   };
 
   const togglePlay = () => {
@@ -187,9 +180,10 @@ function MediaLightbox({
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex flex-col bg-black" onClick={onClose}>
-      {/* Yuqori panel — Telegram uslubida: chapda ORQAGA + ism-familiya/vaqt, o'ngda amallar */}
+      {/* Yuqori panel — Telegram uslubida: chapda ORQAGA + ism-familiya/vaqt,
+          o'ngda amallar. Xavfsiz maydon (notch/status bar) uchun pastroq. */}
       <div
-        className="absolute inset-x-0 top-0 z-10 flex items-start justify-between bg-gradient-to-b from-black/70 to-transparent p-3"
+        className="absolute inset-x-0 top-0 z-10 flex items-start justify-between bg-gradient-to-b from-black/70 to-transparent px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
@@ -231,16 +225,11 @@ function MediaLightbox({
           {mine && (
             <button
               type="button"
-              onClick={() => void handleDelete()}
-              disabled={deleting}
+              onClick={onRequestDelete}
               aria-label={t('common.delete')}
-              className="rounded-full p-2.5 text-white transition-colors hover:bg-red-600/50 disabled:opacity-50"
+              className="rounded-full p-2.5 text-white transition-colors hover:bg-red-600/50"
             >
-              {deleting ? (
-                <span className="block h-[19px] w-[19px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              ) : (
-                <Trash2 size={19} />
-              )}
+              <Trash2 size={19} />
             </button>
           )}
         </div>
@@ -274,10 +263,11 @@ function MediaLightbox({
         )}
       </div>
 
-      {/* Pastki panel — video uchun: play/pauza, ovoz, vaqt, ilova ichidagi kichik oyna (PiP) */}
+      {/* Pastki panel — video uchun: play/pauza, ovoz, vaqt, ilova ichidagi
+          kichik oyna (PiP). Xavfsiz maydon (gest navigatsiya) uchun yuqoriroq. */}
       {isVideo && (
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-10"
+          className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-10"
           onClick={(e) => e.stopPropagation()}
         >
           <input
@@ -352,12 +342,40 @@ function ContactRow({ contact, active, onClick }: { contact: ChatContact; active
   );
 }
 
-/** Faqat media, izohsiz (Telegram uslubi): yupqa (1px) chegara, vaqt/belgi rasm/video USTIDA (past-chap burchakda) */
-function MediaOnlyBubble({ message, mine, onOpenMedia }: { message: ChatMessage; mine: boolean; onOpenMedia: () => void }) {
+/** Bubble burchagida — o'zi yuborgan xabar uchun kichik o'chirish tugmasi (barcha turdagi xabarlarda, desktop+mobil) */
+function BubbleDeleteButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label={t('common.delete')}
+      className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-red-600/80"
+    >
+      <Trash2 size={12} />
+    </button>
+  );
+}
+
+/** Faqat media, izohsiz (Telegram uslubi): 2px chegara, vaqt/belgi rasm/video USTIDA (past-o'ng burchakda) */
+function MediaOnlyBubble({
+  message,
+  mine,
+  onOpenMedia,
+  onRequestDelete,
+}: {
+  message: ChatMessage;
+  mine: boolean;
+  onOpenMedia: () => void;
+  onRequestDelete: () => void;
+}) {
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[75%] overflow-hidden rounded-2xl border ${
+        className={`relative max-w-[75%] overflow-hidden rounded-2xl border-2 ${
           mine ? 'rounded-br-md border-brand-800/25' : 'rounded-bl-md border-neutral-200'
         }`}
       >
@@ -375,61 +393,82 @@ function MediaOnlyBubble({ message, mine, onOpenMedia }: { message: ChatMessage;
             </>
           )}
         </button>
-        <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white">
+        <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white">
           {fmtBubbleTime(message.createdAt)}
           {mine && (message.readAt ? <CheckCheck size={12} /> : <Check size={12} />)}
         </span>
+        {mine && <BubbleDeleteButton onClick={onRequestDelete} />}
       </div>
     </div>
   );
 }
 
-function MessageBubble({ message, mine, onOpenMedia }: { message: ChatMessage; mine: boolean; onOpenMedia: () => void }) {
+function MessageBubble({
+  message,
+  mine,
+  onOpenMedia,
+  onRequestDelete,
+}: {
+  message: ChatMessage;
+  mine: boolean;
+  onOpenMedia: () => void;
+  onRequestDelete: () => void;
+}) {
   const hasMedia =
     !!message.attachmentUrl && (message.attachmentType === 'IMAGE' || message.attachmentType === 'VIDEO');
+  const hasDocument = !!message.attachmentUrl && message.attachmentType === 'DOCUMENT';
 
-  // Izohsiz rasm/video — Telegram uslubida: yupqa chegara, vaqt media USTIDA
+  // Izohsiz rasm/video — Telegram uslubida: 2px chegara, vaqt media USTIDA
   if (hasMedia && !message.text) {
-    return <MediaOnlyBubble message={message} mine={mine} onOpenMedia={onOpenMedia} />;
+    return (
+      <MediaOnlyBubble message={message} mine={mine} onOpenMedia={onOpenMedia} onRequestDelete={onRequestDelete} />
+    );
   }
 
+  // Izoh (matn) BILAN yuborilgan rasm/video — media 2px chegaraga qadar TO'LIQ
+  // (bo'shliqsiz), FAQAT pastda izoh uchun joy qoladi (Telegram uslubi).
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
-          mine ? 'rounded-br-md bg-brand-800 text-white' : 'rounded-bl-md bg-[#F3F6F0] text-brand-900'
+        className={`relative max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm ${
+          mine
+            ? `rounded-br-md bg-brand-800 text-white ${hasMedia ? 'border-2 border-brand-800/25' : ''}`
+            : `rounded-bl-md bg-[#F3F6F0] text-brand-900 ${hasMedia ? 'border-2 border-neutral-200' : ''}`
         }`}
       >
         {message.attachmentUrl && message.attachmentType === 'IMAGE' && (
-          <button type="button" onClick={onOpenMedia} className="mb-1.5 block w-full">
-            <img src={message.attachmentUrl} alt="" className="max-h-64 w-full rounded-xl object-cover" />
+          <button type="button" onClick={onOpenMedia} className="block w-full">
+            <img src={message.attachmentUrl} alt="" className="max-h-64 w-full object-cover" />
           </button>
         )}
         {message.attachmentUrl && message.attachmentType === 'VIDEO' && (
-          <button type="button" onClick={onOpenMedia} className="relative mb-1.5 block w-full">
-            <video src={message.attachmentUrl} className="max-h-64 w-full rounded-xl object-cover" />
-            <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/20">
+          <button type="button" onClick={onOpenMedia} className="relative block w-full">
+            <video src={message.attachmentUrl} className="max-h-64 w-full object-cover" />
+            <span className="absolute inset-0 flex items-center justify-center bg-black/20">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90">
                 <span className="ml-0.5 border-y-8 border-l-[14px] border-y-transparent border-l-brand-900" />
               </span>
             </span>
           </button>
         )}
-        {message.attachmentUrl && message.attachmentType === 'DOCUMENT' && (
-          <a
-            href={message.attachmentUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={`mb-1.5 block truncate underline ${mine ? 'text-white' : 'text-brand-700'}`}
-          >
-            {message.attachmentUrl.split('/').pop()}
-          </a>
-        )}
-        {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
-        <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-brand-200' : 'text-neutral-400'}`}>
-          {fmtBubbleTime(message.createdAt)}
-          {mine && (message.readAt ? <CheckCheck size={14} /> : <Check size={14} />)}
-        </span>
+        <div className="px-3.5 py-2">
+          {hasDocument && (
+            <a
+              href={message.attachmentUrl ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+              className={`mb-1.5 block truncate underline ${mine ? 'text-white' : 'text-brand-700'}`}
+            >
+              {message.attachmentUrl?.split('/').pop()}
+            </a>
+          )}
+          {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
+          <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-brand-200' : 'text-neutral-400'}`}>
+            {fmtBubbleTime(message.createdAt)}
+            {mine && (message.readAt ? <CheckCheck size={14} /> : <Check size={14} />)}
+          </span>
+        </div>
+        {mine && <BubbleDeleteButton onClick={onRequestDelete} />}
       </div>
     </div>
   );
@@ -444,6 +483,8 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewingMessage, setViewingMessage] = useState<ChatMessage | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ChatMessage | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -516,9 +557,22 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
     }
   };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      await deleteMessage(contact.userId, deleteTarget.id);
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 py-2.5">
+      {/* Mobilda AppLayout'ning o'zi (yuqori sarlavha) yashirilgani uchun
+          xavfsiz maydon (notch/status bar) shu yerda hisobga olinadi. */}
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] lg:pt-2.5">
         <button type="button" onClick={onBack} className="rounded-full p-1.5 text-brand-700 hover:bg-brand-50 lg:hidden">
           <ArrowLeft size={20} />
         </button>
@@ -536,6 +590,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
               message={m}
               mine={m.senderId !== contact.userId}
               onOpenMedia={() => setViewingMessage(m)}
+              onRequestDelete={() => setDeleteTarget(m)}
             />
           ))
         )}
@@ -565,7 +620,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
             <p className="min-w-0 flex-1 truncate text-xs text-neutral-400">{pendingFile.name}</p>
           </div>
         )}
-        <div className="flex items-center gap-2 p-2.5">
+        <div className="flex items-center gap-2 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5">
           <input
             ref={fileInputRef}
             type="file"
@@ -621,19 +676,30 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
           mine={viewingMessage.senderId !== contact.userId}
           contactName={contact.fullName}
           onClose={() => setViewingMessage(null)}
-          onDelete={async () => {
-            await deleteMessage(contact.userId, viewingMessage.id);
+          onRequestDelete={() => {
+            setDeleteTarget(viewingMessage);
             setViewingMessage(null);
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={t('messages.deleteTitle')}
+        message={t('messages.deleteConfirm')}
+        confirmLabel={t('common.delete')}
+        danger
+        loading={deleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
 
 export function MessagesPage() {
   const { t } = useTranslation();
-  const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
+  const { topBarActionsEl, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
   const contacts = useChatStore((s) => s.contacts);
   const contactsLoaded = useChatStore((s) => s.contactsLoaded);
   const activeUserId = useChatStore((s) => s.activeUserId);
@@ -646,6 +712,16 @@ export function MessagesPage() {
   }, [loadContacts]);
 
   const activeContact = useMemo(() => contacts.find((c) => c.userId === activeUserId) ?? null, [contacts, activeUserId]);
+
+  // Mobilda suhbat ochilganda AppLayout'ning o'zi (yuqori AJDO sarlavhasi,
+  // Sidebar, BottomNav) yashiriladi — Thread'ning o'z sarlavhasi (orqaga +
+  // ism-familiya) va yozish maydoni butun ekranni egallaydi (Telegram
+  // uslubi). Desktopда (lg+) ikkala panel bir vaqtda ko'rinadi — tegilmaydi.
+  useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+    setBoardFullscreen(isMobile && !!activeContact);
+    return () => setBoardFullscreen(false);
+  }, [activeContact, setBoardFullscreen]);
 
   const [query, setQuery] = useState('');
   const filteredContacts = useMemo(() => {

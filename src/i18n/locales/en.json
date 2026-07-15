@@ -496,7 +496,9 @@
     "play": "Play",
     "pause": "Pause",
     "mute": "Mute/unmute",
-    "miniPlayer": "Mini player"
+    "miniPlayer": "Mini player",
+    "deleteTitle": "Delete message",
+    "deleteConfirm": "This message will be permanently deleted — this action cannot be undone."
   },
   "media": {
     "typeLabels": {
