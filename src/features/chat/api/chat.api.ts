@@ -49,6 +49,8 @@ export const chatApi = {
     http.post<ChatMessage>(`/chat/conversations/${otherUserId}/messages`, dto).then((r) => r.data),
   markRead: (otherUserId: string) =>
     http.patch<void>(`/chat/conversations/${otherUserId}/read`).then((r) => r.data),
+  /** Xabarni (va biriktirmani) butunlay o'chiradi — DB'dan ham, R2'dan ham; boshqa tomonga ham real-vaqtda bildiriladi */
+  deleteMessage: (messageId: string) => http.delete<void>(`/chat/messages/${messageId}`).then((r) => r.data),
   /** Biriktirma (rasm/video/hujjat) uchun bir martalik R2 yuklash havolasi */
   createUploadUrl: (contentType: string) =>
     http

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Check, CheckCheck, Download, MoreVertical, Paperclip, Search, Send, X } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Download, Gauge, Paperclip, Search, Send, Trash2, X } from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
@@ -49,16 +49,44 @@ function fmtBubbleTime(iso: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-const PLAYBACK_SPEEDS = [0.5, 1, 1.5, 2] as const;
+/** Video tezligi — volum polosa uslubida (bosib ochiladigan ro'yxat EMAS,
+    to'g'ridan-to'g'ri o'ngga/chapga surib o'zgartiriladi). */
+function SpeedSlider({ speed, onChange }: { speed: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-2 rounded-full bg-black/50 py-2 pl-3 pr-3.5">
+      <Gauge size={15} className="shrink-0 text-white/80" />
+      <input
+        type="range"
+        min={0.5}
+        max={2}
+        step={0.25}
+        value={speed}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-1 w-20 shrink-0 cursor-pointer accent-white"
+      />
+      <span className="w-8 shrink-0 text-xs font-medium tabular-nums text-white">{speed}x</span>
+    </div>
+  );
+}
 
 /** Rasm/video ustiga bosilganda TO'LIQ EKRANDA ochiladigan ko'rinish.
-    Video uchun: tezlik tanlovi (alohida) + "..." menyu (yuklab olish va h.k.),
-    ikkalasi ham yuqori o'ng burchakda, YONMA-YON lekin ALOHIDA tugmalar. */
-function MediaLightbox({ message, onClose }: { message: ChatMessage; onClose: () => void }) {
+    Yuqori o'ng burchakda ALOHIDA-ALOHIDA tugmalar (menyu YO'Q): o'chirish
+    (faqat o'zi yuborgan bo'lsa), video tezligi (volum-uslubida surish),
+    yuklab olish, yopish. */
+function MediaLightbox({
+  message,
+  mine,
+  onClose,
+  onDelete,
+}: {
+  message: ChatMessage;
+  mine: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+}) {
   const { t } = useTranslation();
-  const [speedOpen, setSpeedOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [deleting, setDeleting] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = message.attachmentType === 'VIDEO';
 
@@ -67,7 +95,6 @@ function MediaLightbox({ message, onClose }: { message: ChatMessage; onClose: ()
   }, [speed]);
 
   const download = () => {
-    setMenuOpen(false);
     if (!message.attachmentUrl) return;
     const a = document.createElement('a');
     a.href = message.attachmentUrl;
@@ -79,66 +106,43 @@ function MediaLightbox({ message, onClose }: { message: ChatMessage; onClose: ()
     a.remove();
   };
 
+  const handleDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await onDelete();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
       <div className="absolute right-3 top-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        {isVideo && (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setSpeedOpen((o) => !o);
-                setMenuOpen(false);
-              }}
-              className="rounded-full bg-black/50 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-black/70"
-            >
-              {speed}x
-            </button>
-            {speedOpen && (
-              <div className="absolute right-0 top-full mt-1.5 min-w-24 overflow-hidden rounded-xl bg-neutral-900 py-1 shadow-lg">
-                {PLAYBACK_SPEEDS.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => {
-                      setSpeed(s);
-                      setSpeedOpen(false);
-                    }}
-                    className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-white/10 ${
-                      s === speed ? 'font-semibold text-white' : 'text-neutral-300'
-                    }`}
-                  >
-                    {s}x
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <div className="relative">
+        {mine && (
           <button
             type="button"
-            onClick={() => {
-              setMenuOpen((o) => !o);
-              setSpeedOpen(false);
-            }}
-            aria-label={t('messages.moreOptions')}
-            className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+            onClick={() => void handleDelete()}
+            disabled={deleting}
+            aria-label={t('common.delete')}
+            className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-red-600/80 disabled:opacity-50"
           >
-            <MoreVertical size={19} />
+            {deleting ? (
+              <span className="block h-[19px] w-[19px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              <Trash2 size={19} />
+            )}
           </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full mt-1.5 min-w-44 overflow-hidden rounded-xl bg-neutral-900 py-1 shadow-lg">
-              <button
-                type="button"
-                onClick={download}
-                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-neutral-100 transition-colors hover:bg-white/10"
-              >
-                <Download size={16} /> {t('messages.download')}
-              </button>
-            </div>
-          )}
-        </div>
+        )}
+        {isVideo && <SpeedSlider speed={speed} onChange={setSpeed} />}
+        <button
+          type="button"
+          onClick={download}
+          aria-label={t('messages.download')}
+          className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+        >
+          <Download size={19} />
+        </button>
         <button
           type="button"
           onClick={onClose}
@@ -254,6 +258,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
   const { t } = useTranslation();
   const messages = useChatStore((s) => s.messagesByUserId[contact.userId] ?? []);
   const sendMessage = useChatStore((s) => s.sendMessage);
+  const deleteMessage = useChatStore((s) => s.deleteMessage);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -429,7 +434,17 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
         </div>
       </div>
 
-      {viewingMessage && <MediaLightbox message={viewingMessage} onClose={() => setViewingMessage(null)} />}
+      {viewingMessage && (
+        <MediaLightbox
+          message={viewingMessage}
+          mine={viewingMessage.senderId !== contact.userId}
+          onClose={() => setViewingMessage(null)}
+          onDelete={async () => {
+            await deleteMessage(contact.userId, viewingMessage.id);
+            setViewingMessage(null);
+          }}
+        />
+      )}
     </div>
   );
 }

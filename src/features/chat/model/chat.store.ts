@@ -15,6 +15,7 @@ interface ChatState {
   closeConversation: () => void;
   sendMessage: (otherUserId: string, dto: SendMessagePayload) => Promise<void>;
   markRead: (otherUserId: string) => void;
+  deleteMessage: (otherUserId: string, messageId: string) => Promise<void>;
   connect: () => void;
   disconnect: () => void;
   reset: () => void;
@@ -94,6 +95,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
   },
 
+  /** Faqat o'zi yuborgan xabarni o'chira oladi (server ham qayta tekshiradi) — DB'dan ham, R2'dan ham o'chadi, boshqa tomonga ham real-vaqtda bildiriladi (message:deleted) */
+  deleteMessage: async (otherUserId, messageId) => {
+    await chatApi.deleteMessage(messageId);
+    set((s) => ({
+      messagesByUserId: {
+        ...s.messagesByUserId,
+        [otherUserId]: (s.messagesByUserId[otherUserId] ?? []).filter((m) => m.id !== messageId),
+      },
+    }));
+    void get().loadContacts();
+    void useStorageStore.getState().loadUsage();
+  },
+
   connect: () => {
     connectChatSocket();
     if (listenersWired) return;
@@ -133,6 +147,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ),
         },
       }));
+    });
+
+    socket.on('message:deleted', ({ messageId }: { messageId: string }) => {
+      set((s) => {
+        const messagesByUserId = { ...s.messagesByUserId };
+        for (const otherUserId of Object.keys(messagesByUserId)) {
+          messagesByUserId[otherUserId] = messagesByUserId[otherUserId].filter((m) => m.id !== messageId);
+        }
+        return { messagesByUserId };
+      });
     });
 
     socket.on('connect', () => set({ connected: true }));
