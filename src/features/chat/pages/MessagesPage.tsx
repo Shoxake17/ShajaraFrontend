@@ -308,6 +308,48 @@ function MediaLightbox({
   );
 }
 
+/**
+ * Kontaktlar qidiruvi — bo'sh bo'lganda placeholder Telegram uslubida
+ * o'ngdan chapga (oxiridan boshiga) uzluksiz "suzib" o'tadi, native
+ * placeholder atributi o'rniga alohida overlay sifatida chiziladi
+ * (native placeholder harakatlanmaydi).
+ */
+function ChatSearchInput({
+  value,
+  onChange,
+  className = '',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className={`relative ${className}`}>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-400">
+        <Search size={16} />
+      </span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={64}
+        aria-label={t('messages.searchPlaceholder')}
+        className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
+      />
+      {!value && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-9 right-3 flex items-center overflow-hidden"
+        >
+          <span className="animate-chat-search-marquee inline-block whitespace-nowrap text-sm text-neutral-400">
+            {t('messages.searchPlaceholder')}
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 function ContactRow({ contact, active, onClick }: { contact: ChatContact; active: boolean; onClick: () => void }) {
   return (
     <button
@@ -373,12 +415,19 @@ function BubbleMenu({
 
   useEffect(() => {
     const close = () => onClose();
-    document.addEventListener('click', close);
-    document.addEventListener('contextmenu', close);
-    document.addEventListener('scroll', close, true);
-    window.addEventListener('resize', close);
+    // Ochilishga sabab bo'lgan AYNAN SHU click/contextmenu hodisasi document'gacha
+    // ko'tarilib, menyuni o'zi ochilgan zahoti yopib qo'yishining oldini olish
+    // uchun — tinglovchilar KEYINGI "tick"da ulanadi (bitta darajadagi
+    // taymer yetarli, chunki native hodisa document'gacha SINXRON ko'tariladi).
+    const id = window.setTimeout(() => {
+      document.addEventListener('pointerdown', close);
+      document.addEventListener('contextmenu', close);
+      document.addEventListener('scroll', close, true);
+      window.addEventListener('resize', close);
+    }, 0);
     return () => {
-      document.removeEventListener('click', close);
+      window.clearTimeout(id);
+      document.removeEventListener('pointerdown', close);
       document.removeEventListener('contextmenu', close);
       document.removeEventListener('scroll', close, true);
       window.removeEventListener('resize', close);
@@ -391,6 +440,7 @@ function BubbleMenu({
       style={{ left: pos.left, top: pos.top }}
       className="fixed z-[110] min-w-[168px] overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5"
       onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <button
         type="button"
@@ -428,17 +478,20 @@ function useBubbleContextMenu(mine: boolean) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
   const clearTimer = () => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+    touchStartPos.current = null;
   };
 
   const onContextMenu = (e: ReactMouseEvent) => {
     if (!mine) return;
     e.preventDefault();
+    e.stopPropagation();
     setMenu({ x: e.clientX, y: e.clientY });
   };
 
@@ -450,14 +503,30 @@ function useBubbleContextMenu(mine: boolean) {
     const x = touch.clientX;
     const y = touch.clientY;
     clearTimer();
+    touchStartPos.current = { x, y };
     longPressTimer.current = setTimeout(() => {
       longPressFired.current = true;
+      if (navigator.vibrate) navigator.vibrate(10);
       setMenu({ x, y });
     }, 500);
   };
 
+  // Uzoq bosish paytida barmoq bir necha piksel titrasa ham bekor bo'lib
+  // ketmasin (matn ustida bosganda tabiiy jiter bo'ladi) — faqat HAQIQIY
+  // surish (>10px) bekor qiladi.
+  const onTouchMove = (e: ReactTouchEvent) => {
+    const start = touchStartPos.current;
+    const touch = e.touches[0];
+    if (!start || !touch) {
+      clearTimer();
+      return;
+    }
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.hypot(dx, dy) > 10) clearTimer();
+  };
+
   const onTouchEnd = () => clearTimer();
-  const onTouchMove = () => clearTimer();
 
   const onClickCapture = (e: ReactMouseEvent) => {
     if (longPressFired.current) {
@@ -470,6 +539,11 @@ function useBubbleContextMenu(mine: boolean) {
   return {
     menu,
     closeMenu: () => setMenu(null),
+    // Matn ustida uzoq bosilganda mobil brauzer/WebView'ning o'z matn
+    // tanlash/"nusxa olish" popup'i BIZNING uzoq-bosish taymerimizdan
+    // OLDIN chiqib ketmasligi uchun — shu elementda tanlash/callout
+    // butunlay o'chiriladi (faqat "mine" — o'zi yuborgan xabarlar uchun).
+    selectionClassName: mine ? 'select-none [-webkit-touch-callout:none]' : '',
     handlers: mine ? { onContextMenu, onTouchStart, onTouchEnd, onTouchMove, onClickCapture } : {},
   };
 }
@@ -488,11 +562,11 @@ function MediaOnlyBubble({
   onRequestEdit: () => void;
   onRequestDelete: () => void;
 }) {
-  const { menu, closeMenu, handlers } = useBubbleContextMenu(mine);
+  const { menu, closeMenu, handlers, selectionClassName } = useBubbleContextMenu(mine);
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[75%] overflow-hidden rounded-2xl border-2 ${
+        className={`relative max-w-[75%] overflow-hidden rounded-2xl border-2 ${selectionClassName} ${
           mine ? 'rounded-br-md border-brand-800/25' : 'rounded-bl-md border-neutral-200'
         }`}
         {...handlers}
@@ -535,7 +609,7 @@ function MessageBubble({
   onRequestDelete: () => void;
 }) {
   const { t } = useTranslation();
-  const { menu, closeMenu, handlers } = useBubbleContextMenu(mine);
+  const { menu, closeMenu, handlers, selectionClassName } = useBubbleContextMenu(mine);
   const hasMedia =
     !!message.attachmentUrl && (message.attachmentType === 'IMAGE' || message.attachmentType === 'VIDEO');
   const hasDocument = !!message.attachmentUrl && message.attachmentType === 'DOCUMENT';
@@ -558,7 +632,7 @@ function MessageBubble({
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm ${
+        className={`relative max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm ${selectionClassName} ${
           mine
             ? `rounded-br-md bg-brand-800 text-white ${hasMedia ? 'border-2 border-brand-800/25' : ''}`
             : `rounded-bl-md bg-[#F3F6F0] text-brand-900 ${hasMedia ? 'border-2 border-neutral-200' : ''}`
@@ -939,18 +1013,7 @@ export function MessagesPage() {
                   <span className="truncate text-sm font-semibold text-brand-900">{activeContact.fullName}</span>
                 </div>
               ) : (
-                <div className="relative w-full">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-400">
-                    <Search size={16} />
-                  </span>
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder={t('messages.searchPlaceholder')}
-                    maxLength={64}
-                    className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
-                  />
-                </div>
+                <ChatSearchInput value={query} onChange={setQuery} className="w-full" />
               )}
             </div>
           </>,
@@ -964,17 +1027,8 @@ export function MessagesPage() {
           }`}
         >
           {/* Desktopда o'z qidiruvi; mobilda qidiruv AppLayout header'iga portal qilinadi (yuqorida) */}
-          <div className="relative hidden shrink-0 p-2 pb-1.5 lg:block">
-            <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-brand-400">
-              <Search size={16} />
-            </span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('messages.searchPlaceholder')}
-              maxLength={64}
-              className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
-            />
+          <div className="hidden shrink-0 p-2 pb-1.5 lg:block">
+            <ChatSearchInput value={query} onChange={setQuery} />
           </div>
           <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2 pt-1 lg:pt-1">
             {!contactsLoaded ? (

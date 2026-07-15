@@ -43,4 +43,19 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome/Safari/yangi Edge */
   }
+
+  /* Xabarlar qidiruv maydonidagi placeholder matni Telegram uslubida
+     "suzib" o'tadi — oxiridan (o'ngdan) boshiga (chapga) qarab uzluksiz
+     sirg'aladi, matn kesilib qolmaydi. */
+  @keyframes chat-search-marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  .animate-chat-search-marquee {
+    animation: chat-search-marquee 10s linear infinite;
+  }
 }
