@@ -55,11 +55,22 @@ export function storagePercent(usedBytes: number, limitBytes: number): number {
 /** 70%+ to'lgan bo'lsa storage chip'ni yashirish TAQIQLANADI (ogohlantirish ko'rinishi shart) */
 export const HIDE_CHIP_MAX_PERCENT = 70;
 
-/** 413 (kvota to'lgan) xatosidan xabar matnini ajratadi (aks holda null) */
+/**
+ * 413 (baytli kvota to'lgan) yoki 403 (masalan a'zolar soni tarif
+ * chegarasiga yetgan — QuotaService.assertCanAddMember) xatosidan aniq
+ * xabar matnini ajratadi (aks holda null — chaqiruvchi generik xabarga
+ * o'tadi). Backend'dagi barcha 403 xabarlari shu loyihada ATAYLAB
+ * foydalanuvchiga ko'rsatish uchun yozilgan (ichki/texnik emas), shu
+ * bois bu yerda umumiy holda ko'rsatish xavfsiz.
+ */
 export function quotaMessage(err: unknown): string | null {
   const e = err as { response?: { status?: number; data?: { message?: string } } };
-  if (e?.response?.status === 413) {
+  const status = e?.response?.status;
+  if (status === 413) {
     return e.response?.data?.message ?? i18n.t('common.storageQuotaExceeded');
+  }
+  if (status === 403) {
+    return e.response?.data?.message ?? null;
   }
   return null;
 }
