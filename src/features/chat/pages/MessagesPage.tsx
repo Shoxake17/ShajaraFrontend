@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Check, CheckCheck } from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
@@ -68,12 +69,6 @@ const SearchIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" {...svg}>
     <circle cx="11" cy="11" r="7" />
     <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-/** Bitta belgi — ✓✓ ikkita shu ikonkani gap bilan yonma-yon qo'yib hosil qilinadi (bitta SVG ichidagi ikki yo'l bir-biriga yopishib ko'rinardi) */
-const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 12.5 9 18 20 5" />
   </svg>
 );
 
@@ -140,12 +135,7 @@ function MessageBubble({ message, mine }: { message: ChatMessage; mine: boolean 
         {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
         <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-brand-200' : 'text-neutral-400'}`}>
           {fmtBubbleTime(message.createdAt)}
-          {mine && (
-            <span className="flex items-center gap-0.5">
-              <CheckIcon />
-              {message.readAt && <CheckIcon />}
-            </span>
-          )}
+          {mine && (message.readAt ? <CheckCheck size={14} /> : <Check size={14} />)}
         </span>
       </div>
     </div>
