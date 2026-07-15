@@ -341,7 +341,8 @@ function ChatSearchInput({
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-9 right-3 flex items-center overflow-hidden"
         >
-          <span className="animate-chat-search-marquee inline-block whitespace-nowrap text-sm text-neutral-400">
+          {/* Faqat mobil telefon o'lchamida "suzadi" — tab/planshet/desktopда (md+) qotib turadi */}
+          <span className="animate-chat-search-marquee inline-block whitespace-nowrap text-sm text-neutral-400 md:animate-none">
             {t('messages.searchPlaceholder')}
           </span>
         </span>
@@ -678,6 +679,36 @@ function MessageBubble({
   );
 }
 
+/**
+ * Yuklanayotgan rasm/video — FAQAT yuboruvchining o'z ekranida ko'rinadi
+ * (hech qachon serverga/boshqa tomonga yuborilmaydi, sof lokal state).
+ * O'rtasida HAQIQIY yuklash foizi (XHR upload.onprogress) — 100% bo'lib
+ * xabar chindan yuborilmaguncha boshqa tomon buni umuman bilmaydi.
+ */
+function UploadingBubble({ previewUrl, isVideo, progress }: { previewUrl: string; isVideo: boolean; progress: number }) {
+  return (
+    <div className="flex justify-end">
+      <div className="relative max-w-[75%] overflow-hidden rounded-2xl rounded-br-md border-2 border-brand-800/25">
+        {isVideo ? (
+          <video src={previewUrl} muted className="max-h-64 w-full object-cover" />
+        ) : (
+          <img src={previewUrl} alt="" className="max-h-64 w-full object-cover" />
+        )}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/45">
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full transition-[background]"
+            style={{ background: `conic-gradient(#ffffff ${progress * 3.6}deg, rgba(255,255,255,0.3) 0deg)` }}
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black/70 text-xs font-semibold text-white">
+              {progress}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Thread({ contact }: { contact: ChatContact }) {
   const { t } = useTranslation();
   const messages = useChatStore((s) => s.messagesByUserId[contact.userId] ?? []);
@@ -695,39 +726,51 @@ function Thread({ contact }: { contact: ChatContact }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Telegram uslubida: rasm/video TANLANGANDA darhol yuborilmaydi — pastda
-  // (input ustida) kichik ko'rinish sifatida "kutib" turadi, foydalanuvchi
-  // izoh (caption) yozib, "Yuborish"ni bosgandagina haqiqatan yuklanadi va
-  // yuboriladi (matn + biriktirma BIRGA, bitta xabar sifatida).
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
-  const pendingPreviewUrlRef = useRef<string | null>(null);
+  // (input ustida) kichik ko'rinishlar qatori sifatida "kutib" turadi
+  // (BIR NECHTASI birdaniga — xoxlagancha), foydalanuvchi izoh (caption)
+  // yozib, "Yuborish"ni bosgandagina haqiqatan yuklanadi va ketma-ket
+  // yuboriladi (izoh FAQAT oxirgi faylga biriktiriladi).
+  const MAX_BATCH_FILES = 10;
+  const [pendingFiles, setPendingFiles] = useState<{ id: string; file: File; previewUrl: string }[]>([]);
+  const pendingFilesRef = useRef(pendingFiles);
+  pendingFilesRef.current = pendingFiles;
+
+  // Yuklanayotgan fayllar — FAQAT shu foydalanuvchining o'z ekranida
+  // (lokal state, hech qachon serverga/boshqa tomonga yuborilmaydi) — video/
+  // rasm o'rtasida % ko'rsatiladi, 100% bo'lib xabar HAQIQATAN yuborilmaguncha
+  // boshqa tomon buni umuman ko'rmaydi.
+  const [uploading, setUploading] = useState<{ id: string; previewUrl: string; isVideo: boolean; progress: number }[]>([]);
 
   useEffect(() => {
     return () => {
-      if (pendingPreviewUrlRef.current) URL.revokeObjectURL(pendingPreviewUrlRef.current);
+      pendingFilesRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     };
   }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages.length]);
+  }, [messages.length, uploading.length]);
 
-  const pickFile = (file: File) => {
-    if (pendingPreviewUrlRef.current) URL.revokeObjectURL(pendingPreviewUrlRef.current);
-    const url = URL.createObjectURL(file);
-    pendingPreviewUrlRef.current = url;
-    setPendingFile(file);
-    setPendingPreviewUrl(url);
+  const pickFiles = (fileList: FileList) => {
+    const room = MAX_BATCH_FILES - pendingFilesRef.current.length;
+    if (room <= 0) return;
+    const files = Array.from(fileList).slice(0, room);
+    const items = files.map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }));
+    setPendingFiles((p) => [...p, ...items]);
     setError(null);
   };
 
+  const removePendingFile = (id: string) => {
+    setPendingFiles((p) => {
+      const item = p.find((x) => x.id === id);
+      if (item) URL.revokeObjectURL(item.previewUrl);
+      return p.filter((x) => x.id !== id);
+    });
+  };
+
   const clearPending = () => {
-    if (pendingPreviewUrlRef.current) {
-      URL.revokeObjectURL(pendingPreviewUrlRef.current);
-      pendingPreviewUrlRef.current = null;
-    }
-    setPendingFile(null);
-    setPendingPreviewUrl(null);
+    pendingFilesRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    setPendingFiles([]);
   };
 
   const startEdit = (m: ChatMessage) => {
@@ -761,35 +804,59 @@ function Thread({ contact }: { contact: ChatContact }) {
       return;
     }
 
-    if (!trimmed && !pendingFile) return;
+    const filesToSend = pendingFiles;
+    if (!trimmed && filesToSend.length === 0) return;
     if (sending) return;
     setSending(true);
     setError(null);
-    const fileToSend = pendingFile;
     const textToSend = trimmed;
     setText('');
-    clearPending();
-    try {
-      if (fileToSend) {
-        const { key, contentType, sizeBytes } = await uploadChatAttachment(fileToSend);
+    setPendingFiles([]); // ko'rinishlar egaligi pastdagi "uploading" ro'yxatiga o'tadi — shu yerda revoke qilinmaydi
+
+    if (filesToSend.length === 0) {
+      try {
+        await sendMessage(contact.userId, { text: textToSend });
+      } catch (err) {
+        setError(quotaMessage(err) ?? t('messages.sendFailed'));
+        setText(textToSend);
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
+    // Bir nechta rasm/video — Telegram uslubida ketma-ket yuboriladi, har
+    // birining haqiqiy yuklash foizi bubble o'rtasida ko'rsatiladi; izoh
+    // (agar yozilgan bo'lsa) FAQAT oxirgi faylga biriktiriladi.
+    for (let i = 0; i < filesToSend.length; i++) {
+      const item = filesToSend[i];
+      const isLast = i === filesToSend.length - 1;
+      setUploading((u) => [
+        ...u,
+        { id: item.id, previewUrl: item.previewUrl, isVideo: item.file.type.startsWith('video/'), progress: 0 },
+      ]);
+      try {
+        const { key, contentType, sizeBytes } = await uploadChatAttachment(item.file, (pct) => {
+          setUploading((u) => u.map((x) => (x.id === item.id ? { ...x, progress: pct } : x)));
+        });
         await sendMessage(contact.userId, {
-          text: textToSend || undefined,
+          text: isLast && textToSend ? textToSend : undefined,
           attachmentUrl: key,
           attachmentContentType: contentType,
           attachmentSizeBytes: sizeBytes,
         });
-      } else {
-        await sendMessage(contact.userId, { text: textToSend });
+        URL.revokeObjectURL(item.previewUrl);
+        setUploading((u) => u.filter((x) => x.id !== item.id));
+      } catch (err) {
+        setUploading((u) => u.filter((x) => x.id !== item.id));
+        setError(quotaMessage(err) ?? r2UploadErrorMessage(err) ?? t('messages.sendFailed'));
+        // Yuborilmagan (shu jumladan xato bergan) fayllarni qayta urinish uchun tiklaymiz
+        setPendingFiles(filesToSend.slice(i));
+        setText(textToSend);
+        break;
       }
-    } catch (err) {
-      const quota = quotaMessage(err);
-      setError(quota ?? r2UploadErrorMessage(err) ?? t('messages.sendFailed'));
-      // Qayta urinish uchun kiritilganlarni tiklaymiz
-      setText(textToSend);
-      if (fileToSend) pickFile(fileToSend);
-    } finally {
-      setSending(false);
     }
+    setSending(false);
   };
 
   const confirmDelete = async () => {
@@ -829,6 +896,9 @@ function Thread({ contact }: { contact: ChatContact }) {
             />
           ))
         )}
+        {uploading.map((u) => (
+          <UploadingBubble key={u.id} previewUrl={u.previewUrl} isVideo={u.isVideo} progress={u.progress} />
+        ))}
         <div ref={bottomRef} />
       </div>
 
@@ -852,42 +922,43 @@ function Thread({ contact }: { contact: ChatContact }) {
             </button>
           </div>
         )}
-        {pendingPreviewUrl && pendingFile && (
-          <div className="flex items-center gap-2.5 px-3 pt-2.5">
-            <div className="relative shrink-0">
-              {pendingFile.type.startsWith('video/') ? (
-                <video src={pendingPreviewUrl} className="h-16 w-16 rounded-xl object-cover" muted />
-              ) : (
-                <img src={pendingPreviewUrl} alt="" className="h-16 w-16 rounded-xl object-cover" />
-              )}
-              <button
-                type="button"
-                onClick={clearPending}
-                aria-label={t('common.close')}
-                className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-800/90 p-0.5 text-white transition-colors hover:bg-neutral-900"
-              >
-                <X size={13} />
-              </button>
-            </div>
-            <p className="min-w-0 flex-1 truncate text-xs text-neutral-400">{pendingFile.name}</p>
+        {pendingFiles.length > 0 && (
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-3 pt-2.5">
+            {pendingFiles.map((item) => (
+              <div key={item.id} className="relative shrink-0">
+                {item.file.type.startsWith('video/') ? (
+                  <video src={item.previewUrl} className="h-16 w-16 rounded-xl object-cover" muted />
+                ) : (
+                  <img src={item.previewUrl} alt="" className="h-16 w-16 rounded-xl object-cover" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => removePendingFile(item.id)}
+                  aria-label={t('common.close')}
+                  className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-800/90 p-0.5 text-white transition-colors hover:bg-neutral-900"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
         <div className="flex items-center gap-2 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5">
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,application/pdf"
             className="sr-only"
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) pickFile(f);
+              if (e.target.files && e.target.files.length > 0) pickFiles(e.target.files);
               e.target.value = '';
             }}
           />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={sending || !!pendingFile || !!editingMessage}
+            disabled={sending || pendingFiles.length >= MAX_BATCH_FILES || !!editingMessage}
             className="shrink-0 rounded-full p-2 text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-40"
             aria-label={t('messages.attach')}
           >
@@ -906,14 +977,18 @@ function Thread({ contact }: { contact: ChatContact }) {
             }}
             maxLength={4000}
             placeholder={
-              editingMessage ? t('messages.editPlaceholder') : pendingFile ? t('messages.captionPlaceholder') : t('messages.sendPlaceholder')
+              editingMessage
+                ? t('messages.editPlaceholder')
+                : pendingFiles.length > 0
+                  ? t('messages.captionPlaceholder')
+                  : t('messages.sendPlaceholder')
             }
             className="min-w-0 flex-1 rounded-full border border-transparent bg-brand-50 px-4 py-2.5 text-sm outline-none focus:border-brand-300 focus:bg-white"
           />
           <button
             type="button"
             onClick={() => void doSend()}
-            disabled={(!text.trim() && !pendingFile) || sending}
+            disabled={(!text.trim() && pendingFiles.length === 0) || sending}
             className="shrink-0 rounded-full bg-brand-800 p-2.5 text-white transition-colors hover:bg-brand-900 disabled:opacity-40"
             aria-label={t('messages.send')}
           >

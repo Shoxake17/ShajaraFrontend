@@ -62,17 +62,31 @@ export const chatApi = {
       .then((r) => r.data),
 };
 
-/** Xabarga rasm/video/hujjat biriktirish — family.api.ts:uploadPhoto() bilan bir xil to'g'ridan-to'g'ri R2'ga yuklash naqshi */
+/**
+ * Xabarga rasm/video/hujjat biriktirish — family.api.ts:uploadPhoto() bilan
+ * bir xil to'g'ridan-to'g'ri R2'ga yuklash naqshi. XMLHttpRequest ishlatiladi
+ * (fetch emas) — chunki faqat XHR "upload.onprogress" orqali HAQIQIY yuklash
+ * foizini beradi (Telegram uslubidagi bubble ichidagi % ko'rsatkich uchun
+ * shart — soxta/taxminiy progress emas).
+ */
 export async function uploadChatAttachment(
   file: File,
+  onProgress?: (percent: number) => void,
 ): Promise<{ key: string; contentType: string; sizeBytes: number; kind: ChatAttachmentType }> {
   const { uploadUrl, key, kind } = await chatApi.createUploadUrl(file.type);
-  let res: Response;
-  try {
-    res = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-  } catch (err) {
-    throw new Error(`R2_NETWORK_ERROR: ${(err as Error).message}`);
-  }
-  if (!res.ok) throw new Error(`R2_HTTP_ERROR: ${res.status} ${res.statusText}`.trim());
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl, true);
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`R2_HTTP_ERROR: ${xhr.status} ${xhr.statusText}`.trim()));
+    };
+    xhr.onerror = () => reject(new Error('R2_NETWORK_ERROR: tarmoq xatosi'));
+    xhr.send(file);
+  });
   return { key, contentType: file.type, sizeBytes: file.size, kind };
 }
