@@ -36,9 +36,32 @@ function wireListeners(): void {
  * o'tilganda token backend'da (upsert) YANGI foydalanuvchiga qayta
  * bog'lanadi, avvalgi egasi endi push olmay qoladi.
  */
+// Android 8+ (API 26+) bildirishnoma FAQAT shu ahamiyat darajasi ("channel")
+// orqali ekranga suzib chiquvchi (heads-up/pop-up, Telegram uslubi) holda
+// ko'rsatiladi — importance:4 (IMPORTANCE_HIGH) shart, standart (past)
+// ahamiyatda faqat tepadagi bildirishnomalar panelida jimgina ko'rinadi,
+// ekranga chiqmaydi. Backend (push.service.ts) shu KANAL ID'sini ishlatadi.
+const CHAT_CHANNEL_ID = 'chat_messages';
+
+async function ensureChatChannel(): Promise<void> {
+  try {
+    await PushNotifications.createChannel({
+      id: CHAT_CHANNEL_ID,
+      name: 'Xabarlar',
+      description: "Yangi xabar bildirishnomalari",
+      importance: 4,
+      visibility: 1,
+      vibration: true,
+    });
+  } catch {
+    // jim — masalan Android 8'dan past versiyada kanal tushunchasi yo'q
+  }
+}
+
 export async function initNativePush(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
+    await ensureChatChannel();
     const current = await PushNotifications.checkPermissions();
     let granted = current.receive === 'granted';
     if (!granted && current.receive !== 'denied') {
