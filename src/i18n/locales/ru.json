@@ -497,7 +497,10 @@
     "attach": "Прикрепить фото/видео/документ",
     "sendFailed": "Сообщение не отправлено. Попробуйте снова",
     "searchPlaceholder": "Поиск по имени, фамилии...",
-    "noSearchResults": "Никого не найдено"
+    "noSearchResults": "Никого не найдено",
+    "captionPlaceholder": "Добавьте подпись...",
+    "moreOptions": "Ещё действия",
+    "download": "Скачать"
   },
   "media": {
     "typeLabels": {

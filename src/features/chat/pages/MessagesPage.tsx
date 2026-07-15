@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Download, MoreVertical, Paperclip, Search, Send, X } from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
@@ -49,28 +49,127 @@ function fmtBubbleTime(iso: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-const svg = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-const SendIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" {...svg}>
-    <path d="m4 12 16-8-6 16-3-7-7-1Z" />
-  </svg>
-);
-const AttachIcon = () => (
-  <svg viewBox="0 0 24 24" width="19" height="19" {...svg}>
-    <path d="M17 7.5 8.5 16a3 3 0 0 1-4.2-4.2L13 3a2 2 0 0 1 2.8 2.8L7.5 14a1 1 0 0 1-1.4-1.4L14 5" />
-  </svg>
-);
-const BackIcon = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" {...svg}>
-    <path d="m15 5-7 7 7 7" />
-  </svg>
-);
-const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" {...svg}>
-    <circle cx="11" cy="11" r="7" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
+const PLAYBACK_SPEEDS = [0.5, 1, 1.5, 2] as const;
+
+/** Rasm/video ustiga bosilganda TO'LIQ EKRANDA ochiladigan ko'rinish.
+    Video uchun: tezlik tanlovi (alohida) + "..." menyu (yuklab olish va h.k.),
+    ikkalasi ham yuqori o'ng burchakda, YONMA-YON lekin ALOHIDA tugmalar. */
+function MediaLightbox({ message, onClose }: { message: ChatMessage; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [speedOpen, setSpeedOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isVideo = message.attachmentType === 'VIDEO';
+
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = speed;
+  }, [speed]);
+
+  const download = () => {
+    setMenuOpen(false);
+    if (!message.attachmentUrl) return;
+    const a = document.createElement('a');
+    a.href = message.attachmentUrl;
+    a.download = '';
+    a.target = '_blank';
+    a.rel = 'noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
+      <div className="absolute right-3 top-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        {isVideo && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setSpeedOpen((o) => !o);
+                setMenuOpen(false);
+              }}
+              className="rounded-full bg-black/50 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-black/70"
+            >
+              {speed}x
+            </button>
+            {speedOpen && (
+              <div className="absolute right-0 top-full mt-1.5 min-w-24 overflow-hidden rounded-xl bg-neutral-900 py-1 shadow-lg">
+                {PLAYBACK_SPEEDS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      setSpeed(s);
+                      setSpeedOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-white/10 ${
+                      s === speed ? 'font-semibold text-white' : 'text-neutral-300'
+                    }`}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen((o) => !o);
+              setSpeedOpen(false);
+            }}
+            aria-label={t('messages.moreOptions')}
+            className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+          >
+            <MoreVertical size={19} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-1.5 min-w-44 overflow-hidden rounded-xl bg-neutral-900 py-1 shadow-lg">
+              <button
+                type="button"
+                onClick={download}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-neutral-100 transition-colors hover:bg-white/10"
+              >
+                <Download size={16} /> {t('messages.download')}
+              </button>
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t('common.close')}
+          className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
+        >
+          <X size={19} />
+        </button>
+      </div>
+
+      {isVideo ? (
+        <video
+          ref={videoRef}
+          src={message.attachmentUrl ?? undefined}
+          controls
+          autoPlay
+          className="max-h-[88vh] max-w-[92vw] rounded-lg"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <img
+          src={message.attachmentUrl ?? undefined}
+          alt=""
+          className="max-h-[88vh] max-w-[92vw] rounded-lg object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+    </div>,
+    document.body,
+  );
+}
 
 function ContactRow({ contact, active, onClick }: { contact: ChatContact; active: boolean; onClick: () => void }) {
   return (
@@ -108,7 +207,7 @@ function ContactRow({ contact, active, onClick }: { contact: ChatContact; active
   );
 }
 
-function MessageBubble({ message, mine }: { message: ChatMessage; mine: boolean }) {
+function MessageBubble({ message, mine, onOpenMedia }: { message: ChatMessage; mine: boolean; onOpenMedia: () => void }) {
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -117,10 +216,19 @@ function MessageBubble({ message, mine }: { message: ChatMessage; mine: boolean 
         }`}
       >
         {message.attachmentUrl && message.attachmentType === 'IMAGE' && (
-          <img src={message.attachmentUrl} alt="" className="mb-1.5 max-h-64 w-full rounded-xl object-cover" />
+          <button type="button" onClick={onOpenMedia} className="mb-1.5 block w-full">
+            <img src={message.attachmentUrl} alt="" className="max-h-64 w-full rounded-xl object-cover" />
+          </button>
         )}
         {message.attachmentUrl && message.attachmentType === 'VIDEO' && (
-          <video src={message.attachmentUrl} controls className="mb-1.5 max-h-64 w-full rounded-xl" />
+          <button type="button" onClick={onOpenMedia} className="relative mb-1.5 block w-full">
+            <video src={message.attachmentUrl} className="max-h-64 w-full rounded-xl object-cover" />
+            <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/20">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90">
+                <span className="ml-0.5 border-y-8 border-l-[14px] border-y-transparent border-l-brand-900" />
+              </span>
+            </span>
+          </button>
         )}
         {message.attachmentUrl && message.attachmentType === 'DOCUMENT' && (
           <a
@@ -148,42 +256,77 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
   const sendMessage = useChatStore((s) => s.sendMessage);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewingMessage, setViewingMessage] = useState<ChatMessage | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Telegram uslubida: rasm/video TANLANGANDA darhol yuborilmaydi — pastda
+  // (input ustida) kichik ko'rinish sifatida "kutib" turadi, foydalanuvchi
+  // izoh (caption) yozib, "Yuborish"ni bosgandagina haqiqatan yuklanadi va
+  // yuboriladi (matn + biriktirma BIRGA, bitta xabar sifatida).
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
+  const pendingPreviewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreviewUrlRef.current) URL.revokeObjectURL(pendingPreviewUrlRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length]);
 
-  const doSend = async () => {
-    const trimmed = text.trim();
-    if (!trimmed || sending) return;
-    setSending(true);
+  const pickFile = (file: File) => {
+    if (pendingPreviewUrlRef.current) URL.revokeObjectURL(pendingPreviewUrlRef.current);
+    const url = URL.createObjectURL(file);
+    pendingPreviewUrlRef.current = url;
+    setPendingFile(file);
+    setPendingPreviewUrl(url);
     setError(null);
-    setText('');
-    try {
-      await sendMessage(contact.userId, { text: trimmed });
-    } catch {
-      setError(t('messages.sendFailed'));
-      setText(trimmed);
-    } finally {
-      setSending(false);
-    }
   };
 
-  const onAttach = async (file: File) => {
-    setUploading(true);
+  const clearPending = () => {
+    if (pendingPreviewUrlRef.current) {
+      URL.revokeObjectURL(pendingPreviewUrlRef.current);
+      pendingPreviewUrlRef.current = null;
+    }
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+  };
+
+  const doSend = async () => {
+    const trimmed = text.trim();
+    if (!trimmed && !pendingFile) return;
+    if (sending) return;
+    setSending(true);
     setError(null);
+    const fileToSend = pendingFile;
+    const textToSend = trimmed;
+    setText('');
+    clearPending();
     try {
-      const { key, contentType, sizeBytes } = await uploadChatAttachment(file);
-      await sendMessage(contact.userId, { attachmentUrl: key, attachmentContentType: contentType, attachmentSizeBytes: sizeBytes });
+      if (fileToSend) {
+        const { key, contentType, sizeBytes } = await uploadChatAttachment(fileToSend);
+        await sendMessage(contact.userId, {
+          text: textToSend || undefined,
+          attachmentUrl: key,
+          attachmentContentType: contentType,
+          attachmentSizeBytes: sizeBytes,
+        });
+      } else {
+        await sendMessage(contact.userId, { text: textToSend });
+      }
     } catch (err) {
       const quota = quotaMessage(err);
       setError(quota ?? r2UploadErrorMessage(err) ?? t('messages.sendFailed'));
+      // Qayta urinish uchun kiritilganlarni tiklaymiz
+      setText(textToSend);
+      if (fileToSend) pickFile(fileToSend);
     } finally {
-      setUploading(false);
+      setSending(false);
     }
   };
 
@@ -191,7 +334,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 py-2.5">
         <button type="button" onClick={onBack} className="rounded-full p-1.5 text-brand-700 hover:bg-brand-50 lg:hidden">
-          <BackIcon />
+          <ArrowLeft size={20} />
         </button>
         <Avatar name={contact.fullName} gender={contact.gender} photoUrl={contact.photoUrl} size={36} />
         <span className="truncate text-sm font-semibold text-brand-900">{contact.fullName}</span>
@@ -201,61 +344,92 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
         {messages.length === 0 ? (
           <p className="mt-6 text-center text-sm text-neutral-400">{t('messages.emptyThread')}</p>
         ) : (
-          messages.map((m) => <MessageBubble key={m.id} message={m} mine={m.senderId !== contact.userId} />)
+          messages.map((m) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+              mine={m.senderId !== contact.userId}
+              onOpenMedia={() => setViewingMessage(m)}
+            />
+          ))
         )}
         <div ref={bottomRef} />
       </div>
 
       {error && <p className="shrink-0 px-3 py-1 text-xs text-red-500">{error}</p>}
 
-      <div className="flex shrink-0 items-center gap-2 border-t border-brand-100 bg-white p-2.5">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,application/pdf"
-          className="sr-only"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void onAttach(f);
-            e.target.value = '';
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="shrink-0 rounded-full p-2 text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-50"
-          aria-label={t('messages.attach')}
-        >
-          {uploading ? (
-            <span className="block h-[19px] w-[19px] animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
-          ) : (
-            <AttachIcon />
-          )}
-        </button>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              void doSend();
-            }
-          }}
-          maxLength={4000}
-          placeholder={t('messages.sendPlaceholder')}
-          className="min-w-0 flex-1 rounded-full border border-transparent bg-brand-50 px-4 py-2.5 text-sm outline-none focus:border-brand-300 focus:bg-white"
-        />
-        <button
-          type="button"
-          onClick={() => void doSend()}
-          disabled={!text.trim() || sending}
-          className="shrink-0 rounded-full bg-brand-800 p-2.5 text-white transition-colors hover:bg-brand-900 disabled:opacity-40"
-          aria-label={t('messages.send')}
-        >
-          <SendIcon />
-        </button>
+      <div className="flex shrink-0 flex-col border-t border-brand-100 bg-white">
+        {pendingPreviewUrl && pendingFile && (
+          <div className="flex items-center gap-2.5 px-3 pt-2.5">
+            <div className="relative shrink-0">
+              {pendingFile.type.startsWith('video/') ? (
+                <video src={pendingPreviewUrl} className="h-16 w-16 rounded-xl object-cover" muted />
+              ) : (
+                <img src={pendingPreviewUrl} alt="" className="h-16 w-16 rounded-xl object-cover" />
+              )}
+              <button
+                type="button"
+                onClick={clearPending}
+                aria-label={t('common.close')}
+                className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-800/90 p-0.5 text-white transition-colors hover:bg-neutral-900"
+              >
+                <X size={13} />
+              </button>
+            </div>
+            <p className="min-w-0 flex-1 truncate text-xs text-neutral-400">{pendingFile.name}</p>
+          </div>
+        )}
+        <div className="flex items-center gap-2 p-2.5">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,application/pdf"
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) pickFile(f);
+              e.target.value = '';
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending || !!pendingFile}
+            className="shrink-0 rounded-full p-2 text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-40"
+            aria-label={t('messages.attach')}
+          >
+            <Paperclip size={19} />
+          </button>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                void doSend();
+              }
+            }}
+            maxLength={4000}
+            placeholder={pendingFile ? t('messages.captionPlaceholder') : t('messages.sendPlaceholder')}
+            className="min-w-0 flex-1 rounded-full border border-transparent bg-brand-50 px-4 py-2.5 text-sm outline-none focus:border-brand-300 focus:bg-white"
+          />
+          <button
+            type="button"
+            onClick={() => void doSend()}
+            disabled={(!text.trim() && !pendingFile) || sending}
+            className="shrink-0 rounded-full bg-brand-800 p-2.5 text-white transition-colors hover:bg-brand-900 disabled:opacity-40"
+            aria-label={t('messages.send')}
+          >
+            {sending ? (
+              <span className="block h-[18px] w-[18px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              <Send size={18} />
+            )}
+          </button>
+        </div>
       </div>
+
+      {viewingMessage && <MediaLightbox message={viewingMessage} onClose={() => setViewingMessage(null)} />}
     </div>
   );
 }
@@ -301,7 +475,7 @@ export function MessagesPage() {
         >
           <div className="relative shrink-0 p-2 pb-1.5">
             <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-brand-400">
-              <SearchIcon />
+              <Search size={16} />
             </span>
             <input
               value={query}

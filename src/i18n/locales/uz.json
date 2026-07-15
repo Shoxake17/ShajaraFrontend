@@ -478,7 +478,10 @@
     "attach": "Rasm/video/hujjat biriktirish",
     "sendFailed": "Xabar yuborilmadi. Qaytadan urinib ko'ring",
     "searchPlaceholder": "Ism, familiya bo'yicha qidirish...",
-    "noSearchResults": "Hech kim topilmadi"
+    "noSearchResults": "Hech kim topilmadi",
+    "captionPlaceholder": "Izoh yozing...",
+    "moreOptions": "Ko'proq amallar",
+    "download": "Yuklab olish"
   },
   "media": {
     "typeLabels": {
