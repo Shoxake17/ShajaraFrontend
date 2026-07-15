@@ -6,6 +6,8 @@ import { BottomNav } from './BottomNav';
 import { useSessionLiveness } from '@/features/auth/hooks/useSessionLiveness';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { MiniVideoPlayer } from '@/features/chat/components/MiniVideoPlayer';
+import { initWebPush } from '@/features/push/push.web';
+import { initNativePush } from '@/features/push/push.native';
 
 /**
  * Har sahifa (Outlet) shu orqali o'zining yuqori panel amallarini (qidiruv,
@@ -53,6 +55,16 @@ export function AppLayout() {
     void loadChatContacts();
     return () => disconnectChat();
   }, [connectChat, disconnectChat, loadChatContacts]);
+
+  // Ilova/tab BUTUNLAY yopilganda ham xabar kelganda tepada tizim push
+  // bildirishnomasi chiqishi uchun (Telegram uslubi) — brauzer/PWA'da
+  // Firebase Web Push, Android APK'da nativ FCM (@capacitor/push-notifications).
+  // Har ikkalasi ham sozlanmagan/muvaffaqiyatsiz bo'lsa jim o'chirilgan
+  // holatda ishlaydi — chatning o'zi (socket) bunga bog'liq emas.
+  useEffect(() => {
+    void initWebPush();
+    void initNativePush();
+  }, []);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-brand-50">

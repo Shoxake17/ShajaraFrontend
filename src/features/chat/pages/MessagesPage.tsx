@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
@@ -1043,6 +1043,20 @@ export function MessagesPage() {
   useEffect(() => {
     void loadContacts();
   }, [loadContacts]);
+
+  // Push bildirishnomani (yoki boshqa joydan kelgan havolani) bosib kirilsa —
+  // "/xabarlar?with=<userId>" o'sha suhbatni to'g'ridan-to'g'ri ochadi
+  // (Telegram uslubi — chat.gateway.ts/push.native.ts shu URL'ni yuboradi).
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const withId = searchParams.get('with');
+    if (!withId) return;
+    void openConversation(withId);
+    setSearchParams((prev) => {
+      prev.delete('with');
+      return prev;
+    }, { replace: true });
+  }, [searchParams, openConversation, setSearchParams]);
 
   const activeContact = useMemo(() => contacts.find((c) => c.userId === activeUserId) ?? null, [contacts, activeUserId]);
 

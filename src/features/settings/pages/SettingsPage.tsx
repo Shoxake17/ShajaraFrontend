@@ -23,6 +23,8 @@ import {
 } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
+import { useChatStore } from '@/features/chat/model/chat.store';
+import { teardownWebPush } from '@/features/push/push.web';
 import { familyApi, uploadPhoto } from '@/features/tree/api/family.api';
 import { uploadErrorMessage } from '@/features/tree/components/PhotoPicker';
 import { useStorageStore, quotaMessage } from '@/features/storage/storage.store';
@@ -264,9 +266,12 @@ export function SettingsPage() {
   const onLogout = async () => {
     setLoggingOut(true);
     try {
+      await teardownWebPush().catch(() => undefined);
       await authApi.logout().catch(() => undefined);
       useTreeStore.getState().reset();
       useStorageStore.getState().reset();
+      useChatStore.getState().disconnect();
+      useChatStore.getState().reset();
       clearSession();
       navigate('/login');
     } finally {

@@ -482,7 +482,7 @@
   "messages": {
     "title": "Messages",
     "emptyContacts": "No relatives you can message yet",
-    "selectContact": "Select a relative on the left to start chatting",
+    "selectContact": "Select a chat to start messaging",
     "emptyThread": "No messages yet — say hello",
     "sendPlaceholder": "Type a message...",
     "send": "Send",

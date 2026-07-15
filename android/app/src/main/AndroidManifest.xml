@@ -32,4 +32,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 13+ (API 33+) — push bildirishnoma ko'rsatish uchun ishga
+         tushirilishi kerak bo'lgan runtime ruxsat (@capacitor/push-notifications
+         PushNotifications.requestPermissions() shu bilan ishlaydi). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

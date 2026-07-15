@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "195817634378",
+    "project_id": "ajdo-833a3",
+    "storage_bucket": "ajdo-833a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195817634378:android:9ac3244f963f793c4d04b3",
+        "android_client_info": {
+          "package_name": "uz.ajdo.shajara"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcnQH1hljI-VhHIucDkgeomfuSBoVHxew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

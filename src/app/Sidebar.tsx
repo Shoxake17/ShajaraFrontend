@@ -9,6 +9,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
 import { useChatStore, chatUnreadTotal } from '@/features/chat/model/chat.store';
+import { teardownWebPush } from '@/features/push/push.web';
 import { PricingModal } from '@/features/billing/components/PricingModal';
 import { useNavItems, LogoutIcon } from './nav-items';
 
@@ -47,6 +48,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
   const onLogout = async () => {
     setLoggingOut(true);
     try {
+      await teardownWebPush().catch(() => undefined);
       await authApi.logout().catch(() => undefined);
       useTreeStore.getState().reset();
       useStorageStore.getState().reset();
