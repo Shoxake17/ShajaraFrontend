@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { chatApi, type ChatContact, type ChatMessage, type SendMessagePayload } from '../api/chat.api';
 import { getChatSocket, connectChatSocket, disconnectChatSocket } from '../lib/socket';
+import { useStorageStore } from '@/features/storage/storage.store';
 
 interface ChatState {
   contacts: ChatContact[];
@@ -76,6 +77,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       },
     }));
     void get().loadContacts(); // oxirgi xabar/tartib yangilanishi uchun
+    // Xabar (matn+biriktirma) yuboruvchining o'z xotira kvotasiga qo'shiladi
+    // (backend: QuotaService.usage() "messages" bucket) — Sidebar/Sozlamalar
+    // dagi foizni SHU YERDA ham yangilaymiz (avvalgi xato: faqat Sidebar
+    // o'zi mount bo'lganda bir marta yuklardi, chat orqali yuborilgan
+    // rasm/video sarfga qo'shilib qo'shilmagani ko'rinmasdi).
+    void useStorageStore.getState().loadUsage();
   },
 
   markRead: (otherUserId) => {

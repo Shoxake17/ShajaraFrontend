@@ -476,7 +476,9 @@
     "sendPlaceholder": "Xabar yozing...",
     "send": "Yuborish",
     "attach": "Rasm/video/hujjat biriktirish",
-    "sendFailed": "Xabar yuborilmadi. Qaytadan urinib ko'ring"
+    "sendFailed": "Xabar yuborilmadi. Qaytadan urinib ko'ring",
+    "searchPlaceholder": "Ism, familiya bo'yicha qidirish...",
+    "noSearchResults": "Hech kim topilmadi"
   },
   "media": {
     "typeLabels": {

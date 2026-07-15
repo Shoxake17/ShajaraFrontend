@@ -64,9 +64,16 @@ const BackIcon = () => (
     <path d="m15 5-7 7 7 7" />
   </svg>
 );
-const CheckIcon = ({ double }: { double?: boolean }) => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    {double ? <path d="M2 12.5 6.5 17 15 6M9 17l8.5-11" /> : <path d="M4 12.5 8.5 17 20 5" />}
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" {...svg}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+/** Bitta belgi — ✓✓ ikkita shu ikonkani gap bilan yonma-yon qo'yib hosil qilinadi (bitta SVG ichidagi ikki yo'l bir-biriga yopishib ko'rinardi) */
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 12.5 9 18 20 5" />
   </svg>
 );
 
@@ -111,7 +118,7 @@ function MessageBubble({ message, mine }: { message: ChatMessage; mine: boolean 
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
-          mine ? 'rounded-br-md bg-brand-800 text-white' : 'rounded-bl-md bg-white text-brand-900'
+          mine ? 'rounded-br-md bg-brand-800 text-white' : 'rounded-bl-md bg-[#F3F6F0] text-brand-900'
         }`}
       >
         {message.attachmentUrl && message.attachmentType === 'IMAGE' && (
@@ -133,7 +140,12 @@ function MessageBubble({ message, mine }: { message: ChatMessage; mine: boolean 
         {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
         <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-brand-200' : 'text-neutral-400'}`}>
           {fmtBubbleTime(message.createdAt)}
-          {mine && <CheckIcon double={!!message.readAt} />}
+          {mine && (
+            <span className="flex items-center gap-0.5">
+              <CheckIcon />
+              {message.readAt && <CheckIcon />}
+            </span>
+          )}
         </span>
       </div>
     </div>
@@ -274,6 +286,13 @@ export function MessagesPage() {
 
   const activeContact = useMemo(() => contacts.find((c) => c.userId === activeUserId) ?? null, [contacts, activeUserId]);
 
+  const [query, setQuery] = useState('');
+  const filteredContacts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return contacts;
+    return contacts.filter((c) => c.fullName.toLowerCase().includes(q));
+  }, [contacts, query]);
+
   return (
     <>
       {topBarActionsEl &&
@@ -286,28 +305,44 @@ export function MessagesPage() {
 
       <div className="flex min-h-0 flex-1 gap-3 p-3">
         <div
-          className={`min-h-0 w-full shrink-0 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-2 lg:block lg:w-80 ${
-            activeContact ? 'hidden' : 'block'
+          className={`flex min-h-0 w-full shrink-0 flex-col rounded-2xl border border-brand-100 bg-white lg:flex lg:w-80 ${
+            activeContact ? 'hidden' : 'flex'
           }`}
         >
-          {!contactsLoaded ? (
-            <div className="flex justify-center py-8">
-              <span className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
-            </div>
-          ) : contacts.length === 0 ? (
-            <p className="mt-6 px-2 text-center text-sm text-neutral-400">{t('messages.emptyContacts')}</p>
-          ) : (
-            <div className="space-y-1">
-              {contacts.map((c) => (
-                <ContactRow
-                  key={c.userId}
-                  contact={c}
-                  active={c.userId === activeUserId}
-                  onClick={() => void openConversation(c.userId)}
-                />
-              ))}
-            </div>
-          )}
+          <div className="relative shrink-0 p-2 pb-1.5">
+            <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-brand-400">
+              <SearchIcon />
+            </span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('messages.searchPlaceholder')}
+              maxLength={64}
+              className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
+            />
+          </div>
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2 pt-1">
+            {!contactsLoaded ? (
+              <div className="flex justify-center py-8">
+                <span className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
+              </div>
+            ) : contacts.length === 0 ? (
+              <p className="mt-6 px-2 text-center text-sm text-neutral-400">{t('messages.emptyContacts')}</p>
+            ) : filteredContacts.length === 0 ? (
+              <p className="mt-6 px-2 text-center text-sm text-neutral-400">{t('messages.noSearchResults')}</p>
+            ) : (
+              <div className="space-y-1">
+                {filteredContacts.map((c) => (
+                  <ContactRow
+                    key={c.userId}
+                    contact={c}
+                    active={c.userId === activeUserId}
+                    onClick={() => void openConversation(c.userId)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div

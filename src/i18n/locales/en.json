@@ -487,7 +487,9 @@
     "sendPlaceholder": "Type a message...",
     "send": "Send",
     "attach": "Attach photo/video/document",
-    "sendFailed": "Message failed to send. Try again"
+    "sendFailed": "Message failed to send. Try again",
+    "searchPlaceholder": "Search by name...",
+    "noSearchResults": "No one found"
   },
   "media": {
     "typeLabels": {
