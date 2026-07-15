@@ -18,9 +18,17 @@ export interface AppLayoutContext {
   topBarActionsEl: HTMLDivElement | null;
   /** Doskani TO'LIQ ekranga (Sidebar + header + BottomNav yashirilgan
       holatga) olib chiqish — Loopa panelidagi fullscreen tugmasi shu orqali
-      boshqaradi (TreeBoardPage / FamilyMembersPage). */
+      boshqaradi (TreeBoardPage / FamilyMembersPage). Bu SILLIQ (animatsiyali)
+      o'tish. */
   boardFullscreen: boolean;
   setBoardFullscreen: (v: boolean) => void;
+  /** Xabarlar sahifasida (mobil, suhbat ochilganda) — faqat AJDO logotipi
+      (header o'zi EMAS — portal orqali kelgan tarkib, masalan orqaga+ism-
+      familiya, ko'rinishda qoladi) va pastki navigatsiya yashiriladi.
+      boardFullscreen'dan farqli — ANIMATSIYASIZ (darhol), navigatsiya
+      "sirg'alib" ko'rinmasin deb. */
+  chatFullscreen: boolean;
+  setChatFullscreen: (v: boolean) => void;
 }
 
 // Apple uslubidagi silliq, "elastik" chiqish egri chizig'i — barcha
@@ -32,6 +40,7 @@ export function AppLayout() {
   useSessionLiveness();
   const [topBarActionsEl, setTopBarActionsEl] = useState<HTMLDivElement | null>(null);
   const [boardFullscreen, setBoardFullscreen] = useState(false);
+  const [chatFullscreen, setChatFullscreen] = useState(false);
 
   // Xabarlar — ilova ichida bo'lganda (qaysi sahifada bo'lishidan qat'i
   // nazar) doim ulangan, shunda Sidebar/BottomNav'dagi o'qilmagan xabar
@@ -55,10 +64,14 @@ export function AppLayout() {
             : 'mt-6 max-h-14 border-brand-100 opacity-100 lg:mt-3'
         }`}
       >
-        <img src="/shajaratree.png" alt="AJDO" className="h-8 w-8 shrink-0 rounded-full object-cover" />
-        <span className="flex shrink-0 items-center gap-1 font-sans text-lg font-bold text-brand-900 lg:w-[9.5rem]">
-          AJDO
-        </span>
+        {!chatFullscreen && (
+          <>
+            <img src="/shajaratree.png" alt="AJDO" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+            <span className="flex shrink-0 items-center gap-1 font-sans text-lg font-bold text-brand-900 lg:w-[9.5rem]">
+              AJDO
+            </span>
+          </>
+        )}
         {/* Har sahifa o'z amallarini (qidiruv, filtr, tugmalar) shu bo'sh
             joyga portal orqali joylashtiradi — bo'sh bo'lsa faqat logotip
             ko'rinadi (masalan Sozlamalar/Media sahifalarida). */}
@@ -69,11 +82,13 @@ export function AppLayout() {
         <Sidebar fullscreen={boardFullscreen} />
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <Outlet
-            context={{ topBarActionsEl, boardFullscreen, setBoardFullscreen } satisfies AppLayoutContext}
+            context={
+              { topBarActionsEl, boardFullscreen, setBoardFullscreen, chatFullscreen, setChatFullscreen } satisfies AppLayoutContext
+            }
           />
         </main>
       </div>
-      <BottomNav fullscreen={boardFullscreen} />
+      <BottomNav fullscreen={boardFullscreen || chatFullscreen} instant={chatFullscreen} />
       <MiniVideoPlayer />
     </div>
   );

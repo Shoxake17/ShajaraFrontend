@@ -12,9 +12,12 @@ import { useChatStore, chatUnreadTotal } from '@/features/chat/model/chat.store'
 interface BottomNavProps {
   /** Doska fullscreen rejimida bo'lsa — pastga suzuvchi yopiladi (animatsiya bilan) */
   fullscreen: boolean;
+  /** true bo'lsa — animatsiyasiz, DARHOL yashiriladi/ko'rinadi (Xabarlar
+      sahifasida suhbatga kirish/chiqish "sirg'alib" ko'rinmasin deb). */
+  instant?: boolean;
 }
 
-export function BottomNav({ fullscreen }: BottomNavProps) {
+export function BottomNav({ fullscreen, instant }: BottomNavProps) {
   const { t } = useTranslation();
   const NAV = useNavItems();
   const unreadCount = useChatStore((s) => chatUnreadTotal(s.contacts));
@@ -30,7 +33,9 @@ export function BottomNav({ fullscreen }: BottomNavProps) {
     // pastga siljib (translate) yopiladi.
     <nav
       aria-label={t('nav.ariaLabel')}
-      className={`mx-3 flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
+      className={`mx-3 flex shrink-0 overflow-hidden rounded-full border-2 border-brand-200 bg-white shadow-md transition-all ${
+        instant ? 'duration-0' : 'duration-300'
+      } ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
         fullscreen
           ? 'mb-0 max-h-0 translate-y-6 opacity-0'
           : 'mb-[max(0.75rem,env(safe-area-inset-bottom))] max-h-20 translate-y-0 opacity-100'

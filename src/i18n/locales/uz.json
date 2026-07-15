@@ -487,7 +487,10 @@
     "mute": "Ovozni o'chirish/yoqish",
     "miniPlayer": "Kichik oyna",
     "deleteTitle": "Xabarni o'chirish",
-    "deleteConfirm": "Bu xabar butunlay o'chadi — bu amalni qaytarib bo'lmaydi."
+    "deleteConfirm": "Bu xabar butunlay o'chadi — bu amalni qaytarib bo'lmaydi.",
+    "edited": "tahrirlangan",
+    "editingLabel": "Xabarni tahrirlash",
+    "editPlaceholder": "Tahrirlangan xabar..."
   },
   "media": {
     "typeLabels": {

@@ -25,6 +25,7 @@ export interface ChatMessage {
   sizeBytes: number;
   deliveredAt: string | null;
   readAt: string | null;
+  editedAt: string | null;
   createdAt: string;
 }
 
@@ -51,6 +52,9 @@ export const chatApi = {
     http.patch<void>(`/chat/conversations/${otherUserId}/read`).then((r) => r.data),
   /** Xabarni (va biriktirmani) butunlay o'chiradi — DB'dan ham, R2'dan ham; boshqa tomonga ham real-vaqtda bildiriladi */
   deleteMessage: (messageId: string) => http.delete<void>(`/chat/messages/${messageId}`).then((r) => r.data),
+  /** Xabar MATNINI tahrirlash — faqat yuboruvchi */
+  editMessage: (messageId: string, text: string) =>
+    http.patch<ChatMessage>(`/chat/messages/${messageId}`, { text }).then((r) => r.data),
   /** Biriktirma (rasm/video/hujjat) uchun bir martalik R2 yuklash havolasi */
   createUploadUrl: (contentType: string) =>
     http

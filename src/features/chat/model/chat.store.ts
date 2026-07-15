@@ -16,6 +16,7 @@ interface ChatState {
   sendMessage: (otherUserId: string, dto: SendMessagePayload) => Promise<void>;
   markRead: (otherUserId: string) => void;
   deleteMessage: (otherUserId: string, messageId: string) => Promise<void>;
+  editMessage: (otherUserId: string, messageId: string, text: string) => Promise<void>;
   connect: () => void;
   disconnect: () => void;
   reset: () => void;
@@ -108,6 +109,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     void useStorageStore.getState().loadUsage();
   },
 
+  /** Faqat o'zi yuborgan xabar MATNINI tahrirlaydi (server ham qayta tekshiradi) */
+  editMessage: async (otherUserId, messageId, text) => {
+    const updated = await chatApi.editMessage(messageId, text);
+    set((s) => ({
+      messagesByUserId: {
+        ...s.messagesByUserId,
+        [otherUserId]: (s.messagesByUserId[otherUserId] ?? []).map((m) => (m.id === messageId ? updated : m)),
+      },
+    }));
+    void get().loadContacts();
+    void useStorageStore.getState().loadUsage();
+  },
+
   connect: () => {
     connectChatSocket();
     if (listenersWired) return;
@@ -157,6 +171,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
         return { messagesByUserId };
       });
+    });
+
+    socket.on('message:edited', (message: ChatMessage) => {
+      // Yuboruvchi HAR DOIM "boshqa tomon" (server faqat qarshi tarafga yuboradi)
+      const otherUserId = message.senderId;
+      set((s) => ({
+        messagesByUserId: {
+          ...s.messagesByUserId,
+          [otherUserId]: (s.messagesByUserId[otherUserId] ?? []).map((m) => (m.id === message.id ? message : m)),
+        },
+      }));
     });
 
     socket.on('connect', () => set({ connected: true }));

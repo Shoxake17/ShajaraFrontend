@@ -3,6 +3,7 @@
 // doskasidagi ota tomon + ona tomon, hisobini bog'lagan barcha a'zolar),
 // o'ngda tanlangan suhbat. Mobilda — ro'yxat YOKI suhbat (bittasi).
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +15,7 @@ import {
   Gauge,
   Pause,
   Paperclip,
+  Pencil,
   Play,
   PictureInPicture2,
   Search,
@@ -342,22 +344,134 @@ function ContactRow({ contact, active, onClick }: { contact: ChatContact; active
   );
 }
 
-/** Bubble burchagida — o'zi yuborgan xabar uchun kichik o'chirish tugmasi (barcha turdagi xabarlarda, desktop+mobil) */
-function BubbleDeleteButton({ onClick }: { onClick: () => void }) {
+/** Telegram uslubidagi kichik popup menyu — "Tahrirlash" / "O'chirish" */
+function BubbleMenu({
+  x,
+  y,
+  onEdit,
+  onDelete,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      aria-label={t('common.delete')}
-      className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-red-600/80"
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ left: x, top: y });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const left = Math.min(x, window.innerWidth - rect.width - 8);
+    const top = Math.min(y, window.innerHeight - rect.height - 8);
+    setPos({ left: Math.max(8, left), top: Math.max(8, top) });
+  }, [x, y]);
+
+  useEffect(() => {
+    const close = () => onClose();
+    document.addEventListener('click', close);
+    document.addEventListener('contextmenu', close);
+    document.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('click', close);
+      document.removeEventListener('contextmenu', close);
+      document.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      ref={ref}
+      style={{ left: pos.left, top: pos.top }}
+      className="fixed z-[110] min-w-[168px] overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5"
+      onClick={(e) => e.stopPropagation()}
     >
-      <Trash2 size={12} />
-    </button>
+      <button
+        type="button"
+        onClick={() => {
+          onEdit();
+          onClose();
+        }}
+        className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-brand-900 transition-colors hover:bg-brand-50"
+      >
+        <Pencil size={16} />
+        {t('common.edit')}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onDelete();
+          onClose();
+        }}
+        className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+      >
+        <Trash2 size={16} />
+        {t('common.delete')}
+      </button>
+    </div>,
+    document.body,
   );
+}
+
+/**
+ * O'zi yuborgan xabar bubble'i uchun — Telegram uslubida: sichqoncha o'ng
+ * tugmasi (desktop) yoki uzoq bosish (mobil, 500ms) BubbleMenu'ni ochadi.
+ * Uzoq bosishdan keyingi sun'iy "click" (media ochilishi) bostiriladi.
+ */
+function useBubbleContextMenu(mine: boolean) {
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
+
+  const clearTimer = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const onContextMenu = (e: ReactMouseEvent) => {
+    if (!mine) return;
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const onTouchStart = (e: ReactTouchEvent) => {
+    if (!mine) return;
+    longPressFired.current = false;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const x = touch.clientX;
+    const y = touch.clientY;
+    clearTimer();
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      setMenu({ x, y });
+    }, 500);
+  };
+
+  const onTouchEnd = () => clearTimer();
+  const onTouchMove = () => clearTimer();
+
+  const onClickCapture = (e: ReactMouseEvent) => {
+    if (longPressFired.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      longPressFired.current = false;
+    }
+  };
+
+  return {
+    menu,
+    closeMenu: () => setMenu(null),
+    handlers: mine ? { onContextMenu, onTouchStart, onTouchEnd, onTouchMove, onClickCapture } : {},
+  };
 }
 
 /** Faqat media, izohsiz (Telegram uslubi): 2px chegara, vaqt/belgi rasm/video USTIDA (past-o'ng burchakda) */
@@ -365,19 +479,23 @@ function MediaOnlyBubble({
   message,
   mine,
   onOpenMedia,
+  onRequestEdit,
   onRequestDelete,
 }: {
   message: ChatMessage;
   mine: boolean;
   onOpenMedia: () => void;
+  onRequestEdit: () => void;
   onRequestDelete: () => void;
 }) {
+  const { menu, closeMenu, handlers } = useBubbleContextMenu(mine);
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`relative max-w-[75%] overflow-hidden rounded-2xl border-2 ${
           mine ? 'rounded-br-md border-brand-800/25' : 'rounded-bl-md border-neutral-200'
         }`}
+        {...handlers}
       >
         <button type="button" onClick={onOpenMedia} className="relative block">
           {message.attachmentType === 'IMAGE' ? (
@@ -397,7 +515,7 @@ function MediaOnlyBubble({
           {fmtBubbleTime(message.createdAt)}
           {mine && (message.readAt ? <CheckCheck size={12} /> : <Check size={12} />)}
         </span>
-        {mine && <BubbleDeleteButton onClick={onRequestDelete} />}
+        {menu && <BubbleMenu x={menu.x} y={menu.y} onEdit={onRequestEdit} onDelete={onRequestDelete} onClose={closeMenu} />}
       </div>
     </div>
   );
@@ -407,13 +525,17 @@ function MessageBubble({
   message,
   mine,
   onOpenMedia,
+  onRequestEdit,
   onRequestDelete,
 }: {
   message: ChatMessage;
   mine: boolean;
   onOpenMedia: () => void;
+  onRequestEdit: () => void;
   onRequestDelete: () => void;
 }) {
+  const { t } = useTranslation();
+  const { menu, closeMenu, handlers } = useBubbleContextMenu(mine);
   const hasMedia =
     !!message.attachmentUrl && (message.attachmentType === 'IMAGE' || message.attachmentType === 'VIDEO');
   const hasDocument = !!message.attachmentUrl && message.attachmentType === 'DOCUMENT';
@@ -421,7 +543,13 @@ function MessageBubble({
   // Izohsiz rasm/video — Telegram uslubida: 2px chegara, vaqt media USTIDA
   if (hasMedia && !message.text) {
     return (
-      <MediaOnlyBubble message={message} mine={mine} onOpenMedia={onOpenMedia} onRequestDelete={onRequestDelete} />
+      <MediaOnlyBubble
+        message={message}
+        mine={mine}
+        onOpenMedia={onOpenMedia}
+        onRequestEdit={onRequestEdit}
+        onRequestDelete={onRequestDelete}
+      />
     );
   }
 
@@ -435,6 +563,7 @@ function MessageBubble({
             ? `rounded-br-md bg-brand-800 text-white ${hasMedia ? 'border-2 border-brand-800/25' : ''}`
             : `rounded-bl-md bg-[#F3F6F0] text-brand-900 ${hasMedia ? 'border-2 border-neutral-200' : ''}`
         }`}
+        {...handlers}
       >
         {message.attachmentUrl && message.attachmentType === 'IMAGE' && (
           <button type="button" onClick={onOpenMedia} className="block w-full">
@@ -464,27 +593,30 @@ function MessageBubble({
           )}
           {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
           <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-brand-200' : 'text-neutral-400'}`}>
+            {message.editedAt && <span>{t('messages.edited')} ·</span>}
             {fmtBubbleTime(message.createdAt)}
             {mine && (message.readAt ? <CheckCheck size={14} /> : <Check size={14} />)}
           </span>
         </div>
-        {mine && <BubbleDeleteButton onClick={onRequestDelete} />}
+        {menu && <BubbleMenu x={menu.x} y={menu.y} onEdit={onRequestEdit} onDelete={onRequestDelete} onClose={closeMenu} />}
       </div>
     </div>
   );
 }
 
-function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void }) {
+function Thread({ contact }: { contact: ChatContact }) {
   const { t } = useTranslation();
   const messages = useChatStore((s) => s.messagesByUserId[contact.userId] ?? []);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const deleteMessage = useChatStore((s) => s.deleteMessage);
+  const editMessage = useChatStore((s) => s.editMessage);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewingMessage, setViewingMessage] = useState<ChatMessage | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ChatMessage | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -524,8 +656,37 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
     setPendingPreviewUrl(null);
   };
 
+  const startEdit = (m: ChatMessage) => {
+    clearPending();
+    setError(null);
+    setEditingMessage(m);
+    setText(m.text ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingMessage(null);
+    setText('');
+  };
+
   const doSend = async () => {
     const trimmed = text.trim();
+
+    if (editingMessage) {
+      if (!trimmed || sending) return;
+      setSending(true);
+      setError(null);
+      try {
+        await editMessage(contact.userId, editingMessage.id, trimmed);
+        setEditingMessage(null);
+        setText('');
+      } catch (err) {
+        setError(quotaMessage(err) ?? t('messages.sendFailed'));
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
     if (!trimmed && !pendingFile) return;
     if (sending) return;
     setSending(true);
@@ -562,6 +723,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
     setDeleting(true);
     try {
       await deleteMessage(contact.userId, deleteTarget.id);
+      if (editingMessage?.id === deleteTarget.id) cancelEdit();
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
@@ -570,12 +732,10 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Mobilda AppLayout'ning o'zi (yuqori sarlavha) yashirilgani uchun
-          xavfsiz maydon (notch/status bar) shu yerda hisobga olinadi. */}
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] lg:pt-2.5">
-        <button type="button" onClick={onBack} className="rounded-full p-1.5 text-brand-700 hover:bg-brand-50 lg:hidden">
-          <ArrowLeft size={20} />
-        </button>
+      {/* Desktopда (lg+) — o'zining sarlavhasi; mobilda sarlavha AppLayout'ning
+          umumiy header'iga portal qilinadi (MessagesPage), shu bois bu yerda
+          faqat lg+ da ko'rinadi. */}
+      <div className="hidden shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 py-2.5 lg:flex">
         <Avatar name={contact.fullName} gender={contact.gender} photoUrl={contact.photoUrl} size={36} />
         <span className="truncate text-sm font-semibold text-brand-900">{contact.fullName}</span>
       </div>
@@ -590,6 +750,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
               message={m}
               mine={m.senderId !== contact.userId}
               onOpenMedia={() => setViewingMessage(m)}
+              onRequestEdit={() => startEdit(m)}
               onRequestDelete={() => setDeleteTarget(m)}
             />
           ))
@@ -600,6 +761,23 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
       {error && <p className="shrink-0 px-3 py-1 text-xs text-red-500">{error}</p>}
 
       <div className="flex shrink-0 flex-col border-t border-brand-100 bg-white">
+        {editingMessage && (
+          <div className="flex items-center gap-2 px-3 pt-2.5">
+            <Pencil size={14} className="shrink-0 text-brand-500" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-brand-700">{t('messages.editingLabel')}</p>
+              <p className="truncate text-xs text-neutral-500">{editingMessage.text}</p>
+            </div>
+            <button
+              type="button"
+              onClick={cancelEdit}
+              aria-label={t('common.close')}
+              className="shrink-0 rounded-full p-1 text-neutral-400 transition-colors hover:bg-neutral-100"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         {pendingPreviewUrl && pendingFile && (
           <div className="flex items-center gap-2.5 px-3 pt-2.5">
             <div className="relative shrink-0">
@@ -635,7 +813,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={sending || !!pendingFile}
+            disabled={sending || !!pendingFile || !!editingMessage}
             className="shrink-0 rounded-full p-2 text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-40"
             aria-label={t('messages.attach')}
           >
@@ -648,10 +826,14 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 void doSend();
+              } else if (e.key === 'Escape' && editingMessage) {
+                cancelEdit();
               }
             }}
             maxLength={4000}
-            placeholder={pendingFile ? t('messages.captionPlaceholder') : t('messages.sendPlaceholder')}
+            placeholder={
+              editingMessage ? t('messages.editPlaceholder') : pendingFile ? t('messages.captionPlaceholder') : t('messages.sendPlaceholder')
+            }
             className="min-w-0 flex-1 rounded-full border border-transparent bg-brand-50 px-4 py-2.5 text-sm outline-none focus:border-brand-300 focus:bg-white"
           />
           <button
@@ -663,6 +845,8 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
           >
             {sending ? (
               <span className="block h-[18px] w-[18px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : editingMessage ? (
+              <Check size={18} />
             ) : (
               <Send size={18} />
             )}
@@ -699,7 +883,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
 
 export function MessagesPage() {
   const { t } = useTranslation();
-  const { topBarActionsEl, setBoardFullscreen } = useOutletContext<AppLayoutContext>();
+  const { topBarActionsEl, setChatFullscreen } = useOutletContext<AppLayoutContext>();
   const contacts = useChatStore((s) => s.contacts);
   const contactsLoaded = useChatStore((s) => s.contactsLoaded);
   const activeUserId = useChatStore((s) => s.activeUserId);
@@ -713,15 +897,15 @@ export function MessagesPage() {
 
   const activeContact = useMemo(() => contacts.find((c) => c.userId === activeUserId) ?? null, [contacts, activeUserId]);
 
-  // Mobilda suhbat ochilganda AppLayout'ning o'zi (yuqori AJDO sarlavhasi,
-  // Sidebar, BottomNav) yashiriladi — Thread'ning o'z sarlavhasi (orqaga +
-  // ism-familiya) va yozish maydoni butun ekranni egallaydi (Telegram
-  // uslubi). Desktopда (lg+) ikkala panel bir vaqtda ko'rinadi — tegilmaydi.
+  // Mobilda suhbat ochilganda pastki navigatsiya DARHOL (animatsiyasiz)
+  // yashiriladi — Thread'ning yozish maydoni butun ekranni egallaydi
+  // (Telegram uslubi). Desktopда (lg+) ikkala panel bir vaqtda ko'rinadi —
+  // tegilmaydi.
   useEffect(() => {
     const isMobile = window.matchMedia('(max-width: 1023px)').matches;
-    setBoardFullscreen(isMobile && !!activeContact);
-    return () => setBoardFullscreen(false);
-  }, [activeContact, setBoardFullscreen]);
+    setChatFullscreen(isMobile && !!activeContact);
+    return () => setChatFullscreen(false);
+  }, [activeContact, setChatFullscreen]);
 
   const [query, setQuery] = useState('');
   const filteredContacts = useMemo(() => {
@@ -734,9 +918,42 @@ export function MessagesPage() {
     <>
       {topBarActionsEl &&
         createPortal(
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-brand-900">{t('messages.title')}</p>
-          </div>,
+          <>
+            {/* Desktop (lg+) — doim statik sarlavha, Thread o'zining sarlavhasini ko'rsatadi */}
+            <div className="hidden min-w-0 flex-1 items-center lg:flex">
+              <p className="truncate text-sm font-semibold text-brand-900">{t('messages.title')}</p>
+            </div>
+            {/* Mobil (<lg) — ro'yxat ekranida qidiruv, suhbat ekranida orqaga+ism-familiya */}
+            <div className="flex min-w-0 flex-1 items-center lg:hidden">
+              {activeContact ? (
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={closeConversation}
+                    aria-label={t('common.back')}
+                    className="shrink-0 rounded-full p-1.5 text-brand-700 transition-colors hover:bg-brand-50"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <Avatar name={activeContact.fullName} gender={activeContact.gender} photoUrl={activeContact.photoUrl} size={32} />
+                  <span className="truncate text-sm font-semibold text-brand-900">{activeContact.fullName}</span>
+                </div>
+              ) : (
+                <div className="relative w-full">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-400">
+                    <Search size={16} />
+                  </span>
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={t('messages.searchPlaceholder')}
+                    maxLength={64}
+                    className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
+                  />
+                </div>
+              )}
+            </div>
+          </>,
           topBarActionsEl,
         )}
 
@@ -746,7 +963,8 @@ export function MessagesPage() {
             activeContact ? 'hidden' : 'flex'
           }`}
         >
-          <div className="relative shrink-0 p-2 pb-1.5">
+          {/* Desktopда o'z qidiruvi; mobilda qidiruv AppLayout header'iga portal qilinadi (yuqorida) */}
+          <div className="relative hidden shrink-0 p-2 pb-1.5 lg:block">
             <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-brand-400">
               <Search size={16} />
             </span>
@@ -758,7 +976,7 @@ export function MessagesPage() {
               className="w-full rounded-full border border-transparent bg-brand-50 py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-brand-300 focus:bg-white"
             />
           </div>
-          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2 pt-1">
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2 pt-1 lg:pt-1">
             {!contactsLoaded ? (
               <div className="flex justify-center py-8">
                 <span className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
@@ -788,7 +1006,7 @@ export function MessagesPage() {
           }`}
         >
           {activeContact ? (
-            <Thread contact={activeContact} onBack={closeConversation} />
+            <Thread contact={activeContact} />
           ) : (
             <div className="flex flex-1 items-center justify-center">
               <p className="text-sm text-neutral-400">{t('messages.selectContact')}</p>

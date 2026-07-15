@@ -498,7 +498,10 @@
     "mute": "Mute/unmute",
     "miniPlayer": "Mini player",
     "deleteTitle": "Delete message",
-    "deleteConfirm": "This message will be permanently deleted — this action cannot be undone."
+    "deleteConfirm": "This message will be permanently deleted — this action cannot be undone.",
+    "edited": "edited",
+    "editingLabel": "Editing message",
+    "editPlaceholder": "Edited message..."
   },
   "media": {
     "typeLabels": {
