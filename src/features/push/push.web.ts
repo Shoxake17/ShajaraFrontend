@@ -30,13 +30,25 @@ export async function initWebPush(): Promise<void> {
     currentToken = token;
     await pushApi.register(token, 'WEB');
 
-    // Tab OLDINDA (foreground) ochiq bo'lsa — backend allaqachon ONLAYN
-    // foydalanuvchiga push YUBORMAYDI (chat.gateway.ts, real-vaqtli socket
-    // yetarli), shu bois bu deyarli hech qachon chaqirilmaydi. Faqat
-    // kutilmagan holat uchun (masalan ikkinchi tab) jim log qoldiramiz.
-    fcmOnMessage(messaging, () => {
-      // Xabar allaqachon socket orqali chat.store.ts'ga tushadi — qo'shimcha
-      // amal shart emas.
+    // MUHIM: Firebase "foreground"ni sahifa KO'RINISHIGA (visibility) qarab
+    // emas, sahifa JS konteksti tirikligiga qarab belgilaydi — tab
+    // yashirin/minimized bo'lsa ham (yopilmagan ekan), xabar service
+    // worker'ga EMAS, shu yerga (onMessage) keladi. Shu bois: sahifa
+    // haqiqatan YASHIRIN bo'lsa, bildirishnomani O'ZIMIZ ko'rsatamiz;
+    // haqiqatan ko'rinib turgan bo'lsa — xabar allaqachon socket orqali
+    // chat.store.ts'ga tushgan, qo'shimcha amal shart emas.
+    fcmOnMessage(messaging, (payload) => {
+      if (!document.hidden) return;
+      const title = payload.notification?.title ?? 'AJDO';
+      const body = payload.notification?.body ?? '';
+      const data = payload.data ?? {};
+      void registration.showNotification(title, {
+        body,
+        icon: '/shajaratree.png',
+        badge: '/shajaratree.png',
+        tag: data.otherUserId ? `chat-${data.otherUserId}` : undefined,
+        data,
+      });
     });
   } catch {
     // jim — push ixtiyoriy funksiya, muvaffaqiyatsiz bo'lsa ilovaning

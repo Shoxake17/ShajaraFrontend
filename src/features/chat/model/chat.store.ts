@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { chatApi, type ChatContact, type ChatMessage, type SendMessagePayload } from '../api/chat.api';
 import { getChatSocket, connectChatSocket, disconnectChatSocket } from '../lib/socket';
+import { wirePresenceReporting } from '../lib/presence';
 import { useStorageStore } from '@/features/storage/storage.store';
 
 interface ChatState {
@@ -127,6 +128,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (listenersWired) return;
     listenersWired = true;
     const socket = getChatSocket();
+    wirePresenceReporting(socket);
 
     socket.on('message:new', (message: ChatMessage) => {
       // Server faqat QABUL QILUVCHIning xonasiga yuboradi — shu bois bu
