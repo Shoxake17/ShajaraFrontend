@@ -15,6 +15,8 @@ export interface AuthUser {
   searchVisibility: ProfileVisibility;
   /** Sozlamalar → Maxfiylik → "Ma'lumotlar ko'rinishi" — men yuklagan rasm/video/hujjatlarni kimlar ko'rishi */
   dataVisibility: ProfileVisibility;
+  /** Sozlamalar → Maxfiylik → "Kimlar sizga xabar yuborishi mumkin" */
+  messageVisibility: ProfileVisibility;
 }
 
 export interface RegisterDto {

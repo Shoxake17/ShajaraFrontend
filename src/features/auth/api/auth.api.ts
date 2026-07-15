@@ -67,6 +67,9 @@ export const authApi = {
   /** Sozlamalar → Maxfiylik → "Ma'lumotlar ko'rinishi" */
   updateDataVisibility: (visibility: ProfileVisibility) =>
     http.patch<AuthUser>('/auth/me/data-visibility', { visibility }).then((r) => r.data),
+  /** Sozlamalar → Maxfiylik → "Kimlar sizga xabar yuborishi mumkin" */
+  updateMessageVisibility: (visibility: ProfileVisibility) =>
+    http.patch<AuthUser>('/auth/me/message-visibility', { visibility }).then((r) => r.data),
   logout: () => http.post<void>('/auth/logout').then((r) => r.data),
   /** Parolni o'zgartirish — 1-bosqich: parol HALI o'zgarmaydi, emailga kod yuboriladi */
   changePassword: (dto: ChangePasswordDto) =>

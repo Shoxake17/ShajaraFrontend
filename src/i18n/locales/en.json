@@ -120,6 +120,8 @@
     "treeShort": "Board",
     "family": "My family",
     "familyShort": "Family",
+    "messages": "Messages",
+    "messagesShort": "Messages",
     "media": "Media gallery",
     "mediaShort": "Media",
     "ai": "Shajara AI",
@@ -476,6 +478,16 @@
       "title": "My family",
       "subtitle": "Close family — {{count}} members"
     }
+  },
+  "messages": {
+    "title": "Messages",
+    "emptyContacts": "No relatives you can message yet",
+    "selectContact": "Select a relative on the left to start chatting",
+    "emptyThread": "No messages yet — say hello",
+    "sendPlaceholder": "Type a message...",
+    "send": "Send",
+    "attach": "Attach photo/video/document",
+    "sendFailed": "Message failed to send. Try again"
   },
   "media": {
     "typeLabels": {

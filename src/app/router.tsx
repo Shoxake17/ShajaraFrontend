@@ -31,6 +31,9 @@ const FamilyMembersPage = lazy(() =>
 const MediaGalleryPage = lazy(() =>
   import('@/features/media/pages/MediaGalleryPage').then((m) => ({ default: m.MediaGalleryPage })),
 );
+const MessagesPage = lazy(() =>
+  import('@/features/chat/pages/MessagesPage').then((m) => ({ default: m.MessagesPage })),
+);
 const ShajaraAiPage = lazy(() =>
   import('@/features/ai/pages/ShajaraAiPage').then((m) => ({ default: m.ShajaraAiPage })),
 );
@@ -67,6 +70,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/doska', element: withSuspense(<TreeBoardPage />) },
           { path: '/oila', element: withSuspense(<FamilyMembersPage />) },
+          { path: '/xabarlar', element: withSuspense(<MessagesPage />) },
           { path: '/media', element: withSuspense(<MediaGalleryPage />) },
           { path: '/ai', element: withSuspense(<ShajaraAiPage />) },
           { path: '/sozlamalar', element: withSuspense(<SettingsPage />) },

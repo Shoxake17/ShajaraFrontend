@@ -27,6 +27,12 @@ export const GalleryIcon = (p: IconProps) => (
     <path d="m4.5 17 4.5-4 3 2.5 3.5-3 4 4.5" />
   </svg>
 );
+export const MessagesIcon = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
+    <path d="M4 5.5h16a1 1 0 0 1 1 1V16a1 1 0 0 1-1 1H9l-4.5 4V17H4a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1Z" />
+    <path d="M7.5 9.5h9M7.5 13h6" />
+  </svg>
+);
 export const AiIcon = (p: IconProps) => (
   <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
     <path d="M12 3.5 13.6 8l4.5 1.6-4.5 1.6L12 15.7l-1.6-4.5L5.9 9.6 10.4 8 12 3.5Z" />
@@ -67,6 +73,7 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   { to: '/doska', labelKey: 'nav.tree', shortLabelKey: 'nav.treeShort', img: '/registertree.png', end: true },
   { to: '/oila', labelKey: 'nav.family', shortLabelKey: 'nav.familyShort', Icon: UsersIcon, end: false },
+  { to: '/xabarlar', labelKey: 'nav.messages', shortLabelKey: 'nav.messagesShort', Icon: MessagesIcon, end: false },
   { to: '/media', labelKey: 'nav.media', shortLabelKey: 'nav.mediaShort', Icon: GalleryIcon, end: false },
   { to: '/ai', labelKey: 'nav.ai', shortLabelKey: 'nav.aiShort', Icon: AiIcon, end: false },
   { to: '/sozlamalar', labelKey: 'nav.settings', shortLabelKey: 'nav.settingsShort', Icon: SettingsIcon, end: false },

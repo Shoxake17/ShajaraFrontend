@@ -16,6 +16,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+        // Xabarlar (Socket.IO, "/api/socket.io/") — WS upgrade so'rovlari ham
+        // shu proxy orqali o'tishi uchun.
+        ws: true,
       },
     },
   },

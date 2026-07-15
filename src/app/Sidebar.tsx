@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
+import { useChatStore, chatUnreadTotal } from '@/features/chat/model/chat.store';
 import { PricingModal } from '@/features/billing/components/PricingModal';
 import { useNavItems, LogoutIcon } from './nav-items';
 
@@ -26,6 +27,7 @@ export function Sidebar({ fullscreen }: SidebarProps) {
   const usedBytes = useStorageStore((s) => s.usedBytes);
   const limitBytes = useStorageStore((s) => s.limitBytes);
   const loadUsage = useStorageStore((s) => s.loadUsage);
+  const unreadCount = useChatStore((s) => chatUnreadTotal(s.contacts));
   const [loggingOut, setLoggingOut] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
 
@@ -48,6 +50,8 @@ export function Sidebar({ fullscreen }: SidebarProps) {
       await authApi.logout().catch(() => undefined);
       useTreeStore.getState().reset();
       useStorageStore.getState().reset();
+      useChatStore.getState().disconnect();
+      useChatStore.getState().reset();
       clearSession();
       navigate('/login');
     } finally {
@@ -79,11 +83,18 @@ export function Sidebar({ fullscreen }: SidebarProps) {
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {NAV.map(({ to, label, Icon, img, end }) => (
           <NavLink key={to} to={to} end={end} className={linkClass} title={label}>
-            {img ? (
-              <img src={img} alt="" className="-ml-1.5 h-8 w-8 shrink-0 object-contain" />
-            ) : Icon ? (
-              <Icon className="shrink-0" />
-            ) : null}
+            <span className="relative shrink-0">
+              {img ? (
+                <img src={img} alt="" className="-ml-1.5 h-8 w-8 object-contain" />
+              ) : Icon ? (
+                <Icon />
+              ) : null}
+              {to === '/xabarlar' && unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </span>
             <span className={`hidden lg:block ${img ? '-ml-2' : ''}`}>{label}</span>
           </NavLink>
         ))}

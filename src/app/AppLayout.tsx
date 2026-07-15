@@ -1,9 +1,10 @@
 // app/AppLayout.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { useSessionLiveness } from '@/features/auth/hooks/useSessionLiveness';
+import { useChatStore } from '@/features/chat/model/chat.store';
 
 /**
  * Har sahifa (Outlet) shu orqali o'zining yuqori panel amallarini (qidiruv,
@@ -30,6 +31,18 @@ export function AppLayout() {
   useSessionLiveness();
   const [topBarActionsEl, setTopBarActionsEl] = useState<HTMLDivElement | null>(null);
   const [boardFullscreen, setBoardFullscreen] = useState(false);
+
+  // Xabarlar — ilova ichida bo'lganda (qaysi sahifada bo'lishidan qat'i
+  // nazar) doim ulangan, shunda Sidebar/BottomNav'dagi o'qilmagan xabar
+  // belgisi va real-vaqtli yetkazish har doim ishlaydi.
+  const connectChat = useChatStore((s) => s.connect);
+  const disconnectChat = useChatStore((s) => s.disconnect);
+  const loadChatContacts = useChatStore((s) => s.loadContacts);
+  useEffect(() => {
+    connectChat();
+    void loadChatContacts();
+    return () => disconnectChat();
+  }, [connectChat, disconnectChat, loadChatContacts]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-brand-50">

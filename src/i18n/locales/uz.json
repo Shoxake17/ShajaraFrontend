@@ -120,6 +120,8 @@
     "treeShort": "Doska",
     "family": "Oila a'zolarim",
     "familyShort": "Oila",
+    "messages": "Xabarlar",
+    "messagesShort": "Xabarlar",
     "media": "Media galereya",
     "mediaShort": "Media",
     "ai": "Shajara AI",
@@ -465,6 +467,16 @@
       "title": "Oila a‘zolarim",
       "subtitle": "Yaqin oila — {{count}} ta a‘zo"
     }
+  },
+  "messages": {
+    "title": "Xabarlar",
+    "emptyContacts": "Hozircha xabar yubora oladigan qarindoshingiz yo'q",
+    "selectContact": "Yozishmani boshlash uchun chapdan qarindoshingizni tanlang",
+    "emptyThread": "Hali xabar yo'q — birinchi bo'lib yozing",
+    "sendPlaceholder": "Xabar yozing...",
+    "send": "Yuborish",
+    "attach": "Rasm/video/hujjat biriktirish",
+    "sendFailed": "Xabar yuborilmadi. Qaytadan urinib ko'ring"
   },
   "media": {
     "typeLabels": {
