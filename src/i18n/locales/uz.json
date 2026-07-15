@@ -480,8 +480,12 @@
     "searchPlaceholder": "Ism, familiya bo'yicha qidirish...",
     "noSearchResults": "Hech kim topilmadi",
     "captionPlaceholder": "Izoh yozing...",
-    "moreOptions": "Ko'proq amallar",
-    "download": "Yuklab olish"
+    "download": "Yuklab olish",
+    "playbackSpeed": "Video tezligi",
+    "play": "Ijro etish",
+    "pause": "Pauza",
+    "mute": "Ovozni o'chirish/yoqish",
+    "miniPlayer": "Kichik oyna"
   },
   "media": {
     "typeLabels": {

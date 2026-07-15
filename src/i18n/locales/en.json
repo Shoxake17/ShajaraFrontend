@@ -491,8 +491,12 @@
     "searchPlaceholder": "Search by name...",
     "noSearchResults": "No one found",
     "captionPlaceholder": "Add a caption...",
-    "moreOptions": "More options",
-    "download": "Download"
+    "download": "Download",
+    "playbackSpeed": "Playback speed",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute/unmute",
+    "miniPlayer": "Mini player"
   },
   "media": {
     "typeLabels": {

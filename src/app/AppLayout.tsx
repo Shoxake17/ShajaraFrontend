@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { useSessionLiveness } from '@/features/auth/hooks/useSessionLiveness';
 import { useChatStore } from '@/features/chat/model/chat.store';
+import { MiniVideoPlayer } from '@/features/chat/components/MiniVideoPlayer';
 
 /**
  * Har sahifa (Outlet) shu orqali o'zining yuqori panel amallarini (qidiruv,
@@ -73,6 +74,7 @@ export function AppLayout() {
         </main>
       </div>
       <BottomNav fullscreen={boardFullscreen} />
+      <MiniVideoPlayer />
     </div>
   );
 }

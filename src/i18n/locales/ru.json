@@ -499,8 +499,12 @@
     "searchPlaceholder": "Поиск по имени, фамилии...",
     "noSearchResults": "Никого не найдено",
     "captionPlaceholder": "Добавьте подпись...",
-    "moreOptions": "Ещё действия",
-    "download": "Скачать"
+    "download": "Скачать",
+    "playbackSpeed": "Скорость видео",
+    "play": "Воспроизвести",
+    "pause": "Пауза",
+    "mute": "Вкл/выкл звук",
+    "miniPlayer": "Маленькое окно"
   },
   "media": {
     "typeLabels": {

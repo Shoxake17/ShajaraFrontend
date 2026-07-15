@@ -6,9 +6,26 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Check, CheckCheck, Download, Gauge, Paperclip, Search, Send, Trash2, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  Download,
+  Gauge,
+  Pause,
+  Paperclip,
+  Play,
+  PictureInPicture2,
+  Search,
+  Send,
+  Trash2,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
+import { usePipStore } from '@/features/chat/model/pip.store';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
 import { quotaMessage } from '@/features/storage/storage.store';
 import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
@@ -49,12 +66,26 @@ function fmtBubbleTime(iso: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-/** Video tezligi — volum polosa uslubida (bosib ochiladigan ro'yxat EMAS,
-    to'g'ridan-to'g'ri o'ngga/chapga surib o'zgartiriladi). */
-function SpeedSlider({ speed, onChange }: { speed: number; onChange: (v: number) => void }) {
+/** To'liq ekran ko'rinishi sarlavhasi uchun — sana + vaqt */
+function fmtFullTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}, ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function fmtDuration(sec: number): string {
+  if (!Number.isFinite(sec) || sec < 0) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/** Video tezligi — bosib ko'rsatiladigan volum-uslubidagi polosa (ro'yxat EMAS) */
+function SpeedPopover({ speed, onChange }: { speed: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex items-center gap-2 rounded-full bg-black/50 py-2 pl-3 pr-3.5">
-      <Gauge size={15} className="shrink-0 text-white/80" />
+    <div className="absolute right-0 top-full mt-1.5 flex items-center gap-2 rounded-full bg-neutral-900 py-2 pl-3 pr-3.5 shadow-lg">
+      <Gauge size={14} className="shrink-0 text-white/70" />
       <input
         type="range"
         min={0.5}
@@ -69,24 +100,36 @@ function SpeedSlider({ speed, onChange }: { speed: number; onChange: (v: number)
   );
 }
 
-/** Rasm/video ustiga bosilganda TO'LIQ EKRANDA ochiladigan ko'rinish.
-    Yuqori o'ng burchakda ALOHIDA-ALOHIDA tugmalar (menyu YO'Q): o'chirish
-    (faqat o'zi yuborgan bo'lsa), video tezligi (volum-uslubida surish),
-    yuklab olish, yopish. */
+/**
+ * Rasm/video ustiga bosilganda TO'LIQ EKRANDA ochiladigan ko'rinish —
+ * Telegram uslubida. Video uchun brauzerning NATIV boshqaruvi (controls,
+ * o'zining fullscreen/PiP/"..." menyusi) UMUMAN ishlatilmaydi — hammasi
+ * o'zimiz chizgan tugmalar: yuqorida orqaga/ism-familiya/vaqt (chapda) va
+ * tezlik/yuklab olish/o'chirish (o'ngda); pastda play-pauza/ovoz/vaqt va
+ * ilova ICHIDAGI kichik oyna (PiP).
+ */
 function MediaLightbox({
   message,
   mine,
+  contactName,
   onClose,
   onDelete,
 }: {
   message: ChatMessage;
   mine: boolean;
+  contactName: string;
   onClose: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslation();
+  const openPip = usePipStore((s) => s.open);
   const [speed, setSpeed] = useState(1);
+  const [speedOpen, setSpeedOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = message.attachmentType === 'VIDEO';
 
@@ -116,59 +159,157 @@ function MediaLightbox({
     }
   };
 
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) void v.play();
+    else v.pause();
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+
+  const seek = (ratio: number) => {
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    v.currentTime = ratio * v.duration;
+  };
+
+  const openMiniPlayer = () => {
+    if (!message.attachmentUrl) return;
+    openPip(message.attachmentUrl, videoRef.current?.currentTime ?? 0);
+    onClose();
+  };
+
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
-      <div className="absolute right-3 top-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        {mine && (
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black" onClick={onClose}>
+      {/* Yuqori panel — Telegram uslubida: chapda ORQAGA + ism-familiya/vaqt, o'ngda amallar */}
+      <div
+        className="absolute inset-x-0 top-0 z-10 flex items-start justify-between bg-gradient-to-b from-black/70 to-transparent p-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => void handleDelete()}
-            disabled={deleting}
-            aria-label={t('common.delete')}
-            className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-red-600/80 disabled:opacity-50"
+            onClick={onClose}
+            aria-label={t('common.back')}
+            className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
           >
-            {deleting ? (
-              <span className="block h-[19px] w-[19px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            ) : (
-              <Trash2 size={19} />
-            )}
+            <ArrowLeft size={22} />
           </button>
-        )}
-        {isVideo && <SpeedSlider speed={speed} onChange={setSpeed} />}
-        <button
-          type="button"
-          onClick={download}
-          aria-label={t('messages.download')}
-          className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
-        >
-          <Download size={19} />
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('common.close')}
-          className="rounded-full bg-black/50 p-2.5 text-white transition-colors hover:bg-black/70"
-        >
-          <X size={19} />
-        </button>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-white">{contactName}</p>
+            <p className="truncate text-xs text-white/70">{fmtFullTime(message.createdAt)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {isVideo && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setSpeedOpen((o) => !o)}
+                aria-label={t('messages.playbackSpeed')}
+                className="rounded-full p-2.5 text-white transition-colors hover:bg-white/10"
+              >
+                <Gauge size={19} />
+              </button>
+              {speedOpen && <SpeedPopover speed={speed} onChange={setSpeed} />}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={download}
+            aria-label={t('messages.download')}
+            className="rounded-full p-2.5 text-white transition-colors hover:bg-white/10"
+          >
+            <Download size={19} />
+          </button>
+          {mine && (
+            <button
+              type="button"
+              onClick={() => void handleDelete()}
+              disabled={deleting}
+              aria-label={t('common.delete')}
+              className="rounded-full p-2.5 text-white transition-colors hover:bg-red-600/50 disabled:opacity-50"
+            >
+              {deleting ? (
+                <span className="block h-[19px] w-[19px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <Trash2 size={19} />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
-      {isVideo ? (
-        <video
-          ref={videoRef}
-          src={message.attachmentUrl ?? undefined}
-          controls
-          autoPlay
-          className="max-h-[88vh] max-w-[92vw] rounded-lg"
+      {/* Media — to'liq ekranni egallaydi */}
+      <div className="flex flex-1 items-center justify-center overflow-hidden">
+        {isVideo ? (
+          <video
+            ref={videoRef}
+            src={message.attachmentUrl ?? undefined}
+            autoPlay
+            playsInline
+            className="max-h-full max-w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+          />
+        ) : (
+          <img
+            src={message.attachmentUrl ?? undefined}
+            alt=""
+            className="max-h-full max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
+      </div>
+
+      {/* Pastki panel — video uchun: play/pauza, ovoz, vaqt, ilova ichidagi kichik oyna (PiP) */}
+      {isVideo && (
+        <div
+          className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-10"
           onClick={(e) => e.stopPropagation()}
-        />
-      ) : (
-        <img
-          src={message.attachmentUrl ?? undefined}
-          alt=""
-          className="max-h-[88vh] max-w-[92vw] rounded-lg object-contain"
-          onClick={(e) => e.stopPropagation()}
-        />
+        >
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.001}
+            value={duration ? currentTime / duration : 0}
+            onChange={(e) => seek(Number(e.target.value))}
+            className="h-1 w-full cursor-pointer accent-white"
+          />
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={togglePlay} aria-label={playing ? t('messages.pause') : t('messages.play')} className="text-white">
+              {playing ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" />}
+            </button>
+            <button type="button" onClick={toggleMute} aria-label={t('messages.mute')} className="text-white">
+              {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+            <span className="text-xs tabular-nums text-white/80">
+              {fmtDuration(currentTime)} / {fmtDuration(duration)}
+            </span>
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={openMiniPlayer}
+              aria-label={t('messages.miniPlayer')}
+              className="text-white"
+            >
+              <PictureInPicture2 size={20} />
+            </button>
+          </div>
+        </div>
       )}
     </div>,
     document.body,
@@ -211,7 +352,47 @@ function ContactRow({ contact, active, onClick }: { contact: ChatContact; active
   );
 }
 
+/** Faqat media, izohsiz (Telegram uslubi): yupqa (1px) chegara, vaqt/belgi rasm/video USTIDA (past-chap burchakda) */
+function MediaOnlyBubble({ message, mine, onOpenMedia }: { message: ChatMessage; mine: boolean; onOpenMedia: () => void }) {
+  return (
+    <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`relative max-w-[75%] overflow-hidden rounded-2xl border ${
+          mine ? 'rounded-br-md border-brand-800/25' : 'rounded-bl-md border-neutral-200'
+        }`}
+      >
+        <button type="button" onClick={onOpenMedia} className="relative block">
+          {message.attachmentType === 'IMAGE' ? (
+            <img src={message.attachmentUrl ?? undefined} alt="" className="max-h-64 w-full object-cover" />
+          ) : (
+            <>
+              <video src={message.attachmentUrl ?? undefined} className="max-h-64 w-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90">
+                  <span className="ml-0.5 border-y-8 border-l-[14px] border-y-transparent border-l-brand-900" />
+                </span>
+              </span>
+            </>
+          )}
+        </button>
+        <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white">
+          {fmtBubbleTime(message.createdAt)}
+          {mine && (message.readAt ? <CheckCheck size={12} /> : <Check size={12} />)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({ message, mine, onOpenMedia }: { message: ChatMessage; mine: boolean; onOpenMedia: () => void }) {
+  const hasMedia =
+    !!message.attachmentUrl && (message.attachmentType === 'IMAGE' || message.attachmentType === 'VIDEO');
+
+  // Izohsiz rasm/video — Telegram uslubida: yupqa chegara, vaqt media USTIDA
+  if (hasMedia && !message.text) {
+    return <MediaOnlyBubble message={message} mine={mine} onOpenMedia={onOpenMedia} />;
+  }
+
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -438,6 +619,7 @@ function Thread({ contact, onBack }: { contact: ChatContact; onBack: () => void 
         <MediaLightbox
           message={viewingMessage}
           mine={viewingMessage.senderId !== contact.userId}
+          contactName={contact.fullName}
           onClose={() => setViewingMessage(null)}
           onDelete={async () => {
             await deleteMessage(contact.userId, viewingMessage.id);
