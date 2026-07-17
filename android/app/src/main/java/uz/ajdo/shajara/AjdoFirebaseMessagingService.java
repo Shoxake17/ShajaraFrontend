@@ -1,5 +1,6 @@
 package uz.ajdo.shajara;
 
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -26,6 +27,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -156,14 +158,29 @@ public class AjdoFirebaseMessagingService extends MessagingService {
         String callerName = data.get("callerName");
         String callType = data.get("callType");
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        ensureCallChannel(notificationManager);
-
         Intent fullScreenIntent = new Intent(context, IncomingCallActivity.class);
         fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALL_ID, callId);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_NAME, callerName);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALL_TYPE, callType);
+
+        // Android full-screen-intent bildirishnomani FAQAT ekran o'chiq/
+        // qulflangan yoki ilova FONDA bo'lganda avtomatik ochadi — agar AJDO
+        // ALLAQACHON OLDINDA (foreground) bo'lsa, tizim buni shov-shuvsiz
+        // heads-up bildirishnoma sifatida ko'rsatadi, ekranni avtomatik
+        // OCHMAYDI (chunki "o'z ilovangdan o'zingni chalg'itish" shart emas
+        // deb hisoblanadi). Ammo bizga bu holatda ham qo'ng'iroq ekrani
+        // DARHOL ko'rinishi kerak — shu bois ilova oldinda bo'lsa, Activity'ni
+        // TO'G'RIDAN-TO'G'RI ochamiz (bunga ruxsat bor, chunki ilovaning
+        // o'zi hozir foreground'da — Android'ning fondan Activity ochishni
+        // taqiqlash siyosati bunga taalluqli emas).
+        if (isAppInForeground(context)) {
+            context.startActivity(fullScreenIntent);
+            return;
+        }
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        ensureCallChannel(notificationManager);
 
         int requestCode = callId.hashCode();
         PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
@@ -185,6 +202,21 @@ public class AjdoFirebaseMessagingService extends MessagingService {
             .setOngoing(true);
 
         notificationManager.notify(requestCode, builder.build());
+    }
+
+    private boolean isAppInForeground(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager == null) return false;
+        List<ActivityManager.RunningAppProcessInfo> processes = activityManager.getRunningAppProcesses();
+        if (processes == null) return false;
+        String packageName = context.getPackageName();
+        for (ActivityManager.RunningAppProcessInfo process : processes) {
+            boolean isForeground = process.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+            if (isForeground && packageName.equals(process.processName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void ensureCallChannel(NotificationManager notificationManager) {

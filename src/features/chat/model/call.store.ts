@@ -12,6 +12,7 @@
 // shart emas, faqat `room` instansiyasining o'zi beriladi.
 import { create } from 'zustand';
 import { Room } from 'livekit-client';
+import { Capacitor } from '@capacitor/core';
 import { getChatSocket } from '../lib/socket';
 import { callsApi, type CallType } from '../api/calls.api';
 import type { ChatContact } from '../api/chat.api';
@@ -72,6 +73,19 @@ export const useCallStore = create<CallState>((set, get) => ({
   error: null,
 
   wireListeners: () => {
+    // Android native'da qo'ng'iroqning TO'LIQ mustaqil o'z oqimi bor
+    // (FCM push -> IncomingCallActivity/CallActivity, calls/native-call.ts) —
+    // shu WebView'ning bu yerdagi JS/livekit-client bilan PARALLEL ravishda
+    // xuddi shu 'call:invite' socket hodisasiga ham reaksiya qilishi ikkita
+    // mustaqil qo'ng'iroq oqimini bir vaqtda ishga tushirar edi: foydalanuvchi
+    // native ekran o'rniga (yoki u bilan bir qatorda) shu WebView tagidagi
+    // JS CallOverlay/IncomingCallBanner bilan ham "band" qilinishi mumkin edi
+    // — natijada ikki tomon ikki XIL klient (native LiveKit SDK vs
+    // brauzer WebRTC) bilan ulanib, holat (connecting/ulandi) mos kelmasligi
+    // va WebView audio orqali o'z-o'zini eshitish kabi muammolarga sabab
+    // bo'lgan. Shu bois native platformada bu tinglovchilar UMUMAN
+    // ULANMAYDI — qo'ng'iroq FAQAT native oqim orqali boshqariladi.
+    if (Capacitor.isNativePlatform()) return;
     if (listenersWired) return;
     listenersWired = true;
     const socket = getChatSocket();
