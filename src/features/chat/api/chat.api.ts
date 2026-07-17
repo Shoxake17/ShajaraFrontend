@@ -32,6 +32,21 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+/** Chatdagi "qo'ng'iroqlar tarixi" yozuvi — Telegram uslubidagi tizim
+ * yozuvi sifatida render qilinadi (MessagesPage.tsx `messages`ga
+ * birlashtiriladi). Backend: calls.service.ts'ning `call.history`
+ * hodisasi/chat.service.ts'ning `listCallHistory()`. */
+export interface CallHistoryItem {
+  callId: string;
+  callerId: string;
+  calleeId: string;
+  callType: 'AUDIO' | 'VIDEO';
+  status: 'RINGING' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'ENDED';
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+}
+
 export interface SendMessagePayload {
   text?: string;
   attachmentUrl?: string;
@@ -44,7 +59,7 @@ export const chatApi = {
   listContacts: () => http.get<ChatContact[]>('/chat/contacts').then((r) => r.data),
   listMessages: (otherUserId: string, before?: string) =>
     http
-      .get<ChatMessage[]>(`/chat/conversations/${otherUserId}/messages`, {
+      .get<{ messages: ChatMessage[]; calls: CallHistoryItem[] }>(`/chat/conversations/${otherUserId}/messages`, {
         params: before ? { before } : undefined,
       })
       .then((r) => r.data),

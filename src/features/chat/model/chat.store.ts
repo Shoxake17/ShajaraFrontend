@@ -1,14 +1,19 @@
 // features/chat/model/chat.store.ts
 import { create } from 'zustand';
-import { chatApi, type ChatContact, type ChatMessage, type SendMessagePayload } from '../api/chat.api';
+import { chatApi, type CallHistoryItem, type ChatContact, type ChatMessage, type SendMessagePayload } from '../api/chat.api';
 import { getChatSocket, connectChatSocket, disconnectChatSocket } from '../lib/socket';
 import { useStorageStore } from '@/features/storage/storage.store';
+import { useAuthStore } from '@/features/auth/model/auth.store';
 
 interface ChatState {
   contacts: ChatContact[];
   contactsLoaded: boolean;
   activeUserId: string | null;
   messagesByUserId: Record<string, ChatMessage[]>;
+  /** Chatdagi "qo'ng'iroqlar tarixi" tizim-yozuvlari — messagesByUserId
+   * bilan BIR XIL kalit (otherUserId), MessagesPage.tsx ikkalasini
+   * createdAt bo'yicha birlashtirib render qiladi. */
+  callsByUserId: Record<string, CallHistoryItem[]>;
   connected: boolean;
   loadContacts: () => Promise<void>;
   openConversation: (otherUserId: string) => Promise<void>;
@@ -32,6 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   contactsLoaded: false,
   activeUserId: null,
   messagesByUserId: {},
+  callsByUserId: {},
   connected: false,
 
   loadContacts: async () => {
@@ -46,8 +52,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   openConversation: async (otherUserId) => {
     set({ activeUserId: otherUserId });
     try {
-      const messages = await chatApi.listMessages(otherUserId);
-      set((s) => ({ messagesByUserId: { ...s.messagesByUserId, [otherUserId]: messages } }));
+      const { messages, calls } = await chatApi.listMessages(otherUserId);
+      set((s) => ({
+        messagesByUserId: { ...s.messagesByUserId, [otherUserId]: messages },
+        callsByUserId: { ...s.callsByUserId, [otherUserId]: calls },
+      }));
       get().markRead(otherUserId);
     } catch {
       // jim
@@ -184,6 +193,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }));
     });
 
+    // Qo'ng'iroq yakunlanganda (ikkala tomonga ham yuboriladi, backend:
+    // chat.gateway.ts'ning onCallHistory) — suhbat ochiq bo'lsa darhol
+    // ko'rinishi uchun, o'zimiz qaysi tomon (caller/callee) ekanligimizga
+    // qarab "boshqa tomon" ID'sini aniqlab, o'sha suhbat ro'yxatiga
+    // qo'shamiz.
+    socket.on('call:history', (item: CallHistoryItem) => {
+      const myId = useAuthStore.getState().user?.id;
+      const otherUserId = myId === item.callerId ? item.calleeId : item.callerId;
+      set((s) => ({
+        callsByUserId: {
+          ...s.callsByUserId,
+          [otherUserId]: [item, ...(s.callsByUserId[otherUserId] ?? []).filter((c) => c.callId !== item.callId)],
+        },
+      }));
+    });
+
     socket.on('connect', () => set({ connected: true }));
     socket.on('disconnect', () => set({ connected: false }));
   },
@@ -194,7 +219,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   reset: () =>
-    set({ contacts: [], contactsLoaded: false, activeUserId: null, messagesByUserId: {}, connected: false }),
+    set({
+      contacts: [],
+      contactsLoaded: false,
+      activeUserId: null,
+      messagesByUserId: {},
+      callsByUserId: {},
+      connected: false,
+    }),
 }));
 
 export function chatUnreadTotal(contacts: ChatContact[]): number {

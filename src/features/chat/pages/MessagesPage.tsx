@@ -32,9 +32,11 @@ import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { usePipStore } from '@/features/chat/model/pip.store';
 import { useCallStore } from '@/features/chat/model/call.store';
+import { useAuthStore } from '@/features/auth/model/auth.store';
 import { ContactAvatar } from '@/features/chat/components/ContactAvatar';
+import { CallHistoryEntry } from '@/features/chat/components/CallHistoryEntry';
 import { startNativeCall } from '@/features/chat/lib/native-call';
-import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
+import { uploadChatAttachment, type CallHistoryItem, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
 import { quotaMessage } from '@/features/storage/storage.store';
 import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
@@ -708,6 +710,18 @@ function UploadingBubble({ previewUrl, isVideo, progress }: { previewUrl: string
 function Thread({ contact }: { contact: ChatContact }) {
   const { t } = useTranslation();
   const messages = useChatStore((s) => s.messagesByUserId[contact.userId] ?? []);
+  const calls = useChatStore((s) => s.callsByUserId[contact.userId] ?? []);
+  const myUserId = useAuthStore((s) => s.user?.id);
+  // Xabarlar va qo'ng'iroqlar tarixini BIR XIL xronologik oqimga
+  // birlashtirish (Telegram uslubi) — har biri o'z turi bilan belgilanadi.
+  const timeline = useMemo(() => {
+    const items: Array<{ createdAt: string; entry: { kind: 'message'; message: ChatMessage } | { kind: 'call'; call: CallHistoryItem } }> = [
+      ...messages.map((message) => ({ createdAt: message.createdAt, entry: { kind: 'message' as const, message } })),
+      ...calls.map((call) => ({ createdAt: call.createdAt, entry: { kind: 'call' as const, call } })),
+    ];
+    items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return items;
+  }, [messages, calls]);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const deleteMessage = useChatStore((s) => s.deleteMessage);
   const editMessage = useChatStore((s) => s.editMessage);
@@ -896,19 +910,23 @@ function Thread({ contact }: { contact: ChatContact }) {
       </div>
 
       <div className="no-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto bg-brand-50/50 px-3 py-3">
-        {messages.length === 0 ? (
+        {timeline.length === 0 ? (
           <p className="mt-6 text-center text-sm text-neutral-400">{t('messages.emptyThread')}</p>
         ) : (
-          messages.map((m) => (
-            <MessageBubble
-              key={m.id}
-              message={m}
-              mine={m.senderId !== contact.userId}
-              onOpenMedia={() => setViewingMessage(m)}
-              onRequestEdit={() => startEdit(m)}
-              onRequestDelete={() => setDeleteTarget(m)}
-            />
-          ))
+          timeline.map(({ entry }) =>
+            entry.kind === 'message' ? (
+              <MessageBubble
+                key={entry.message.id}
+                message={entry.message}
+                mine={entry.message.senderId !== contact.userId}
+                onOpenMedia={() => setViewingMessage(entry.message)}
+                onRequestEdit={() => startEdit(entry.message)}
+                onRequestDelete={() => setDeleteTarget(entry.message)}
+              />
+            ) : (
+              <CallHistoryEntry key={entry.call.callId} call={entry.call} myUserId={myUserId} />
+            ),
+          )
         )}
         {uploading.map((u) => (
           <UploadingBubble key={u.id} previewUrl={u.previewUrl} isVideo={u.isVideo} progress={u.progress} />
