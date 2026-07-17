@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.renderer.TextureViewRenderer
@@ -59,6 +60,19 @@ class CallActivity : AppCompatActivity() {
     private lateinit var remoteContainer: FrameLayout
     private lateinit var statusText: TextView
 
+    // Krashni Firebase Crashlytics'da masofadan tashxislash uchun — real
+    // qurilmaga (adb/logcat) fizik kirish yo'q, shuning uchun har bir muhim
+    // bosqich shu orqali "non-fatal breadcrumb" sifatida qayd etiladi. Krash
+    // sodir bo'lganda Crashlytics oxirgi 64 ta logni report bilan birga
+    // yuboradi — bu ANIQ qaysi bosqichda (masalan connectRoom vs
+    // observeEvents) muammo borligini ko'rsatadi.
+    private fun breadcrumb(msg: String) {
+        try {
+            FirebaseCrashlytics.getInstance().log(msg)
+        } catch (_: Exception) {
+        }
+    }
+
     private val screenCaptureLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val data = result.data
@@ -98,6 +112,7 @@ class CallActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        breadcrumb("CallActivity.onCreate outgoing=${intent.getBooleanExtra(EXTRA_OUTGOING, false)} type=${intent.getStringExtra(EXTRA_CALL_TYPE)}")
         buildUi()
         startCallFlow()
     }
@@ -112,6 +127,7 @@ class CallActivity : AppCompatActivity() {
     // kamera yoqilmaydi, chunki eski `isVideo=false` saqlanib qolgan).
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        breadcrumb("CallActivity.onNewIntent outgoing=${intent.getBooleanExtra(EXTRA_OUTGOING, false)} type=${intent.getStringExtra(EXTRA_CALL_TYPE)}")
         setIntent(intent)
         room?.disconnect()
         room = null
@@ -125,6 +141,7 @@ class CallActivity : AppCompatActivity() {
     private fun startCallFlow() {
         isVideo = intent.getStringExtra(EXTRA_CALL_TYPE) == "VIDEO"
         callId = intent.getStringExtra(EXTRA_CALL_ID)
+        breadcrumb("startCallFlow isVideo=$isVideo hasPermissions=${hasRequiredPermissions()}")
 
         if (hasRequiredPermissions()) {
             proceedWithCall()
@@ -165,28 +182,43 @@ class CallActivity : AppCompatActivity() {
             return
         }
         statusText.text = "Chaqirilmoqda..."
+        breadcrumb("startOutgoingCall calling CallsHttp.invite")
         lifecycleScope.launch {
             try {
                 val res = CallsHttp.invite(this@CallActivity, calleeId, type)
                 callId = res.getString("callId")
+                breadcrumb("startOutgoingCall invite OK callId=$callId")
                 connectRoom(res.getString("livekitUrl"), res.getString("token"))
             } catch (e: Exception) {
+                breadcrumb("startOutgoingCall invite FAILED: ${e.message}")
+                FirebaseCrashlytics.getInstance().recordException(e)
                 statusText.text = "Xatolik: ${e.message}"
             }
         }
     }
 
     private fun connectRoom(url: String, token: String) {
+        breadcrumb("connectRoom start url=$url")
         lifecycleScope.launch {
             val newRoom = LiveKit.create(applicationContext)
             room = newRoom
             observeEvents(newRoom)
             try {
+                breadcrumb("connectRoom: room.connect()")
                 newRoom.connect(url, token)
+                breadcrumb("connectRoom: connected, enabling microphone")
                 newRoom.localParticipant.setMicrophoneEnabled(true)
-                if (isVideo) newRoom.localParticipant.setCameraEnabled(true)
+                breadcrumb("connectRoom: microphone enabled")
+                if (isVideo) {
+                    breadcrumb("connectRoom: enabling camera")
+                    newRoom.localParticipant.setCameraEnabled(true)
+                    breadcrumb("connectRoom: camera enabled")
+                }
                 statusText.text = "Ulandi"
+                breadcrumb("connectRoom: fully connected (Ulandi)")
             } catch (e: Exception) {
+                breadcrumb("connectRoom FAILED: ${e.message}")
+                FirebaseCrashlytics.getInstance().recordException(e)
                 statusText.text = "Ulanib bo'lmadi: ${e.message}"
             }
         }
@@ -198,26 +230,38 @@ class CallActivity : AppCompatActivity() {
             // ".events" (SharedFlow&lt;RoomEvent&gt;) maydoni bor — shu bois ikki
             // qavat (LiveKit Android SDK 2.18.2 API'si shunday).
             observedRoom.events.events.collect { event ->
+                breadcrumb("RoomEvent: ${event::class.simpleName}")
                 // onNewIntent orqali ESKI xona almashtirilgan bo'lishi mumkin
                 // (singleTask qayta ishlatish) — bu holatda eski xonaning
                 // "Disconnected" hodisasi YANGI boshlangan qo'ng'iroqni
                 // finish() qilib qo'ymasligi kerak.
                 if (room !== observedRoom) return@collect
-                if (event is RoomEvent.TrackSubscribed) {
-                    val track = event.track
-                    if (track is VideoTrack) {
-                        val renderer = TextureViewRenderer(this@CallActivity)
-                        observedRoom.initVideoRenderer(renderer)
-                        track.addRenderer(renderer)
-                        remoteContainer.removeAllViews()
-                        remoteContainer.addView(
-                            renderer,
-                            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
-                        )
+                try {
+                    if (event is RoomEvent.TrackSubscribed) {
+                        val track = event.track
+                        if (track is VideoTrack) {
+                            val renderer = TextureViewRenderer(this@CallActivity)
+                            observedRoom.initVideoRenderer(renderer)
+                            track.addRenderer(renderer)
+                            remoteContainer.removeAllViews()
+                            remoteContainer.addView(
+                                renderer,
+                                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
+                            )
+                        }
                     }
-                }
-                if (event is RoomEvent.Disconnected) {
-                    finish()
+                    if (event is RoomEvent.Disconnected) {
+                        breadcrumb("RoomEvent.Disconnected -> finish()")
+                        finish()
+                    }
+                } catch (e: Exception) {
+                    // TextureViewRenderer/GL operatsiyalari ba'zi qurilmalarda
+                    // (GPU drayveri farqiga qarab) xato tashlashi mumkin —
+                    // bu HECH QANDAY try/catch tomonidan tutilmagan edi va
+                    // Room hodisa oqimini yig'uvchi coroutine'ni butunlay
+                    // yiqitib, oxir-oqibat ilovani krash qilishi mumkin edi.
+                    breadcrumb("observeEvents handler FAILED: ${e.message}")
+                    FirebaseCrashlytics.getInstance().recordException(e)
                 }
             }
         }
@@ -245,6 +289,7 @@ class CallActivity : AppCompatActivity() {
     }
 
     private fun endCall() {
+        breadcrumb("endCall (user tapped hang up)")
         val id = callId
         if (id != null) {
             lifecycleScope.launch { runCatching { CallsHttp.end(this@CallActivity, id) } }
@@ -255,6 +300,7 @@ class CallActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        breadcrumb("CallActivity.onDestroy isFinishing=$isFinishing isChangingConfigurations=$isChangingConfigurations")
         room?.disconnect()
         super.onDestroy()
     }

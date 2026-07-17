@@ -16,6 +16,7 @@ import android.widget.TextView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.launch
 
 /**
@@ -39,8 +40,16 @@ class IncomingCallActivity : AppCompatActivity() {
     private var vibrator: Vibrator? = null
     private var autoDismiss: Runnable? = null
 
+    private fun breadcrumb(msg: String) {
+        try {
+            FirebaseCrashlytics.getInstance().log(msg)
+        } catch (_: Exception) {
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        breadcrumb("IncomingCallActivity.onCreate callId=${intent.getStringExtra(EXTRA_CALL_ID)} type=${intent.getStringExtra(EXTRA_CALL_TYPE)}")
         handleIntent()
     }
 
@@ -55,6 +64,7 @@ class IncomingCallActivity : AppCompatActivity() {
     // bir-tomonlama aloqa muammosining ildizi edi.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        breadcrumb("IncomingCallActivity.onNewIntent callId=${intent.getStringExtra(EXTRA_CALL_ID)}")
         setIntent(intent)
         stopRinging()
         autoDismiss?.let { window.decorView.removeCallbacks(it) }
@@ -66,29 +76,49 @@ class IncomingCallActivity : AppCompatActivity() {
         val callerName = intent.getStringExtra(EXTRA_CALLER_NAME) ?: "AJDO"
         val callType = intent.getStringExtra(EXTRA_CALL_TYPE) ?: "AUDIO"
 
+        breadcrumb("handleIntent: buildUi")
         buildUi(callerName, callType == "VIDEO", callId)
+        breadcrumb("handleIntent: startRinging")
         startRinging()
+        breadcrumb("handleIntent: ringing started OK")
 
         val dismiss = Runnable { if (!isFinishing) finish() }
         autoDismiss = dismiss
         window.decorView.postDelayed(dismiss, AUTO_DISMISS_MS)
     }
 
+    // MUHIM: Vibrator.vibrate() android.permission.VIBRATE manifestda e'lon
+    // qilinmagan bo'lsa SecurityException tashlaydi (asosiy threadda,
+    // sinxron) — bu try/catch BO'LMASA, har bir kiruvchi qo'ng'iroqda
+    // (turi audio/video farqisiz) ilova darhol krash bo'lardi. Ruxsat endi
+    // manifestda bor, lekin qo'shimcha himoya sifatida (RingtoneManager
+    // ham ba'zi OEM/DND sozlamalarida istisno tashlashi mumkin) butun
+    // funksiya himoyalangan.
     private fun startRinging() {
-        val uri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(this, uri)?.apply {
-            audioAttributes = android.media.AudioAttributes.Builder()
-                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .build()
-            play()
+        try {
+            val uri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE)
+            ringtone = RingtoneManager.getRingtone(this, uri)?.apply {
+                audioAttributes = android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .build()
+                play()
+            }
+        } catch (e: Exception) {
+            breadcrumb("startRinging: ringtone FAILED: ${e.message}")
+            FirebaseCrashlytics.getInstance().recordException(e)
         }
-        vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
-            (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(VIBRATOR_SERVICE) as Vibrator
+        try {
+            vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
+                (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                getSystemService(VIBRATOR_SERVICE) as Vibrator
+            }
+            vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 800, 500), 0))
+        } catch (e: Exception) {
+            breadcrumb("startRinging: vibrate FAILED: ${e.message}")
+            FirebaseCrashlytics.getInstance().recordException(e)
         }
-        vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 800, 500), 0))
     }
 
     private fun stopRinging() {
@@ -97,11 +127,13 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun accept(callId: String?, isVideo: Boolean) {
+        breadcrumb("accept tapped callId=$callId")
         if (callId == null) return finish()
         stopRinging()
         lifecycleScope.launch {
             try {
                 val res = CallsHttp.accept(this@IncomingCallActivity, callId)
+                breadcrumb("accept: CallsHttp.accept OK, launching CallActivity")
                 val intent = Intent(this@IncomingCallActivity, CallActivity::class.java).apply {
                     putExtra(CallActivity.EXTRA_CALL_ID, callId)
                     putExtra(CallActivity.EXTRA_CALL_TYPE, if (isVideo) "VIDEO" else "AUDIO")
@@ -111,13 +143,19 @@ class IncomingCallActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
             } catch (e: Exception) {
-                // jim — qo'ng'iroq muddati o'tgan/bekor qilingan bo'lishi mumkin
+                // qo'ng'iroq muddati o'tgan/bekor qilingan bo'lishi mumkin —
+                // lekin Crashlytics'ga baribir yozib qo'yamiz, aks holda
+                // haqiqiy xatolar ("nima uchun qo'ng'iroq kelmadi" kabi
+                // shikoyatlar) sababsiz qolib ketaveradi.
+                breadcrumb("accept: CallsHttp.accept FAILED: ${e.message}")
+                FirebaseCrashlytics.getInstance().recordException(e)
             }
             finish()
         }
     }
 
     private fun decline(callId: String?) {
+        breadcrumb("decline tapped callId=$callId")
         stopRinging()
         if (callId != null) {
             lifecycleScope.launch { runCatching { CallsHttp.decline(this@IncomingCallActivity, callId) } }
@@ -126,6 +164,7 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        breadcrumb("IncomingCallActivity.onDestroy isFinishing=$isFinishing")
         stopRinging()
         super.onDestroy()
     }

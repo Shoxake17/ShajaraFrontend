@@ -97,6 +97,14 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- IncomingCallActivity.startRinging() Vibrator.vibrate()ni HAR BIR
+         kiruvchi qo'ng'iroqda so'zsiz chaqiradi — bu ruxsat manifestda
+         E'LON QILINMAGAN bo'lsa, chaqiruv SecurityException tashlaydi
+         (hech qanday try/catch tomonidan tutilmagan, asosiy threadda) va
+         BUTUN ilovani krash qiladi. Aynan shu — qabul qiluvchi tomonda,
+         HAR SAFAR, audio HAM video qo'ng'iroqda ham takrorlangan krashning
+         eng ehtimolli sababi edi. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <!-- Kiruvchi qo'ng'iroqni qulf ekranida ham to'liq ekran ko'rsatish

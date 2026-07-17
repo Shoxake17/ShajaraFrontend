@@ -45,6 +45,12 @@ dependencies {
     // AjdoFirebaseMessagingService (MessagingService.java) uchun — capacitor-push-notifications
     // buni faqat 'implementation' sifatida oladi, shuning uchun tranzitiv tarzda ochilmaydi.
     implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
+    // Krashlarni Firebase Console'da masofadan ko'rish uchun — S21+/A32'dagi
+    // qo'ng'iroq krashini adb/logcat'siz (foydalanuvchi qurilmasiga fizik
+    // kirishsiz) tashxislash uchun SHART bo'lib qoldi.
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
     // Native (Kotlin) qo'ng'iroq ekrani — calls/CallActivity.kt va h.k.
     // (WebView/livekit-client EMAS — qulf ekranida jiringlash va ekran
     // ulashishni boshlash uchun butunlay mustaqil native ekran shart).
@@ -69,6 +75,7 @@ try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
+        apply plugin: 'com.google.firebase.crashlytics'
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
