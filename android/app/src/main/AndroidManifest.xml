@@ -82,6 +82,18 @@
             android:name=".calls.ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
+        <!-- Qo'ng'iroq ulanishini CallActivity umridan MUSTAQIL saqlaydi —
+             foydalanuvchi ilovadan chiqib ketsa (Uy tugmasi, Recents'dan
+             surib tashlasa, boshqa sahifaga o'tsa) qo'ng'iroq FAQAT
+             foydalanuvchi Qizil tugmani bosgandagina tugaydi, Activity
+             yo'q qilinganda EMAS — bu doimiy bildirishnoma (foreground
+             xizmat) orqali OS'ga "faol qo'ng'iroq bor" deb bildiriladi,
+             aks holda jarayon fon rejimida tez orada o'ldiriladi. -->
+        <service
+            android:name=".calls.CallService"
+            android:exported="false"
+            android:foregroundServiceType="microphone|camera"
+            android:stopWithTask="false" />
     </application>
 
     <!-- Permissions -->
@@ -115,4 +127,9 @@
     <!-- Ekran ulashish (MediaProjection) foreground xizmati uchun -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- CallService — qo'ng'iroqni Activity umridan mustaqil, fonda ham
+         tirik saqlash uchun (Android 14+ shu turlarni ANIQ e'lon qilishni
+         talab qiladi). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
 </manifest>
