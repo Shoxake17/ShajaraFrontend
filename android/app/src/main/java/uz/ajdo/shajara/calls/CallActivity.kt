@@ -1,7 +1,9 @@
 package uz.ajdo.shajara.calls
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.view.Gravity
@@ -12,6 +14,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
@@ -68,6 +71,26 @@ class CallActivity : AppCompatActivity() {
             }
         }
 
+    // Mikrofon/kamera RUNTIME ruxsati (Android 6.0+) manifestda e'lon
+    // qilingani bilan yetarli emas — so'ralmasa, LiveKit SDK'ning audio/video
+    // olish kodi (WebRTC, alohida native/thread ustida) tutilmagan
+    // SecurityException tashlab, BUTUN ilovani krash qiladi (WebView JS
+    // try/catch buni ushlay olmaydi, chunki bu native tomonda sodir bo'ladi).
+    private val permissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            val micGranted = grants[Manifest.permission.RECORD_AUDIO] == true
+            val camGranted = !isVideo || grants[Manifest.permission.CAMERA] == true
+            if (micGranted && camGranted) {
+                proceedWithCall()
+            } else {
+                statusText.text = "Mikrofon/kamera ruxsati kerak"
+                lifecycleScope.launch {
+                    kotlinx.coroutines.delay(1500)
+                    finish()
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         buildUi()
@@ -75,6 +98,19 @@ class CallActivity : AppCompatActivity() {
         isVideo = intent.getStringExtra(EXTRA_CALL_TYPE) == "VIDEO"
         callId = intent.getStringExtra(EXTRA_CALL_ID)
 
+        val needed = mutableListOf(Manifest.permission.RECORD_AUDIO)
+        if (isVideo) needed.add(Manifest.permission.CAMERA)
+        val missing = needed.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) {
+            proceedWithCall()
+        } else {
+            permissionLauncher.launch(missing.toTypedArray())
+        }
+    }
+
+    private fun proceedWithCall() {
         if (intent.getBooleanExtra(EXTRA_OUTGOING, false)) {
             startOutgoingCall()
         } else {
