@@ -60,6 +60,19 @@ public class AjdoFirebaseMessagingService extends MessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        // FCM'ning o'z callback threadida ishlaydi — shu bois istisno
+        // (masalan tarmoq/OEM'ga xos kutilmagan holat) hech qanday JS/WebView
+        // try/catch tomonidan tutilmay, BUTUN ilova jarayonini krash qiladi.
+        // Push — tashqi (server) ma'lumot, shu bois bu yerda albatta himoya
+        // qilingan bo'lishi kerak.
+        try {
+            handleMessage(remoteMessage);
+        } catch (Exception e) {
+            // jim — push bitta xabar uchun; ilovani krash qilishga arzimaydi
+        }
+    }
+
+    private void handleMessage(RemoteMessage remoteMessage) {
         // push.service.ts ATAYLAB top-level `notification` bloki YO'Q "faqat
         // data" xabar yuboradi (aks holda Android fon rejimida bu metodni
         // umuman chaqirmay, xabarni o'zi avtomatik ko'rsatib yuborar edi).
@@ -171,12 +184,26 @@ public class AjdoFirebaseMessagingService extends MessagingService {
         // OCHMAYDI (chunki "o'z ilovangdan o'zingni chalg'itish" shart emas
         // deb hisoblanadi). Ammo bizga bu holatda ham qo'ng'iroq ekrani
         // DARHOL ko'rinishi kerak — shu bois ilova oldinda bo'lsa, Activity'ni
-        // TO'G'RIDAN-TO'G'RI ochamiz (bunga ruxsat bor, chunki ilovaning
-        // o'zi hozir foreground'da — Android'ning fondan Activity ochishni
-        // taqiqlash siyosati bunga taalluqli emas).
+        // TO'G'RIDAN-TO'G'RI ochishga urinamiz.
+        //
+        // MUHIM (Samsung S21+ da haqiqiy krash sifatida tasdiqlangan):
+        // getRunningAppProcesses() orqali "foreground" aniqlash ba'zi
+        // OEM qurilmalarida (ayniqsa Samsung OneUI) ANIQ EMAS — bir lahzada
+        // noto'g'ri "true" qaytarishi mumkin. Agar shu daqiqada ilova
+        // haqiqatda fonda bo'lib chiqsa, context.startActivity() Android'ning
+        // "fondan Activity ochish taqiqi"ga urilib SecurityException/
+        // BackgroundActivityStartException tashlaydi — bu FCM'ning o'z
+        // callback threadida sodir bo'lgani uchun HECH QANDAY JS/WebView
+        // try/catch buni ushlay olmaydi va BUTUN ilova jarayoni krash bo'ladi.
+        // Shu bois bu yerda albatta try/catch bilan qamrab olinadi — muvaffaqiyatsiz
+        // bo'lsa, pastdagi (har doim xavfsiz) bildirishnoma yo'liga o'tiladi.
         if (isAppInForeground(context)) {
-            context.startActivity(fullScreenIntent);
-            return;
+            try {
+                context.startActivity(fullScreenIntent);
+                return;
+            } catch (Exception e) {
+                // fonga tushib ulgurgan — pastdagi bildirishnoma yo'liga o'tamiz
+            }
         }
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
