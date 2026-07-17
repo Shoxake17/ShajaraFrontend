@@ -19,6 +19,7 @@ import android.os.IBinder
 import android.util.Rational
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
@@ -26,6 +27,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -33,6 +35,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.track.VideoTrack
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uz.ajdo.shajara.R
@@ -98,6 +101,9 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
     private lateinit var speakerButton: ToggleButton
     private lateinit var screenShareButton: ToggleButton
     private var isInPip = false
+    private var chromeHidden = false
+    private var hideChromeJob: Job? = null
+    private var localPreviewDragged = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -190,6 +196,10 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 bound = false
             }
             callService = null
+            localPreviewDragged = false
+            chromeHidden = false
+            hideChromeJob?.cancel()
+            hideChromeJob = null
             buildUi()
             prefillFromIntent()
             if (hasRequiredPermissions()) {
@@ -298,8 +308,15 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         statusText.text = svc.statusLabel
         topBadgeText.text = "${svc.peerName} · ${svc.statusLabel}"
         val remoteActive = remoteVideoContainer.childCount > 0
-        controlsRow.visibility = if (svc.hadRemotePeer) View.VISIBLE else View.GONE
-        minimizeButton.visibility = if (svc.isVideo && !isInPip) View.VISIBLE else View.GONE
+        // MUHIM: agar to'liq ekran video YO'QOLSA (masalan suhbatdosh
+        // kamерasini o'chirsa) — tugmalar YASHIRIN holatda "qulflanib"
+        // qolmasligi kerak (bosish uchun video yo'q, ekranga tegish
+        // ishlamaydi). Shu holatda avtomatik qayta ko'rsatiladi.
+        if (!remoteActive && chromeHidden) {
+            chromeHidden = false
+            hideChromeJob?.cancel()
+            hideChromeJob = null
+        }
         if (::micButton.isInitialized) setToggleState(micButton, svc.micMuted, R.drawable.ic_mic_off, R.drawable.ic_mic)
         cameraButton?.let { setToggleState(it, svc.cameraOff, R.drawable.ic_videocam_off, R.drawable.ic_videocam) }
         if (::speakerButton.isInitialized) setToggleState(speakerButton, svc.speakerOn, R.drawable.ic_volume_up, R.drawable.ic_volume_up)
@@ -315,12 +332,67 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         }
         // Suhbatdoshning kamera/mikrofon holati — Zoom/Telegram uslubidagi
         // "Kamera o'chirilgan"/"Mikrofon o'chirilgan" belgilari (faqat
-        // haqiqiy suhbatdosh bo'lganda ma'noli).
+        // haqiqiy suhbatdosh bo'lganda ma'noli). PiP oynasida ham
+        // ko'rinishda qoladi — applyPipLayout() buni yashirmaydi.
         remoteCameraOffBadge.visibility = if (svc.hadRemotePeer && svc.remoteCameraOff) View.VISIBLE else View.GONE
         remoteMicOffBadge.visibility = if (svc.hadRemotePeer && svc.remoteMicMuted) View.VISIBLE else View.GONE
         remoteStatusRow.visibility = if (remoteCameraOffBadge.visibility == View.VISIBLE || remoteMicOffBadge.visibility == View.VISIBLE) View.VISIBLE else View.GONE
         updateVideoLayout(remoteActive, svc.hadRemotePeer)
+        refreshChromeVisibility(svc)
+        if (remoteActive) scheduleAutoHideChrome()
         updatePipParams()
+    }
+
+    /** Boshqaruv tugmalari (mikrofon/kamera/gromkogovoritel/ekran ulashish/
+     * Yakunlash, ism-badge, kichraytirish tugmasi) ko'rinishini joriy
+     * holatga (chromeHidden) qarab qo'llaydi — bu updateVideoLayout()dan
+     * ALOHIDA, chunki chromeHidden 3 soniyalik avtomatik yashirishga
+     * bog'liq, video holatiga emas. */
+    private fun refreshChromeVisibility(svc: CallService) {
+        if (isInPip) return
+        if (chromeHidden) {
+            controlsColumn.visibility = View.GONE
+            topBadge.visibility = View.GONE
+            minimizeButton.visibility = View.GONE
+        } else {
+            controlsColumn.visibility = View.VISIBLE
+            controlsRow.visibility = if (svc.hadRemotePeer) View.VISIBLE else View.GONE
+            minimizeButton.visibility = if (svc.isVideo) View.VISIBLE else View.GONE
+            // topBadge'ning o'zi ko'rinishi kerakmi — updateVideoLayout()
+            // allaqachon video holatiga qarab to'g'ri o'rnatgan, shu bois
+            // bu yerda qayta tegilmaydi.
+        }
+    }
+
+    /** Ekranga (video maydoniga) tegilganda — boshqaruv tugmalari yashirin
+     * bo'lsa qayta ko'rsatiladi, keyin yana 3 soniyalik hisoblagich
+     * qaytadan boshlanadi (YouTube/Telegram video pleer uslubi). */
+    private fun onScreenTapped() {
+        if (isInPip || remoteVideoContainer.childCount == 0) return
+        hideChromeJob?.cancel()
+        hideChromeJob = null
+        if (chromeHidden) {
+            chromeHidden = false
+            callService?.let { refreshChromeVisibility(it) }
+        }
+        scheduleAutoHideChrome()
+    }
+
+    /** 3 soniya ekranga tegilmasa — boshqaruv tugmalari/ism-badge/
+     * kichraytirish tugmasi berkitiladi, faqat video (yoki avatar) qoladi.
+     * FAQAT suhbatdoshning videosi to'liq ekranda bo'lganda ma'noli
+     * (audio qo'ng'iroqda yoki kutish holatida tugmalar doim ko'rinadi). */
+    private fun scheduleAutoHideChrome() {
+        if (hideChromeJob != null || chromeHidden || isInPip) return
+        if (remoteVideoContainer.childCount == 0) return
+        hideChromeJob = lifecycleScope.launch {
+            delay(3000)
+            hideChromeJob = null
+            chromeHidden = true
+            controlsColumn.visibility = View.GONE
+            topBadge.visibility = View.GONE
+            minimizeButton.visibility = View.GONE
+        }
     }
 
     override fun onRemoteVideoTrack(track: VideoTrack?) {
@@ -338,6 +410,16 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             remoteVideoContainer.addView(renderer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         updateVideoLayout(track != null, svc.hadRemotePeer)
+        if (track != null) {
+            scheduleAutoHideChrome()
+        } else if (chromeHidden) {
+            // Video yo'qoldi (masalan suhbatdosh kamерasini o'chirdi) —
+            // tugmalar berkitilgan holatda "qulflanib" qolmasligi kerak.
+            chromeHidden = false
+            hideChromeJob?.cancel()
+            hideChromeJob = null
+            refreshChromeVisibility(svc)
+        }
     }
 
     override fun onCallEnded() {
@@ -394,9 +476,20 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         val hasLocal = localVideoContainer.childCount > 0
         when {
             remoteActive -> {
-                localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
-                    topMargin = dp(56)
-                    rightMargin = dp(16)
+                // MUHIM: agar foydalanuvchi mening kichik oynamni allaqachon
+                // qo'lda surib qo'ygan bo'lsa (localPreviewDragged), uning
+                // joylashuvini QAYTA STANDART BURCHAKKA tashlab yubormaymiz
+                // — faqat o'lchamini (110x150dp) to'g'rilaymiz, joyi saqlanadi.
+                if (!localPreviewDragged) {
+                    localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
+                        topMargin = dp(40)
+                        rightMargin = dp(16)
+                    }
+                } else {
+                    val lp = localVideoContainer.layoutParams
+                    if (lp == null || lp.width != dp(110) || lp.height != dp(150)) {
+                        localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150))
+                    }
                 }
                 localVideoContainer.visibility = if (hasLocal) View.VISIBLE else View.GONE
                 centerOverlay.visibility = View.GONE
@@ -411,6 +504,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 topBadge.visibility = View.VISIBLE
             }
             hasLocal -> {
+                localPreviewDragged = false // yangi qo'ng'iroq/holat — surish qayta standart holatdan boshlanadi
                 localVideoContainer.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 localVideoContainer.visibility = View.VISIBLE
                 centerOverlay.visibility = View.GONE
@@ -420,6 +514,50 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 localVideoContainer.visibility = View.GONE
                 centerOverlay.visibility = View.VISIBLE
                 topBadge.visibility = View.GONE
+            }
+        }
+    }
+
+    /** Video qo'ng'iroqda mening kichik oynamni (PiP burchak holatida)
+     * istalgan nuqtaga surish uchun — Telegram uslubi. FAQAT suhbatdoshning
+     * videosi to'liq ekranda bo'lgan holatda (kichik burchak rejimida)
+     * ma'noli; to'liq ekran holatida (hali hech kim yo'q) surish o'chiriladi. */
+    private fun makeLocalPreviewDraggable() {
+        var downRawX = 0f
+        var downRawY = 0f
+        var startX = 0f
+        var startY = 0f
+        var dragging = false
+        localVideoContainer.setOnTouchListener { v, event ->
+            if (remoteVideoContainer.childCount == 0) return@setOnTouchListener false
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawX = event.rawX
+                    downRawY = event.rawY
+                    startX = v.x
+                    startY = v.y
+                    dragging = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - downRawX
+                    val dy = event.rawY - downRawY
+                    if (!dragging && (kotlin.math.abs(dx) > dp(6) || kotlin.math.abs(dy) > dp(6))) dragging = true
+                    if (dragging) {
+                        val parent = v.parent as View
+                        val maxX = (parent.width - v.width).coerceAtLeast(0).toFloat()
+                        val maxY = (parent.height - v.height).coerceAtLeast(0).toFloat()
+                        v.x = (startX + dx).coerceIn(0f, maxX)
+                        v.y = (startY + dy).coerceIn(0f, maxY)
+                        localPreviewDragged = true
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (!dragging) v.performClick()
+                    true
+                }
+                else -> false
             }
         }
     }
@@ -458,15 +596,38 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         }
     }
 
+    /** MUHIM (qurilmadan-qurilmaga farq qiladigan xato): ba'zi qurilmalarda
+     * (ayniqsa Xiaomi/MIUI, ba'zi Samsung sozlamalarida) Picture-in-Picture
+     * OS DARAJASIDA qo'llab-quvvatlansa ham ("hasSystemFeature" TRUE),
+     * HAR BIR ilova uchun ALOHIDA, foydalanuvchi qo'lda yoqishi kerak
+     * bo'lgan ruxsat bor (Sozlamalar > Ilovalar > AJDO > Kichik oyna).
+     * Shu SABABDAN bitta foydalanuvchida ishlab, ikkinchisida ishlamasligi
+     * mumkin — dasturiy jihatdan buni oldindan bilib bo'lmaydi, faqat
+     * enterPictureInPictureMode()ning O'ZI false qaytarganda aniqlanadi.
+     * Shu holatda foydalanuvchiga ANIQ nima qilish kerakligini
+     * tushuntiramiz (YECHIM: Sozlamalardan ruxsatni yoqish). */
     private fun enterPip() {
         if (!canUsePip()) return
         try {
             val params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(9, 16))
                 .build()
-            enterPictureInPictureMode(params)
+            val entered = enterPictureInPictureMode(params)
+            if (!entered) {
+                breadcrumb("enterPip: system declined (PiP permission likely disabled for this app)")
+                Toast.makeText(
+                    this,
+                    "Kichik oyna ishlamadi. Sozlamalar > Ilovalar > AJDO > \"Kichik oyna\" (Picture-in-Picture) ruxsatini yoqing.",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         } catch (e: Exception) {
             breadcrumb("enterPip FAILED: ${e.message}")
+            Toast.makeText(
+                this,
+                "Kichik oyna ishlamadi. Sozlamalar > Ilovalar > AJDO > \"Kichik oyna\" (Picture-in-Picture) ruxsatini yoqing.",
+                Toast.LENGTH_LONG,
+            ).show()
         }
     }
 
@@ -478,16 +639,19 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
 
     /** PiP oynasiga kirganda ekran juda kichik bo'ladi — faqat SUHBATDOSH
      * (men EMAS) to'liq oynani egallashi kerak: uning videosi bo'lsa video,
-     * bo'lmasa avatari. Boshqaruv tugmalari/matn kabi mayda elementlar
+     * bo'lmasa avatari. Boshqaruv tugmalari/ism-badge/kichraytirish tugmasi
      * kichik oynada o'qib bo'lmaydigan holga kelgani uchun yashiriladi —
-     * Android o'zi PiP oynasi ustida tizim tugmalari (kengaytirish/
-     * yopish)ni chizadi. */
+     * Android o'zi PiP oynasi ustida tizim tugmalari (kengaytirish/yopish)ni
+     * chizadi. LEKIN kamera/mikrofon o'chirilgan BELGISI (remoteStatusRow)
+     * ATAYLAB ko'rinishda qoladi — bu foydalanuvchiga muhim ma'lumot,
+     * kichik oynada ham bilinishi kerak. */
     private fun applyPipLayout(inPip: Boolean) {
         if (inPip) {
+            hideChromeJob?.cancel()
+            hideChromeJob = null
             controlsColumn.visibility = View.GONE
             minimizeButton.visibility = View.GONE
             topBadge.visibility = View.GONE
-            remoteStatusRow.visibility = View.GONE
             nameView.visibility = View.GONE
             relationView.visibility = View.GONE
             statusText.visibility = View.GONE
@@ -496,12 +660,22 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             remoteVideoContainer.visibility = if (hasRemoteVideo) View.VISIBLE else View.GONE
             centerOverlay.visibility = if (hasRemoteVideo) View.GONE else View.VISIBLE
         } else {
+            // To'liq ekranga qaytilganda boshqaruv tugmalari/ism-badge
+            // TOZA holatdan qayta ko'rsatiladi — PiP'dan oldin 3 soniyalik
+            // avtomatik yashirish faol bo'lgan bo'lsa ham, endi qaytadan
+            // ko'rinadi (foydalanuvchi ekranga tegib qayta ko'rsatishga
+            // majbur bo'lmasin).
+            chromeHidden = false
             nameView.visibility = View.VISIBLE
             relationView.visibility = if (relationView.text.isNullOrBlank()) View.GONE else View.VISIBLE
             statusText.visibility = View.VISIBLE
             val svc = callService
             updateVideoLayout(remoteVideoContainer.childCount > 0, svc?.hadRemotePeer ?: false)
-            if (svc != null) onCallStateChanged()
+            if (svc != null) {
+                onCallStateChanged()
+            } else {
+                controlsColumn.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -537,10 +711,11 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         root.addView(
             localVideoContainer,
             FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
-                topMargin = dp(56)
+                topMargin = dp(40)
                 rightMargin = dp(16)
             },
         )
+        makeLocalPreviewDraggable()
 
         // Video oqim boshlanganda ko'rinadigan yuqori "chip" (ism + holat/vaqt)
         topBadgeText = TextView(this).apply {
@@ -561,12 +736,13 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         root.addView(
             topBadge,
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
-                topMargin = dp(56)
+                topMargin = dp(40)
             },
         )
 
         // Suhbatdoshning kamera/mikrofon holati belgilari (Zoom/Telegram
-        // uslubida) — yuqori qismda, topBadge'dan pastroqda.
+        // uslubida) — yuqori qismda, topBadge'dan pastroqda. PiP oynasida
+        // ham ko'rinishda qoladi (applyPipLayout() buni yashirmaydi).
         remoteCameraOffBadge = statusPill("Kamera o'chirilgan")
         remoteMicOffBadge = statusPill("Mikrofon o'chirilgan")
         remoteStatusRow = LinearLayout(this).apply {
@@ -580,7 +756,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         root.addView(
             remoteStatusRow,
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
-                topMargin = dp(104)
+                topMargin = dp(88)
             },
         )
 
@@ -593,7 +769,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         root.addView(
             minimizeButton,
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply {
-                topMargin = dp(56)
+                topMargin = dp(40)
                 leftMargin = dp(16)
             },
         )
@@ -713,6 +889,11 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
             ).apply { bottomMargin = dp(56) },
         )
+
+        // Ekranga tegilganda (video ustidan ham) boshqaruv tugmalari
+        // yashirin bo'lsa qayta ko'rsatiladi (onScreenTapped()).
+        root.isClickable = true
+        root.setOnClickListener { onScreenTapped() }
 
         setContentView(root)
     }
