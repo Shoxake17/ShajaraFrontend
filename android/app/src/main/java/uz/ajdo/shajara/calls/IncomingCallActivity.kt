@@ -37,9 +37,31 @@ class IncomingCallActivity : AppCompatActivity() {
 
     private var ringtone: Ringtone? = null
     private var vibrator: Vibrator? = null
+    private var autoDismiss: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleIntent()
+    }
+
+    // launchMode="singleTask" (AndroidManifest.xml) — agar oldingi
+    // qo'ng'iroqning IncomingCallActivity nusxasi hali tirik bo'lsa
+    // (masalan 45 soniyalik avtomatik yopilish hali tugamagan bo'lsa-yu,
+    // YANGI qo'ng'iroq kelsa), Android bu yerga (onNewIntent) yo'naltiradi
+    // — YANGI onCreate() chaqirilmaydi. Bu override BO'LMASA, ekranda
+    // ESKI qo'ng'iroqning callId/callType/callerName'i qolib ketadi va
+    // "Qabul qilish" bosilganda NOTO'G'RI (eski) qo'ng'iroq qabul qilinadi
+    // — aynan shu CallActivity'dagi video/audio nomuvofiqlik va
+    // bir-tomonlama aloqa muammosining ildizi edi.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        stopRinging()
+        autoDismiss?.let { window.decorView.removeCallbacks(it) }
+        handleIntent()
+    }
+
+    private fun handleIntent() {
         val callId = intent.getStringExtra(EXTRA_CALL_ID)
         val callerName = intent.getStringExtra(EXTRA_CALLER_NAME) ?: "AJDO"
         val callType = intent.getStringExtra(EXTRA_CALL_TYPE) ?: "AUDIO"
@@ -47,7 +69,9 @@ class IncomingCallActivity : AppCompatActivity() {
         buildUi(callerName, callType == "VIDEO", callId)
         startRinging()
 
-        window.decorView.postDelayed({ if (!isFinishing) finish() }, AUTO_DISMISS_MS)
+        val dismiss = Runnable { if (!isFinishing) finish() }
+        autoDismiss = dismiss
+        window.decorView.postDelayed(dismiss, AUTO_DISMISS_MS)
     }
 
     private fun startRinging() {

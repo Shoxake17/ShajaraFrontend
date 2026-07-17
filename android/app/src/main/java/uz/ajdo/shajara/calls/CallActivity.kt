@@ -76,11 +76,16 @@ class CallActivity : AppCompatActivity() {
     // olish kodi (WebRTC, alohida native/thread ustida) tutilmagan
     // SecurityException tashlab, BUTUN ilovani krash qiladi (WebView JS
     // try/catch buni ushlay olmaydi, chunki bu native tomonda sodir bo'ladi).
+    //
+    // Callback'dagi `grants` xaritasi FAQAT shu chaqiruvda SO'RALGAN
+    // ruxsatlarni o'z ichiga oladi — agar RECORD_AUDIO oldingi qo'ng'iroqdan
+    // allaqachon berilgan bo'lsa-yu, faqat CAMERA so'ralayotgan bo'lsa,
+    // `grants[RECORD_AUDIO]` xaritada UMUMAN yo'q (`null`), `null == true`
+    // esa `false` — shu sabab qayta tekshiruvni `checkSelfPermission` bilan,
+    // TO'LIQ joriy holatga qarab qilamiz (faqat shu chaqiruv natijasiga emas).
     private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            val micGranted = grants[Manifest.permission.RECORD_AUDIO] == true
-            val camGranted = !isVideo || grants[Manifest.permission.CAMERA] == true
-            if (micGranted && camGranted) {
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+            if (hasRequiredPermissions()) {
                 proceedWithCall()
             } else {
                 statusText.text = "Mikrofon/kamera ruxsati kerak"
@@ -94,20 +99,48 @@ class CallActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         buildUi()
+        startCallFlow()
+    }
 
+    // launchMode="singleTask" (AndroidManifest.xml) — agar shu Activity'ning
+    // eski nusxasi hali tirik bo'lsa (masalan oldingi qo'ng'iroq hali
+    // to'liq yopilmagan bo'lsa), Android YANGI onCreate() chaqirmaydi,
+    // yangi Intent'ni shu yerga (onNewIntent) yuboradi. Bu override
+    // BO'LMASA, `intent`/`callId`/`isVideo` ESKI (oldingi) qo'ng'iroqning
+    // ma'lumotlarida qolib ketadi — natijada yangi qo'ng'iroq NOTO'G'RI
+    // xona/turdagi ma'lumot bilan ulanadi (masalan video kutilsa ham
+    // kamera yoqilmaydi, chunki eski `isVideo=false` saqlanib qolgan).
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        room?.disconnect()
+        room = null
+        micMuted = false
+        cameraOff = false
+        screenSharing = false
+        buildUi()
+        startCallFlow()
+    }
+
+    private fun startCallFlow() {
         isVideo = intent.getStringExtra(EXTRA_CALL_TYPE) == "VIDEO"
         callId = intent.getStringExtra(EXTRA_CALL_ID)
 
-        val needed = mutableListOf(Manifest.permission.RECORD_AUDIO)
-        if (isVideo) needed.add(Manifest.permission.CAMERA)
-        val missing = needed.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isEmpty()) {
+        if (hasRequiredPermissions()) {
             proceedWithCall()
         } else {
-            permissionLauncher.launch(missing.toTypedArray())
+            val needed = mutableListOf(Manifest.permission.RECORD_AUDIO)
+            if (isVideo) needed.add(Manifest.permission.CAMERA)
+            permissionLauncher.launch(needed.toTypedArray())
         }
+    }
+
+    private fun hasRequiredPermissions(): Boolean {
+        val micGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        val camGranted = !isVideo || ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        return micGranted && camGranted
     }
 
     private fun proceedWithCall() {
@@ -159,17 +192,22 @@ class CallActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeEvents(room: Room) {
+    private fun observeEvents(observedRoom: Room) {
         lifecycleScope.launch {
             // Room.events -&gt; EventListenable&lt;RoomEvent&gt;, uning o'zining
             // ".events" (SharedFlow&lt;RoomEvent&gt;) maydoni bor — shu bois ikki
             // qavat (LiveKit Android SDK 2.18.2 API'si shunday).
-            room.events.events.collect { event ->
+            observedRoom.events.events.collect { event ->
+                // onNewIntent orqali ESKI xona almashtirilgan bo'lishi mumkin
+                // (singleTask qayta ishlatish) — bu holatda eski xonaning
+                // "Disconnected" hodisasi YANGI boshlangan qo'ng'iroqni
+                // finish() qilib qo'ymasligi kerak.
+                if (room !== observedRoom) return@collect
                 if (event is RoomEvent.TrackSubscribed) {
                     val track = event.track
                     if (track is VideoTrack) {
                         val renderer = TextureViewRenderer(this@CallActivity)
-                        room.initVideoRenderer(renderer)
+                        observedRoom.initVideoRenderer(renderer)
                         track.addRenderer(renderer)
                         remoteContainer.removeAllViews()
                         remoteContainer.addView(
