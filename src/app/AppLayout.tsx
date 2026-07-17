@@ -8,6 +8,7 @@ import { useChatStore } from '@/features/chat/model/chat.store';
 import { useCallStore } from '@/features/chat/model/call.store';
 import { MiniVideoPlayer } from '@/features/chat/components/MiniVideoPlayer';
 import { CallOverlay } from '@/features/chat/components/CallOverlay';
+import { MinimizedCallBar } from '@/features/chat/components/MinimizedCallBar';
 import { IncomingCallBanner } from '@/features/chat/components/IncomingCallBanner';
 import { initWebPush } from '@/features/push/push.web';
 import { initNativePush } from '@/features/push/push.native';
@@ -112,6 +113,7 @@ export function AppLayout() {
       <BottomNav fullscreen={boardFullscreen || chatFullscreen} instant={chatFullscreen} />
       <MiniVideoPlayer />
       <CallOverlay />
+      <MinimizedCallBar />
       <IncomingCallBanner />
     </div>
   );

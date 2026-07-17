@@ -55,6 +55,10 @@ interface CallState {
    * ko'rinadigan davomiylik hisoblagichi uchun (CallOverlay shundan
    * hisoblaydi). `active` bosqichiga o'tganda o'rnatiladi. */
   callStartedAt: number | null;
+  /** Veb: qo'ng'iroq oynasi "yashiringan" (pastdagi kichik ko'rsatkichga
+   * yig'ilgan) holatdami — Telegram Desktop uslubidagi minimize tugmasi
+   * uchun. Android native'da ishlatilmaydi (o'zining tizim PiP'i bor). */
+  minimized: boolean;
   error: string | null;
 
   wireListeners: () => void;
@@ -65,6 +69,7 @@ interface CallState {
   toggleMic: () => Promise<void>;
   toggleCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
+  setMinimized: (v: boolean) => void;
   /** Suhbatdosh xonaga birinchi marta qo'shilganda chaqiriladi (CallOverlay
    * Room hodisalarini tinglab chaqiradi) — ikki tomonda BIR XIL boshlanish
    * nuqtasidan hisoblangan davomiylik uchun (accept so'rovi vaqtidan EMAS,
@@ -138,7 +143,10 @@ export const useCallStore = create<CallState>((set, get) => ({
   cameraOff: false,
   screenSharing: false,
   callStartedAt: null,
+  minimized: false,
   error: null,
+
+  setMinimized: (v) => set({ minimized: v }),
 
   wireListeners: () => {
     // Android native'da qo'ng'iroqning TO'LIQ mustaqil o'z oqimi bor
@@ -325,6 +333,7 @@ export const useCallStore = create<CallState>((set, get) => ({
       cameraOff: false,
       screenSharing: false,
       callStartedAt: null,
+      minimized: false,
       error: null,
     });
   },
