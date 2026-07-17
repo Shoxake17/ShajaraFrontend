@@ -105,6 +105,28 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
     private var hideChromeJob: Job? = null
     private var localPreviewDragged = false
 
+    /** Kamera almashtirish (tap-to-swap, FaceTime/Zoom uslubi): TRUE bo'lsa
+     * MAHALLIY video "katta" (fon) rolda, suhbatdoshniki kichik burchak-
+     * qutida — aks holda (standart, FALSE) teskari. Konteynerlarning O'ZI
+     * (remoteVideoContainer/localVideoContainer) va ularning ICHIDAGI
+     * renderer'lar HECH QACHON qayta ota-onalanmaydi — faqat QAYSI
+     * konteynerga "katta"/"kichik" LayoutParams berilishi shu bayroqqa
+     * qarab belgilanadi (bigContainer()/smallContainer()). */
+    private var localIsMain = false
+
+    private fun bigContainer(): FrameLayout = if (localIsMain) localVideoContainer else remoteVideoContainer
+    private fun smallContainer(): FrameLayout = if (localIsMain) remoteVideoContainer else localVideoContainer
+
+    /** Kichik burchak-qutiga bosilganda (sudrash EMAS) — katta/kichik
+     * tasvir o'rin almashadi. Yangi kichik quti STANDART burchakdan
+     * boshlaydi (eski qutining qo'lda surilgan joyi endi mos emas). */
+    private fun swapMainCamera() {
+        localIsMain = !localIsMain
+        localPreviewDragged = false
+        val svc = callService
+        updateVideoLayout(remoteVideoContainer.childCount > 0, svc?.hadRemotePeer ?: false)
+    }
+
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             val svc = (binder as CallService.LocalBinder).service()
@@ -476,34 +498,46 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         val hasLocal = localVideoContainer.childCount > 0
         when {
             remoteActive -> {
-                // MUHIM: agar foydalanuvchi mening kichik oynamni allaqachon
-                // qo'lda surib qo'ygan bo'lsa (localPreviewDragged), uning
+                // Kamera almashtirish (tap-to-swap) FAQAT shu holatda ma'noli
+                // — ikkala tomon ham (suhbatdoshning videosi + mening
+                // kamерам) bir vaqtda ko'rinib turganda. "Katta" (fon) va
+                // "kichik" (burchak) rollarni localIsMain belgilaydi.
+                val big = bigContainer()
+                val small = smallContainer()
+                val smallHasContent = if (localIsMain) remoteActive else hasLocal
+                // MUHIM: agar foydalanuvchi kichik oynani allaqachon qo'lda
+                // surib qo'ygan bo'lsa (localPreviewDragged), uning
                 // joylashuvini QAYTA STANDART BURCHAKKA tashlab yubormaymiz
                 // — faqat o'lchamini (110x150dp) to'g'rilaymiz, joyi saqlanadi.
                 if (!localPreviewDragged) {
-                    localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
+                    small.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
                         topMargin = dp(40)
                         rightMargin = dp(16)
                     }
                 } else {
-                    val lp = localVideoContainer.layoutParams
+                    val lp = small.layoutParams
                     if (lp == null || lp.width != dp(110) || lp.height != dp(150)) {
-                        localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150))
+                        small.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150))
                     }
                 }
-                localVideoContainer.visibility = if (hasLocal) View.VISIBLE else View.GONE
+                big.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                big.visibility = View.VISIBLE
+                small.visibility = if (smallHasContent) View.VISIBLE else View.GONE
                 centerOverlay.visibility = View.GONE
                 topBadge.visibility = View.VISIBLE
             }
             hadRemotePeer -> {
                 // Suhbatdosh ulangan, lekin video yo'q (kamераsi o'chiq) —
                 // MENING to'liq ekran preview'im emas, SUHBATDOSHNING
-                // avatari ko'rinishi kerak.
+                // avatari ko'rinishi kerak. Almashtirish bu holatda mavjud
+                // emas (kichik quti ko'rinmaydi) — standart holatga qaytamiz.
+                localIsMain = false
                 localVideoContainer.visibility = View.GONE
                 centerOverlay.visibility = View.VISIBLE
                 topBadge.visibility = View.VISIBLE
             }
             hasLocal -> {
+                localIsMain = false
                 localPreviewDragged = false // yangi qo'ng'iroq/holat — surish qayta standart holatdan boshlanadi
                 localVideoContainer.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 localVideoContainer.visibility = View.VISIBLE
@@ -511,6 +545,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 topBadge.visibility = View.VISIBLE
             }
             else -> {
+                localIsMain = false
                 localVideoContainer.visibility = View.GONE
                 centerOverlay.visibility = View.VISIBLE
                 topBadge.visibility = View.GONE
@@ -518,18 +553,22 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         }
     }
 
-    /** Video qo'ng'iroqda mening kichik oynamni (PiP burchak holatida)
-     * istalgan nuqtaga surish uchun — Telegram uslubi. FAQAT suhbatdoshning
-     * videosi to'liq ekranda bo'lgan holatda (kichik burchak rejimida)
-     * ma'noli; to'liq ekran holatida (hali hech kim yo'q) surish o'chiriladi. */
-    private fun makeLocalPreviewDraggable() {
+    /** Video qo'ng'iroqda kichik burchak-oynani (PiP holatida) istalgan
+     * nuqtaga surish + unga bosilganda (sudrash EMAS) katta/kichik tasvir
+     * o'RIN ALMASHTIRISH uchun — Telegram/FaceTime uslubi. IKKALA
+     * konteynerga ham (remoteVideoContainer VA localVideoContainer)
+     * biriktiriladi — chunki kamera almashtirilgach QAYSI BIRI "kichik"
+     * ekanligi o'zgaradi; har biri o'zi HOZIR kichik rolda ekanligini
+     * `smallContainer() === v` orqali tekshirib, aks holda hech narsa
+     * qilmaydi (katta konteynerda sudrash/bosish ma'nosiz). */
+    private fun makeSmallBoxInteractive(view: FrameLayout) {
         var downRawX = 0f
         var downRawY = 0f
         var startX = 0f
         var startY = 0f
         var dragging = false
-        localVideoContainer.setOnTouchListener { v, event ->
-            if (remoteVideoContainer.childCount == 0) return@setOnTouchListener false
+        view.setOnTouchListener { v, event ->
+            if (smallContainer() !== v) return@setOnTouchListener false
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     downRawX = event.rawX
@@ -554,7 +593,10 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (!dragging) v.performClick()
+                    if (!dragging) {
+                        v.performClick()
+                        swapMainCamera()
+                    }
                     true
                 }
                 else -> false
@@ -637,14 +679,15 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         applyPipLayout(isInPictureInPictureMode)
     }
 
-    /** PiP oynasiga kirganda ekran juda kichik bo'ladi — faqat SUHBATDOSH
-     * (men EMAS) to'liq oynani egallashi kerak: uning videosi bo'lsa video,
-     * bo'lmasa avatari. Boshqaruv tugmalari/ism-badge/kichraytirish tugmasi
-     * kichik oynada o'qib bo'lmaydigan holga kelgani uchun yashiriladi —
-     * Android o'zi PiP oynasi ustida tizim tugmalari (kengaytirish/yopish)ni
-     * chizadi. LEKIN kamera/mikrofon o'chirilgan BELGISI (remoteStatusRow)
-     * ATAYLAB ko'rinishda qoladi — bu foydalanuvchiga muhim ma'lumot,
-     * kichik oynada ham bilinishi kerak. */
+    /** PiP oynasiga kirganda ekran juda kichik bo'ladi — foydalanuvchi
+     * kamera almashtirib "o'zini katta" qilib qo'ygan bo'lsa, tizim PiP
+     * oynasi ham O'SHANI ko'rsatishi kerak (aks holda foydalanuvchi
+     * "katta" qilib tanlagan tasvir PiP'ga kirganda kutilmaganda
+     * g'oyib bo'lardi) — shu bois bigContainer()/smallContainer() orqali,
+     * standart holatda (localIsMain=false) bu SUHBATDOSH bo'ladi. Boshqaruv
+     * tugmalari/ism-badge/kichraytirish tugmasi kichik oynada o'qib
+     * bo'lmaydigan holga kelgani uchun yashiriladi — Android o'zi PiP
+     * oynasi ustida tizim tugmalari (kengaytirish/yopish)ni chizadi. */
     private fun applyPipLayout(inPip: Boolean) {
         if (inPip) {
             hideChromeJob?.cancel()
@@ -655,10 +698,12 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             nameView.visibility = View.GONE
             relationView.visibility = View.GONE
             statusText.visibility = View.GONE
-            localVideoContainer.visibility = View.GONE
-            val hasRemoteVideo = remoteVideoContainer.childCount > 0
-            remoteVideoContainer.visibility = if (hasRemoteVideo) View.VISIBLE else View.GONE
-            centerOverlay.visibility = if (hasRemoteVideo) View.GONE else View.VISIBLE
+            val big = bigContainer()
+            val small = smallContainer()
+            small.visibility = View.GONE
+            val bigHasVideo = big.childCount > 0
+            big.visibility = if (bigHasVideo) View.VISIBLE else View.GONE
+            centerOverlay.visibility = if (bigHasVideo) View.GONE else View.VISIBLE
         } else {
             // To'liq ekranga qaytilganda boshqaruv tugmalari/ism-badge
             // TOZA holatdan qayta ko'rsatiladi — PiP'dan oldin 3 soniyalik
@@ -715,7 +760,8 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
                 rightMargin = dp(16)
             },
         )
-        makeLocalPreviewDraggable()
+        makeSmallBoxInteractive(localVideoContainer)
+        makeSmallBoxInteractive(remoteVideoContainer)
 
         // Video oqim boshlanganda ko'rinadigan yuqori "chip" (ism + holat/vaqt)
         topBadgeText = TextView(this).apply {
