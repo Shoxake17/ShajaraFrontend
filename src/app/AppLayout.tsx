@@ -5,7 +5,10 @@ import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { useSessionLiveness } from '@/features/auth/hooks/useSessionLiveness';
 import { useChatStore } from '@/features/chat/model/chat.store';
+import { useCallStore } from '@/features/chat/model/call.store';
 import { MiniVideoPlayer } from '@/features/chat/components/MiniVideoPlayer';
+import { CallOverlay } from '@/features/chat/components/CallOverlay';
+import { IncomingCallBanner } from '@/features/chat/components/IncomingCallBanner';
 import { initWebPush } from '@/features/push/push.web';
 import { initNativePush } from '@/features/push/push.native';
 
@@ -56,6 +59,12 @@ export function AppLayout() {
     return () => disconnectChat();
   }, [connectChat, disconnectChat, loadChatContacts]);
 
+  // Qo'ng'iroq (call:*) socket tinglovchilari — mavjud /chat ulanishi orqali
+  // (calls.store.ts o'zi getChatSocket()'dan foydalanadi, yangi ulanish ochmaydi).
+  useEffect(() => {
+    useCallStore.getState().wireListeners();
+  }, []);
+
   // Ilova/tab BUTUNLAY yopilganda ham xabar kelganda tepada tizim push
   // bildirishnomasi chiqishi uchun (Telegram uslubi) — brauzer/PWA'da
   // Firebase Web Push, Android APK'da nativ FCM (@capacitor/push-notifications).
@@ -102,6 +111,8 @@ export function AppLayout() {
       </div>
       <BottomNav fullscreen={boardFullscreen || chatFullscreen} instant={chatFullscreen} />
       <MiniVideoPlayer />
+      <CallOverlay />
+      <IncomingCallBanner />
     </div>
   );
 }

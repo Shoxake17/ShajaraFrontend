@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brend rangi (ic_launcher_background.xml bilan bir xil #26A69A) —
+         push bildirishnoma status-barda shu rangda ko'rsatiladi. -->
+    <color name="notification_color">#26A69A</color>
+</resources>

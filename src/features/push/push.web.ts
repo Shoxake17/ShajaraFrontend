@@ -39,9 +39,11 @@ export async function initWebPush(): Promise<void> {
     // chat.store.ts'ga tushgan, qo'shimcha amal shart emas.
     fcmOnMessage(messaging, (payload) => {
       if (!document.hidden) return;
-      const title = payload.notification?.title ?? 'AJDO';
-      const body = payload.notification?.body ?? '';
+      // Backend ATAYLAB faqat `data` yuboradi (push.service.ts) — sarlavha/matn
+      // shu yerda, `payload.notification`da EMAS.
       const data = payload.data ?? {};
+      const title = data.title ?? 'AJDO';
+      const body = data.body ?? '';
       void registration.showNotification(title, {
         body,
         icon: '/shajaratree.png',

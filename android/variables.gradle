@@ -1,5 +1,8 @@
 ext {
-    minSdkVersion = 23
+    // 26 (Android 8.0) ga oshirildi — LiveKit Android SDK (qo'ng'iroq) buni
+    // talab qiladi, va push kodi ham allaqachon shu darajadan pastda
+    // (Build.VERSION_CODES.O) NotificationChannel'siz ishlagan.
+    minSdkVersion = 26
     compileSdkVersion = 35
     targetSdkVersion = 35
     androidxActivityVersion = '1.9.2'
@@ -13,4 +16,9 @@ ext {
     androidxJunitVersion = '1.2.1'
     androidxEspressoCoreVersion = '3.6.1'
     cordovaAndroidVersion = '10.1.1'
+    // @capacitor/push-notifications shu versiyani ishlatadi (default '24.1.0'
+    // fallback'i) — AjdoFirebaseMessagingService app modulida ham
+    // FirebaseMessagingService/RemoteMessage klasslariga bevosita kirish
+    // uchun buni aniq ko'rsatib qo'yish kerak (implementation transitiv EMAS).
+    firebaseMessagingVersion = '24.1.0'
 }

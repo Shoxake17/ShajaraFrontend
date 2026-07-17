@@ -25,6 +25,14 @@ const config: CapacitorConfig = {
       androidClientId: WEB_GOOGLE_CLIENT_ID,
       serverClientId: WEB_GOOGLE_CLIENT_ID,
     },
+    // Buning yo'qligi ilova FOREGROUND'da (ochiq/faol) bo'lganda push kelsa
+    // @capacitor/push-notifications'ning PushNotificationsPlugin.fireNotification()
+    // metodi hech narsa chizmasdan jim tashlab yuborishiga sabab bo'lgan edi —
+    // "alert" bo'lmasa, heads-up popup HECH QACHON ko'rsatilmaydi (faqat
+    // ilova background/killed bo'lganda FCM o'zi tizim orqali ko'rsatadi).
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
   },
 };
 

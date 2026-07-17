@@ -22,9 +22,12 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = (payload.notification && payload.notification.title) || 'AJDO';
-  const body = (payload.notification && payload.notification.body) || '';
+  // Backend ATAYLAB faqat `data` yuboradi (Android'dagi heads-up/large-icon
+  // muammosi uchun) — shuning uchun sarlavha/matn `payload.notification`da
+  // EMAS, `payload.data`da keladi.
   const data = payload.data || {};
+  const title = data.title || 'AJDO';
+  const body = data.body || '';
   self.registration.showNotification(title, {
     body,
     icon: '/shajaratree.png',

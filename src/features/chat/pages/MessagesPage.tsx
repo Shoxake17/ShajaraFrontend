@@ -16,18 +16,23 @@ import {
   Pause,
   Paperclip,
   Pencil,
+  Phone,
   Play,
   PictureInPicture2,
   Search,
   Send,
   Trash2,
+  Video,
   Volume2,
   VolumeX,
   X,
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { usePipStore } from '@/features/chat/model/pip.store';
+import { useCallStore } from '@/features/chat/model/call.store';
+import { startNativeCall } from '@/features/chat/lib/native-call';
 import { uploadChatAttachment, type ChatContact, type ChatMessage } from '@/features/chat/api/chat.api';
 import { quotaMessage } from '@/features/storage/storage.store';
 import { r2UploadErrorMessage } from '@/shared/lib/upload-errors';
@@ -43,6 +48,20 @@ function initials(name: string): string {
 
 const themeFor = (female: boolean) =>
   female ? 'bg-pink-100 text-pink-700' : 'bg-brand-100 text-brand-800';
+
+/**
+ * Android'da qo'ng'iroq/video-qo'ng'iroq WebView (livekit-client) orqali
+ * EMAS — to'liq mustaqil native ekranda ochiladi (qulf ekranida jiringlash
+ * va ekran ulashishni boshlash WebView'da ishlamaydi). Veb/desktop'da esa
+ * to'g'ridan-to'g'ri call.store.ts.
+ */
+function placeCall(contact: ChatContact, type: 'AUDIO' | 'VIDEO'): void {
+  if (Capacitor.isNativePlatform()) {
+    void startNativeCall(contact.userId, type);
+  } else {
+    void useCallStore.getState().startCall(contact, type);
+  }
+}
 
 function Avatar({ name, gender, photoUrl, size = 44 }: { name: string; gender: string; photoUrl: string | null; size?: number }) {
   const female = gender === 'FEMALE';
@@ -879,6 +898,24 @@ function Thread({ contact }: { contact: ChatContact }) {
       <div className="hidden shrink-0 items-center gap-2.5 border-b border-brand-100 bg-white px-3 py-2.5 lg:flex">
         <Avatar name={contact.fullName} gender={contact.gender} photoUrl={contact.photoUrl} size={36} />
         <span className="truncate text-sm font-semibold text-brand-900">{contact.fullName}</span>
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => placeCall(contact, 'AUDIO')}
+            aria-label="Ovozli qo'ng'iroq"
+            className="rounded-full p-2 text-brand-700 transition-colors hover:bg-brand-50"
+          >
+            <Phone size={19} />
+          </button>
+          <button
+            type="button"
+            onClick={() => placeCall(contact, 'VIDEO')}
+            aria-label="Video qo'ng'iroq"
+            className="rounded-full p-2 text-brand-700 transition-colors hover:bg-brand-50"
+          >
+            <Video size={19} />
+          </button>
+        </div>
       </div>
 
       <div className="no-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto bg-brand-50/50 px-3 py-3">
@@ -1100,6 +1137,24 @@ export function MessagesPage() {
                   </button>
                   <Avatar name={activeContact.fullName} gender={activeContact.gender} photoUrl={activeContact.photoUrl} size={32} />
                   <span className="truncate text-sm font-semibold text-brand-900">{activeContact.fullName}</span>
+                  <div className="ml-auto flex shrink-0 items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => placeCall(activeContact, 'AUDIO')}
+                      aria-label="Ovozli qo'ng'iroq"
+                      className="rounded-full p-2 text-brand-700 transition-colors hover:bg-brand-50"
+                    >
+                      <Phone size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => placeCall(activeContact, 'VIDEO')}
+                      aria-label="Video qo'ng'iroq"
+                      className="rounded-full p-2 text-brand-700 transition-colors hover:bg-brand-50"
+                    >
+                      <Video size={18} />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <ChatSearchInput value={query} onChange={setQuery} className="w-full" />

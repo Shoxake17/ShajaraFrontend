@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -27,6 +27,61 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- FCM fallback (bizning AjdoFirebaseMessagingService har doim o'zi
+             notification quradi, shuning uchun bu meta-data'lar odatda
+             ishlatilmaydi — lekin agar biror sabab bilan tizim FCM'ni o'zi
+             avtomatik ko'rsatsa (masalan ilova umuman ishga tushmagan holatda),
+             shu izchil ikonka/rang/kanal ishlatilishi uchun qoldirilgan). -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="chat_messages" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+
+        <!-- @capacitor/push-notifications'ning stock MessagingService'i
+             (kutubxona AAR manifestidan meros) olib tashlanadi — o'rniga
+             pastdagi AjdoFirebaseMessagingService bitta xizmat sifatida
+             ro'yxatga olinadi (large icon/rangli logotip uchun, quyida). -->
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+
+        <service
+            android:name=".AjdoFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Qo'ng'iroq — to'liq native (Kotlin, LiveKit Android SDK) ekranlar,
+             WebView emas (qulf ekranida jiringlash + ekran ulashishni
+             boshlash uchun shart). -->
+        <activity
+            android:name=".calls.IncomingCallActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".calls.CallActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <service
+            android:name=".calls.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
     </application>
 
     <!-- Permissions -->
@@ -36,4 +91,20 @@
          tushirilishi kerak bo'lgan runtime ruxsat (@capacitor/push-notifications
          PushNotifications.requestPermissions() shu bilan ishlaydi). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Qo'ng'iroq (ovoz/video/ekran ulashish) uchun -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Kiruvchi qo'ng'iroqni qulf ekranida ham to'liq ekran ko'rsatish
+         uchun — Android 14+ (API 34) foydalanuvchidan ANIQ ruxsat talab
+         qiladi (Sozlamalar), ilova ichida shunga yo'naltirish kerak
+         bo'ladi. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Ekran ulashish (MediaProjection) foreground xizmati uchun -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 </manifest>
