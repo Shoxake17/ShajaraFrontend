@@ -4,12 +4,17 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
+import android.os.SystemClock
+import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,8 +28,12 @@ import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.Room
 import io.livekit.android.room.track.VideoTrack
 import io.livekit.android.room.track.screencapture.ScreenCaptureParams
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import uz.ajdo.shajara.R
+import java.util.Locale
 
 /**
  * To'liq native (WebView emas) qo'ng'iroq ekrani — LiveKit Android SDK
@@ -35,9 +44,9 @@ import kotlinx.coroutines.launch
  *    bosgandan KEYIN (/calls/accept allaqachon so'ralgan) shu Activity'ni
  *    tayyor roomName/token/livekitUrl bilan ochadi.
  *
- * Dasturiy (XML'siz) UI — soddalik uchun; tugma ikonkalari vaqtincha
- * tizimning standart drawable'lari (keyinroq maxsus ikonkalarga almashtirish
- * mumkin).
+ * UI — Telegram/Apple uslubidagi qo'ng'iroq ekrani: markazda boshqa
+ * tomonning avatari (rasm yoki ism bosh harfi) + ismi + holat/vaqt
+ * hisoblagichi, pastda boshqaruv tugmalari (yumaloq).
  */
 class CallActivity : AppCompatActivity() {
     companion object {
@@ -48,6 +57,8 @@ class CallActivity : AppCompatActivity() {
         const val EXTRA_ROOM_NAME = "roomName"
         const val EXTRA_TOKEN = "token"
         const val EXTRA_LIVEKIT_URL = "livekitUrl"
+        const val EXTRA_PEER_NAME = "peerName"
+        const val EXTRA_PEER_PHOTO_URL = "peerPhotoUrl"
     }
 
     private var room: Room? = null
@@ -56,22 +67,30 @@ class CallActivity : AppCompatActivity() {
     private var micMuted = false
     private var cameraOff = false
     private var screenSharing = false
+    private var peerName = "AJDO"
+    private var hadRemotePeer = false
+    private var callStartElapsedMs: Long? = null
+    private var timerJob: Job? = null
 
-    private lateinit var remoteContainer: FrameLayout
+    private lateinit var remoteVideoContainer: FrameLayout
+    private lateinit var centerOverlay: LinearLayout
+    private lateinit var avatarPhotoView: ImageView
+    private lateinit var avatarInitialsView: TextView
+    private lateinit var nameView: TextView
     private lateinit var statusText: TextView
+    private lateinit var topBadge: LinearLayout
+    private lateinit var topBadgeText: TextView
+    private lateinit var controlsRow: LinearLayout
 
-    // Krashni Firebase Crashlytics'da masofadan tashxislash uchun — real
-    // qurilmaga (adb/logcat) fizik kirish yo'q, shuning uchun har bir muhim
-    // bosqich shu orqali "non-fatal breadcrumb" sifatida qayd etiladi. Krash
-    // sodir bo'lganda Crashlytics oxirgi 64 ta logni report bilan birga
-    // yuboradi — bu ANIQ qaysi bosqichda (masalan connectRoom vs
-    // observeEvents) muammo borligini ko'rsatadi.
     private fun breadcrumb(msg: String) {
         try {
             FirebaseCrashlytics.getInstance().log(msg)
         } catch (_: Exception) {
         }
     }
+
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics).toInt()
 
     private val screenCaptureLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -104,7 +123,7 @@ class CallActivity : AppCompatActivity() {
             } else {
                 statusText.text = "Mikrofon/kamera ruxsati kerak"
                 lifecycleScope.launch {
-                    kotlinx.coroutines.delay(1500)
+                    delay(1500)
                     finish()
                 }
             }
@@ -123,8 +142,7 @@ class CallActivity : AppCompatActivity() {
     // yangi Intent'ni shu yerga (onNewIntent) yuboradi. Bu override
     // BO'LMASA, `intent`/`callId`/`isVideo` ESKI (oldingi) qo'ng'iroqning
     // ma'lumotlarida qolib ketadi — natijada yangi qo'ng'iroq NOTO'G'RI
-    // xona/turdagi ma'lumot bilan ulanadi (masalan video kutilsa ham
-    // kamera yoqilmaydi, chunki eski `isVideo=false` saqlanib qolgan).
+    // xona/turdagi ma'lumot bilan ulanadi.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         breadcrumb("CallActivity.onNewIntent outgoing=${intent.getBooleanExtra(EXTRA_OUTGOING, false)} type=${intent.getStringExtra(EXTRA_CALL_TYPE)}")
@@ -134,6 +152,9 @@ class CallActivity : AppCompatActivity() {
         micMuted = false
         cameraOff = false
         screenSharing = false
+        hadRemotePeer = false
+        callStartElapsedMs = null
+        stopTimer()
         buildUi()
         startCallFlow()
     }
@@ -141,6 +162,10 @@ class CallActivity : AppCompatActivity() {
     private fun startCallFlow() {
         isVideo = intent.getStringExtra(EXTRA_CALL_TYPE) == "VIDEO"
         callId = intent.getStringExtra(EXTRA_CALL_ID)
+        peerName = intent.getStringExtra(EXTRA_PEER_NAME) ?: "AJDO"
+        val peerPhotoUrl = intent.getStringExtra(EXTRA_PEER_PHOTO_URL)
+        nameView.text = peerName
+        CallAvatar.bind(avatarPhotoView, avatarInitialsView, peerName, peerPhotoUrl)
         breadcrumb("startCallFlow isVideo=$isVideo hasPermissions=${hasRequiredPermissions()}")
 
         if (hasRequiredPermissions()) {
@@ -216,10 +241,8 @@ class CallActivity : AppCompatActivity() {
                 }
                 // MUHIM: "Ulandi" shu yergacha FAQAT shu qurilmaning O'ZI
                 // LiveKit'ga muvaffaqiyatli ulanganini bildirar edi — boshqa
-                // tomon HALI QO'SHILMAGAN bo'lsa ham! Foydalanuvchi
-                // "ulandi" deb turibdi-yu, aslida hech kim javob bermagan
-                // holat shundan kelib chiqqan. Endi holat haqiqiy
-                // ishtirokchilar sonini aks ettiradi (pastda
+                // tomon HALI QO'SHILMAGAN bo'lsa ham! Endi holat haqiqiy
+                // ishtirokchilar soniga qarab aniqlanadi (pastda
                 // ParticipantConnected/Disconnected orqali yangilanadi).
                 updateConnectionStatus(newRoom)
                 breadcrumb("connectRoom: local connect OK, remoteParticipants=${newRoom.remoteParticipants.size}")
@@ -232,7 +255,39 @@ class CallActivity : AppCompatActivity() {
     }
 
     private fun updateConnectionStatus(observedRoom: Room) {
-        statusText.text = if (observedRoom.remoteParticipants.isNotEmpty()) "Ulandi" else "Kutilmoqda..."
+        if (observedRoom.remoteParticipants.isNotEmpty()) {
+            hadRemotePeer = true
+            if (callStartElapsedMs == null) {
+                callStartElapsedMs = SystemClock.elapsedRealtime()
+                startTimer()
+            }
+            controlsRow.visibility = View.VISIBLE
+            controlsRowVisibilityBridge?.invoke(true)
+        } else {
+            controlsRow.visibility = View.GONE
+            controlsRowVisibilityBridge?.invoke(false)
+            statusText.text = if (intent.getBooleanExtra(EXTRA_OUTGOING, false)) "Chaqirilmoqda..." else "Kutilmoqda..."
+        }
+    }
+
+    private fun startTimer() {
+        stopTimer()
+        timerJob = lifecycleScope.launch {
+            while (true) {
+                val start = callStartElapsedMs ?: break
+                val elapsedSec = (SystemClock.elapsedRealtime() - start) / 1000
+                val mm = elapsedSec / 60
+                val ss = elapsedSec % 60
+                statusText.text = String.format(Locale.US, "%02d:%02d", mm, ss)
+                topBadgeText.text = String.format(Locale.US, "%s · %02d:%02d", peerName, mm, ss)
+                delay(1000)
+            }
+        }
+    }
+
+    private fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
     }
 
     private fun observeEvents(observedRoom: Room) {
@@ -244,8 +299,8 @@ class CallActivity : AppCompatActivity() {
                 breadcrumb("RoomEvent: ${event::class.simpleName}")
                 // onNewIntent orqali ESKI xona almashtirilgan bo'lishi mumkin
                 // (singleTask qayta ishlatish) — bu holatda eski xonaning
-                // "Disconnected" hodisasi YANGI boshlangan qo'ng'iroqni
-                // finish() qilib qo'ymasligi kerak.
+                // hodisalari YANGI boshlangan qo'ng'iroqqa ta'sir qilmasligi
+                // kerak.
                 if (room !== observedRoom) return@collect
                 try {
                     if (event is RoomEvent.TrackSubscribed) {
@@ -254,11 +309,18 @@ class CallActivity : AppCompatActivity() {
                             val renderer = TextureViewRenderer(this@CallActivity)
                             observedRoom.initVideoRenderer(renderer)
                             track.addRenderer(renderer)
-                            remoteContainer.removeAllViews()
-                            remoteContainer.addView(
+                            remoteVideoContainer.removeAllViews()
+                            remoteVideoContainer.addView(
                                 renderer,
                                 FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
                             )
+                            // Video oqim boshlanganda katta avatar/ism/holat
+                            // markazdagi bloki video'ni to'sib turmasligi
+                            // uchun kichik yuqori "chip"ga almashtiriladi
+                            // (Telegram/Apple uslubidagi video-qo'ng'iroq
+                            // ko'rinishi).
+                            centerOverlay.visibility = View.GONE
+                            topBadge.visibility = View.VISIBLE
                         }
                     }
                     if (event is RoomEvent.ParticipantConnected) {
@@ -267,7 +329,24 @@ class CallActivity : AppCompatActivity() {
                     }
                     if (event is RoomEvent.ParticipantDisconnected) {
                         breadcrumb("ParticipantDisconnected: ${event.participant.identity}")
-                        updateConnectionStatus(observedRoom)
+                        // MUHIM TUZATISH: avval faqat "Kutilmoqda..." matni
+                        // yangilanardi — boshqa tomon Qizil (Yakunlash/Rad
+                        // etish) tugmasini bossa, BU tomon xonada YAKKA
+                        // qolgan holda EKRANDA QOLIB KETARDI. Endi: agar
+                        // haqiqiy suhbatdosh BOR EDI-yu, endi hech kim
+                        // qolmagan bo'lsa (1-1 qo'ng'iroq) — bu qo'ng'iroq
+                        // TUGADI degani, shu tomon ham avtomatik chiqadi.
+                        if (hadRemotePeer && observedRoom.remoteParticipants.isEmpty()) {
+                            breadcrumb("Peer left, ending call for this side too")
+                            statusText.text = "Qo'ng'iroq tugadi"
+                            stopTimer()
+                            lifecycleScope.launch {
+                                delay(700)
+                                if (room === observedRoom) finishCall(notifyBackend = false)
+                            }
+                        } else {
+                            updateConnectionStatus(observedRoom)
+                        }
                     }
                     if (event is RoomEvent.Disconnected) {
                         breadcrumb("RoomEvent.Disconnected -> finish()")
@@ -289,11 +368,13 @@ class CallActivity : AppCompatActivity() {
     private fun toggleMic() {
         micMuted = !micMuted
         lifecycleScope.launch { room?.localParticipant?.setMicrophoneEnabled(!micMuted) }
+        refreshControlIcons()
     }
 
     private fun toggleCamera() {
         cameraOff = !cameraOff
         lifecycleScope.launch { room?.localParticipant?.setCameraEnabled(!cameraOff) }
+        refreshControlIcons()
     }
 
     private fun toggleScreenShare() {
@@ -305,67 +386,214 @@ class CallActivity : AppCompatActivity() {
             val manager = getSystemService(MediaProjectionManager::class.java)
             screenCaptureLauncher.launch(manager.createScreenCaptureIntent())
         }
+        refreshControlIcons()
     }
 
-    private fun endCall() {
-        breadcrumb("endCall (user tapped hang up)")
+    /** `endCall`ning ichki qismi — foydalanuvchi Qizil tugmani bossa
+     * (notifyBackend=true, backend'ga /calls/end so'raladi) yoki boshqa
+     * tomon allaqachon chiqib ketgani aniqlansa (notifyBackend=false,
+     * chunki backend holati allaqachon boshqa tomon so'rovi orqali
+     * yangilangan) chaqiriladi. */
+    private fun finishCall(notifyBackend: Boolean) {
         val id = callId
-        if (id != null) {
+        if (notifyBackend && id != null) {
             lifecycleScope.launch { runCatching { CallsHttp.end(this@CallActivity, id) } }
         }
+        stopTimer()
         room?.disconnect()
         stopService(Intent(this, ScreenCaptureService::class.java))
         finish()
     }
 
+    private fun endCall() {
+        breadcrumb("endCall (user tapped hang up)")
+        finishCall(notifyBackend = true)
+    }
+
     override fun onDestroy() {
         breadcrumb("CallActivity.onDestroy isFinishing=$isFinishing isChangingConfigurations=$isChangingConfigurations")
+        stopTimer()
         room?.disconnect()
         super.onDestroy()
     }
 
+    // ---------- UI qurish ----------
+
     private fun buildUi() {
-        val root = FrameLayout(this).apply { setBackgroundColor(0xFF000000.toInt()) }
-
-        remoteContainer = FrameLayout(this)
-        root.addView(remoteContainer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-
-        statusText = TextView(this).apply {
-            setTextColor(0xFFFFFFFF.toInt())
-            textSize = 16f
-            gravity = Gravity.CENTER
+        val root = FrameLayout(this).apply {
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(0xFF0B2B1E.toInt(), 0xFF000000.toInt()),
+            )
         }
-        val topBar = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(32, 96, 32, 16)
-            addView(statusText)
-        }
-        root.addView(
-            topBar,
-            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP),
-        )
 
-        val controls = LinearLayout(this).apply {
+        remoteVideoContainer = FrameLayout(this)
+        root.addView(remoteVideoContainer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+
+        // Video oqim boshlanganda ko'rinadigan kichik yuqori "chip" (ism + vaqt)
+        topBadgeText = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            textSize = 15f
+        }
+        topBadge = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(16, 16, 16, 96)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(20).toFloat()
+                setColor(0x66000000)
+            }
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+            visibility = View.GONE
+            addView(topBadgeText)
         }
-        fun button(iconRes: Int, tint: Int = 0xFFFFFFFF.toInt(), onClick: () -> Unit) = ImageButton(this).apply {
-            setImageResource(iconRes)
-            background = null
-            setColorFilter(tint)
-            setPadding(32, 32, 32, 32)
-            setOnClickListener { onClick() }
-        }
-        controls.addView(button(android.R.drawable.ic_btn_speak_now) { toggleMic() })
-        if (isVideo) controls.addView(button(android.R.drawable.ic_menu_camera) { toggleCamera() })
-        controls.addView(button(android.R.drawable.ic_menu_share) { toggleScreenShare() })
-        controls.addView(button(android.R.drawable.ic_menu_close_clear_cancel, 0xFFFF5252.toInt()) { endCall() })
         root.addView(
-            controls,
-            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM),
+            topBadge,
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
+                topMargin = dp(56)
+            },
         )
 
+        // Markazdagi avatar + ism + holat/vaqt bloki
+        centerOverlay = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+        val avatarSize = dp(150)
+        val avatarFrame = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(avatarSize, avatarSize)
+        }
+        avatarInitialsView = TextView(this).apply {
+            gravity = Gravity.CENTER
+            textSize = 56f
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(CallAvatar.colorFor(peerName))
+            }
+        }
+        avatarPhotoView = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            visibility = View.GONE
+        }
+        avatarFrame.addView(avatarInitialsView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        avatarFrame.addView(avatarPhotoView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        centerOverlay.addView(avatarFrame)
+
+        nameView = TextView(this).apply {
+            text = peerName
+            setTextColor(Color.WHITE)
+            textSize = 26f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            gravity = Gravity.CENTER
+            setPadding(dp(24), dp(24), dp(24), 0)
+        }
+        centerOverlay.addView(nameView)
+
+        statusText = TextView(this).apply {
+            setTextColor(0xB3FFFFFF.toInt())
+            textSize = 16f
+            gravity = Gravity.CENTER
+            setPadding(0, dp(8), 0, 0)
+        }
+        centerOverlay.addView(statusText)
+
+        root.addView(centerOverlay, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+
+        // Pastki boshqaruv qatori: mikrofon / kamera / ekran ulashish (kulrang,
+        // shaffof yumaloq tugmalar) + Qizil (Yakunlash) tugmasi. Faqat boshqa
+        // tomon xonaga qo'shilgach ko'rinadi (updateConnectionStatus orqali) —
+        // shundan oldin faqat bekor qilish tugmasi kifoya.
+        controlsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+        }
+        controlsRow.addView(secondaryButton(android.R.drawable.ic_btn_speak_now) { toggleMic() })
+        controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
+        if (isVideo) {
+            controlsRow.addView(secondaryButton(android.R.drawable.ic_menu_camera) { toggleCamera() })
+            controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
+        }
+        controlsRow.addView(secondaryButton(android.R.drawable.ic_menu_share) { toggleScreenShare() })
+        controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
+        controlsRow.addView(endCallButton())
+
+        // Faqat Qizil (bekor qilish) tugmasi — hali hech kim qo'shilmagan
+        // paytda (chaqirilyapti/kutilmoqda) ko'rinadi.
+        val cancelOnlyRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            addView(endCallButton())
+        }
+
+        val bottomContainer = FrameLayout(this)
+        bottomContainer.addView(cancelOnlyRow)
+        bottomContainer.addView(controlsRow)
+        root.addView(
+            bottomContainer,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+            ).apply { bottomMargin = dp(72) },
+        )
+        // controlsRow ko'rinishga kelganda cancelOnlyRow'ni yashirish —
+        // updateConnectionStatus() shu ikkalasini boshqaradi.
+        controlsRowVisibilityBridge = { visible ->
+            cancelOnlyRow.visibility = if (visible) View.GONE else View.VISIBLE
+        }
+
         setContentView(root)
+    }
+
+    private var controlsRowVisibilityBridge: ((Boolean) -> Unit)? = null
+
+    private fun refreshControlIcons() {
+        // Hozircha faqat funksional holat (yoqilgan/o'chirilgan) saqlanadi —
+        // vizual bosilgan/bosilmagan farqi keyingi bosqichda ranglar bilan
+        // kengaytirilishi mumkin.
+    }
+
+    private fun secondaryButton(iconRes: Int, onClick: () -> Unit): FrameLayout {
+        val size = dp(56)
+        val circle = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(0x33FFFFFF)
+            }
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+        }
+        val icon = ImageView(this).apply {
+            setImageResource(iconRes)
+            setColorFilter(Color.WHITE)
+        }
+        val iconSize = dp(24)
+        circle.addView(icon, FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER))
+        return circle
+    }
+
+    private fun endCallButton(): FrameLayout {
+        val size = dp(64)
+        val circle = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(0xFFFF3B30.toInt())
+            }
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { endCall() }
+        }
+        val icon = ImageView(this).apply {
+            setImageResource(R.drawable.ic_call)
+            setColorFilter(Color.WHITE)
+            rotation = 135f
+        }
+        val iconSize = dp(26)
+        circle.addView(icon, FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER))
+        return circle
     }
 }

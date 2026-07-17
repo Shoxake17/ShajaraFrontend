@@ -7,15 +7,33 @@
 import { registerPlugin } from '@capacitor/core';
 
 interface CallPluginApi {
-  startCall(options: { calleeId: string; callType: 'AUDIO' | 'VIDEO' }): Promise<void>;
+  startCall(options: {
+    calleeId: string;
+    callType: 'AUDIO' | 'VIDEO';
+    calleeName?: string;
+    calleePhotoUrl?: string;
+  }): Promise<void>;
   syncAuthToken(options: { accessToken: string; userId: string }): Promise<void>;
   clearAuthToken(): Promise<void>;
 }
 
 const CallPlugin = registerPlugin<CallPluginApi>('CallPlugin');
 
-export async function startNativeCall(calleeId: string, callType: 'AUDIO' | 'VIDEO'): Promise<void> {
-  await CallPlugin.startCall({ calleeId, callType });
+// calleeName/calleePhotoUrl — JS'da ALLAQACHON mavjud (ChatContact, server
+// so'rovisiz) — Apple/Telegram uslubidagi qo'ng'iroq ekranida chaqirilayotgan
+// odamning ismi/rasmini DARHOL (tarmoq kutmasdan) ko'rsatish uchun.
+export async function startNativeCall(
+  calleeId: string,
+  callType: 'AUDIO' | 'VIDEO',
+  calleeName?: string,
+  calleePhotoUrl?: string | null,
+): Promise<void> {
+  await CallPlugin.startCall({
+    calleeId,
+    callType,
+    ...(calleeName ? { calleeName } : {}),
+    ...(calleePhotoUrl ? { calleePhotoUrl } : {}),
+  });
 }
 
 /** auth.store.ts har safar accessToken o'zgarganda chaqiradi — native

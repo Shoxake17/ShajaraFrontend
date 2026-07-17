@@ -28,6 +28,11 @@ class CallPlugin : Plugin() {
             putExtra(CallActivity.EXTRA_CALLEE_ID, calleeId)
             putExtra(CallActivity.EXTRA_CALL_TYPE, callType)
             putExtra(CallActivity.EXTRA_OUTGOING, true)
+            // JS'dan (ChatContact, server so'rovisiz) — Apple/Telegram
+            // uslubidagi ekranda chaqirilayotgan odam ismi/rasmini darhol
+            // ko'rsatish uchun.
+            call.getString("calleeName")?.let { putExtra(CallActivity.EXTRA_PEER_NAME, it) }
+            call.getString("calleePhotoUrl")?.let { putExtra(CallActivity.EXTRA_PEER_PHOTO_URL, it) }
         }
         activity.startActivity(intent)
         call.resolve()

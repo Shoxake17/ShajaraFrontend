@@ -176,6 +176,7 @@ public class AjdoFirebaseMessagingService extends MessagingService {
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALL_ID, callId);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_NAME, callerName);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALL_TYPE, callType);
+        fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_AVATAR_URL, data.get("avatarUrl"));
 
         // Android full-screen-intent bildirishnomani FAQAT ekran o'chiq/
         // qulflangan yoki ilova FONDA bo'lganda avtomatik ochadi — agar AJDO

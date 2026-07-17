@@ -1,23 +1,27 @@
 package uz.ajdo.shajara.calls
 
 import android.content.Intent
-import android.media.AudioManager
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.launch
+import uz.ajdo.shajara.R
 
 /**
  * Kiruvchi qo'ng'iroq — qulf ekranida ham to'liq ekran ko'rinadi
@@ -27,12 +31,17 @@ import kotlinx.coroutines.launch
  * bo'lsa (Redis TTL — calls.service.ts) yoki chaqiruvchi bekor qilsa,
  * bu ekran ochilgan holatda ham qolib ketmasligi uchun 45soniyalik
  * avtomatik yopilish bor (backend'dagi RINGING_TTL_SECONDS bilan mos).
+ *
+ * UI — Telegram/Apple uslubidagi qo'ng'iroq ekrani: markazda avatar
+ * (rasm yoki ism bosh harfi) + ism + holat, pastda yumaloq yashil
+ * (qabul qilish) / qizil (rad etish) tugmalar.
  */
 class IncomingCallActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CALL_ID = "callId"
         const val EXTRA_CALLER_NAME = "callerName"
         const val EXTRA_CALL_TYPE = "callType"
+        const val EXTRA_CALLER_AVATAR_URL = "callerAvatarUrl"
         private const val AUTO_DISMISS_MS = 45_000L
     }
 
@@ -47,6 +56,9 @@ class IncomingCallActivity : AppCompatActivity() {
         }
     }
 
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics).toInt()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         breadcrumb("IncomingCallActivity.onCreate callId=${intent.getStringExtra(EXTRA_CALL_ID)} type=${intent.getStringExtra(EXTRA_CALL_TYPE)}")
@@ -59,9 +71,7 @@ class IncomingCallActivity : AppCompatActivity() {
     // YANGI qo'ng'iroq kelsa), Android bu yerga (onNewIntent) yo'naltiradi
     // — YANGI onCreate() chaqirilmaydi. Bu override BO'LMASA, ekranda
     // ESKI qo'ng'iroqning callId/callType/callerName'i qolib ketadi va
-    // "Qabul qilish" bosilganda NOTO'G'RI (eski) qo'ng'iroq qabul qilinadi
-    // — aynan shu CallActivity'dagi video/audio nomuvofiqlik va
-    // bir-tomonlama aloqa muammosining ildizi edi.
+    // "Qabul qilish" bosilganda NOTO'G'RI (eski) qo'ng'iroq qabul qilinadi.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         breadcrumb("IncomingCallActivity.onNewIntent callId=${intent.getStringExtra(EXTRA_CALL_ID)}")
@@ -75,9 +85,10 @@ class IncomingCallActivity : AppCompatActivity() {
         val callId = intent.getStringExtra(EXTRA_CALL_ID)
         val callerName = intent.getStringExtra(EXTRA_CALLER_NAME) ?: "AJDO"
         val callType = intent.getStringExtra(EXTRA_CALL_TYPE) ?: "AUDIO"
+        val avatarUrl = intent.getStringExtra(EXTRA_CALLER_AVATAR_URL)
 
         breadcrumb("handleIntent: buildUi")
-        buildUi(callerName, callType == "VIDEO", callId)
+        buildUi(callerName, callType == "VIDEO", callId, avatarUrl)
         breadcrumb("handleIntent: startRinging")
         startRinging()
         breadcrumb("handleIntent: ringing started OK")
@@ -140,13 +151,14 @@ class IncomingCallActivity : AppCompatActivity() {
                     putExtra(CallActivity.EXTRA_ROOM_NAME, res.getString("roomName"))
                     putExtra(CallActivity.EXTRA_TOKEN, res.getString("token"))
                     putExtra(CallActivity.EXTRA_LIVEKIT_URL, res.getString("livekitUrl"))
+                    putExtra(CallActivity.EXTRA_PEER_NAME, intent.getStringExtra(EXTRA_CALLER_NAME))
+                    putExtra(CallActivity.EXTRA_PEER_PHOTO_URL, intent.getStringExtra(EXTRA_CALLER_AVATAR_URL))
                 }
                 startActivity(intent)
             } catch (e: Exception) {
                 // qo'ng'iroq muddati o'tgan/bekor qilingan bo'lishi mumkin —
                 // lekin Crashlytics'ga baribir yozib qo'yamiz, aks holda
-                // haqiqiy xatolar ("nima uchun qo'ng'iroq kelmadi" kabi
-                // shikoyatlar) sababsiz qolib ketaveradi.
+                // haqiqiy xatolar sababsiz qolib ketaveradi.
                 breadcrumb("accept: CallsHttp.accept FAILED: ${e.message}")
                 FirebaseCrashlytics.getInstance().recordException(e)
             }
@@ -169,28 +181,58 @@ class IncomingCallActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun buildUi(callerName: String, isVideo: Boolean, callId: String?) {
-        val root = FrameLayout(this).apply { setBackgroundColor(0xFF000000.toInt()) }
+    private fun buildUi(callerName: String, isVideo: Boolean, callId: String?, avatarUrl: String?) {
+        val root = FrameLayout(this).apply {
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(0xFF0B2B1E.toInt(), 0xFF000000.toInt()),
+            )
+        }
 
         val center = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
         }
+
+        val avatarSize = dp(150)
+        val avatarFrame = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(avatarSize, avatarSize)
+        }
+        val initialsView = TextView(this).apply {
+            gravity = Gravity.CENTER
+            textSize = 56f
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(CallAvatar.colorFor(callerName))
+            }
+        }
+        val photoView = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            visibility = View.GONE
+        }
+        avatarFrame.addView(initialsView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        avatarFrame.addView(photoView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        CallAvatar.bind(photoView, initialsView, callerName, avatarUrl)
+        center.addView(avatarFrame)
+
         center.addView(
             TextView(this).apply {
                 text = callerName
-                setTextColor(0xFFFFFFFF.toInt())
-                textSize = 24f
+                setTextColor(Color.WHITE)
+                textSize = 26f
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
                 gravity = Gravity.CENTER
+                setPadding(dp(24), dp(24), dp(24), 0)
             },
         )
         center.addView(
             TextView(this).apply {
                 text = if (isVideo) "Video qo'ng'iroq qilyapti..." else "Ovozli qo'ng'iroq qilyapti..."
                 setTextColor(0xB3FFFFFF.toInt())
-                textSize = 14f
+                textSize = 16f
                 gravity = Gravity.CENTER
-                setPadding(0, 16, 0, 0)
+                setPadding(0, dp(8), 0, 0)
             },
         )
         root.addView(center, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
@@ -198,27 +240,60 @@ class IncomingCallActivity : AppCompatActivity() {
         val buttons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(32, 32, 32, 96)
         }
-        buttons.addView(
-            Button(this).apply {
-                text = "Rad etish"
-                setOnClickListener { decline(callId) }
-            },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 16 },
-        )
-        buttons.addView(
-            Button(this).apply {
-                text = "Qabul qilish"
-                setOnClickListener { accept(callId, isVideo) }
-            },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-        )
+        buttons.addView(callButton(isDecline = true) { decline(callId) })
+        val spacer = View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(64), 1) }
+        buttons.addView(spacer)
+        buttons.addView(callButton(isDecline = false) { accept(callId, isVideo) })
+
         root.addView(
             buttons,
-            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM),
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+            ).apply { bottomMargin = dp(72) },
         )
 
         setContentView(root)
+    }
+
+    /** Yumaloq yashil (qabul qilish) / qizil (rad etish) tugma — pastida
+     * yorlig'i bilan, Telegram/Apple uslubidagi qo'ng'iroq ekrani kabi. */
+    private fun callButton(isDecline: Boolean, onClick: () -> Unit): LinearLayout {
+        val size = dp(72)
+        val color = if (isDecline) 0xFFFF3B30.toInt() else 0xFF34C759.toInt()
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+        val circle = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(color)
+            }
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+        }
+        val icon = ImageView(this).apply {
+            setImageResource(R.drawable.ic_call)
+            setColorFilter(Color.WHITE)
+            rotation = if (isDecline) 135f else 0f
+        }
+        val iconSize = dp(28)
+        circle.addView(icon, FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER))
+        container.addView(circle)
+        container.addView(
+            TextView(this).apply {
+                text = if (isDecline) "Rad etish" else "Qabul qilish"
+                setTextColor(Color.WHITE)
+                textSize = 13f
+                gravity = Gravity.CENTER
+                setPadding(0, dp(10), 0, 0)
+            },
+        )
+        return container
     }
 }
