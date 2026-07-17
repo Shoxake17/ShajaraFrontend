@@ -25,18 +25,36 @@ export interface IncomingCallInfo {
   callerName: string;
   callType: CallType;
   roomName: string;
+  callerAvatarUrl: string | null;
+  callerRelation: string | null;
+}
+
+/** CallOverlay uchun minimal "kim bilan gaplashyapman" ma'lumoti — chiquvchi
+ * qo'ng'iroqda to'liq ChatContact bor (gender ham), lekin kiruvchini qabul
+ * qilganda faqat IncomingCallInfo'dagi maydonlar mavjud (gender yo'q,
+ * shu bois avatar rangi standart bo'yicha tanlanadi) — ikkalasi ham shu
+ * umumiy shaklga moslanadi. */
+export interface CallPeerInfo {
+  fullName: string;
+  photoUrl: string | null;
+  relation: string | null;
+  gender: string;
 }
 
 interface CallState {
   phase: CallPhase;
   callId: string | null;
-  peer: ChatContact | null;
+  peer: CallPeerInfo | null;
   callType: CallType;
   incoming: IncomingCallInfo | null;
   room: Room | null;
   micMuted: boolean;
   cameraOff: boolean;
   screenSharing: boolean;
+  /** Qo'ng'iroq boshlangan payt (Date.now()) — ikki tomonda BIR XIL
+   * ko'rinadigan davomiylik hisoblagichi uchun (CallOverlay shundan
+   * hisoblaydi). `active` bosqichiga o'tganda o'rnatiladi. */
+  callStartedAt: number | null;
   error: string | null;
 
   wireListeners: () => void;
@@ -47,6 +65,11 @@ interface CallState {
   toggleMic: () => Promise<void>;
   toggleCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
+  /** Suhbatdosh xonaga birinchi marta qo'shilganda chaqiriladi (CallOverlay
+   * Room hodisalarini tinglab chaqiradi) — ikki tomonda BIR XIL boshlanish
+   * nuqtasidan hisoblangan davomiylik uchun (accept so'rovi vaqtidan EMAS,
+   * chunki chaqiruvchi ancha oldin ulangan bo'ladi). */
+  markCallStarted: () => void;
   reset: () => void;
 }
 
@@ -70,6 +93,7 @@ export const useCallStore = create<CallState>((set, get) => ({
   micMuted: false,
   cameraOff: false,
   screenSharing: false,
+  callStartedAt: null,
   error: null,
 
   wireListeners: () => {
@@ -105,11 +129,26 @@ export const useCallStore = create<CallState>((set, get) => ({
   },
 
   startCall: async (contact, type) => {
-    set({ phase: 'ringing-outgoing', peer: contact, callType: type, error: null });
+    set({
+      phase: 'ringing-outgoing',
+      peer: { fullName: contact.fullName, photoUrl: contact.photoUrl, relation: contact.relation, gender: contact.gender },
+      callType: type,
+      error: null,
+    });
     try {
       const session = await callsApi.invite(contact.userId, type);
+      // MUHIM TUZATISH: `callId` ILGARI faqat joinRoom() (LiveKit ulanish +
+      // mikrofon/kamera nashr qilish, tarmoqqa qarab bir necha soniya
+      // cho'zilishi mumkin) tugagandan KEYIN o'rnatilardi. Agar foydalanuvchi
+      // "jiringlayapti" holatida — javob kutmasdan — Qizil tugmani bossa,
+      // hangUp() shu paytda `callId`ni HALI NULL deb topib, backend'ga
+      // /calls/end SO'ROVI UMUMAN YUBORILMASDI — natijada chaqiruvchining
+      // o'z ekrani yopilsa ham, chaqirilayotgan tomon (B) 30 soniyalik
+      // muddat tugagunga qadar jiringlab QOLIB KETARDI. Endi `callId`
+      // invite() javob berishi bilanoq (joinRoom'ni kutmasdan) o'rnatiladi.
+      set({ callId: session.callId });
       const room = await joinRoom(session.token, session.livekitUrl, type);
-      set({ callId: session.callId, room });
+      set({ room });
     } catch (e) {
       set({ error: (e as Error).message });
       get().reset();
@@ -119,7 +158,21 @@ export const useCallStore = create<CallState>((set, get) => ({
   acceptIncoming: async () => {
     const incoming = get().incoming;
     if (!incoming) return;
-    set({ phase: 'connecting' });
+    // MUHIM TUZATISH: avval `peer` FAQAT startCall() (chiquvchi qo'ng'iroq)
+    // paytida o'rnatilardi — kiruvchini qabul qilganda `incoming` "active"
+    // bosqichida null'ga tozalangach, CallOverlay'da chaqiruvchining ismi/
+    // rasmi/qarindoshligi ko'rsatiladigan HECH QANDAY ma'lumot qolmasdi
+    // (shu bois "AJDO" standart matni ko'rinardi). Endi `incoming`dan
+    // `peer`ga ko'chiriladi.
+    set({
+      phase: 'connecting',
+      peer: {
+        fullName: incoming.callerName,
+        photoUrl: incoming.callerAvatarUrl,
+        relation: incoming.callerRelation,
+        gender: 'MALE',
+      },
+    });
     try {
       const session = await callsApi.accept(incoming.callId);
       const room = await joinRoom(session.token, session.livekitUrl, incoming.callType);
@@ -166,6 +219,10 @@ export const useCallStore = create<CallState>((set, get) => ({
     set({ screenSharing: next });
   },
 
+  markCallStarted: () => {
+    if (get().callStartedAt == null) set({ callStartedAt: Date.now() });
+  },
+
   reset: () => {
     const room = get().room;
     if (room) void room.disconnect();
@@ -178,6 +235,7 @@ export const useCallStore = create<CallState>((set, get) => ({
       micMuted: false,
       cameraOff: false,
       screenSharing: false,
+      callStartedAt: null,
       error: null,
     });
   },
