@@ -214,14 +214,25 @@ class CallActivity : AppCompatActivity() {
                     newRoom.localParticipant.setCameraEnabled(true)
                     breadcrumb("connectRoom: camera enabled")
                 }
-                statusText.text = "Ulandi"
-                breadcrumb("connectRoom: fully connected (Ulandi)")
+                // MUHIM: "Ulandi" shu yergacha FAQAT shu qurilmaning O'ZI
+                // LiveKit'ga muvaffaqiyatli ulanganini bildirar edi — boshqa
+                // tomon HALI QO'SHILMAGAN bo'lsa ham! Foydalanuvchi
+                // "ulandi" deb turibdi-yu, aslida hech kim javob bermagan
+                // holat shundan kelib chiqqan. Endi holat haqiqiy
+                // ishtirokchilar sonini aks ettiradi (pastda
+                // ParticipantConnected/Disconnected orqali yangilanadi).
+                updateConnectionStatus(newRoom)
+                breadcrumb("connectRoom: local connect OK, remoteParticipants=${newRoom.remoteParticipants.size}")
             } catch (e: Exception) {
                 breadcrumb("connectRoom FAILED: ${e.message}")
                 FirebaseCrashlytics.getInstance().recordException(e)
                 statusText.text = "Ulanib bo'lmadi: ${e.message}"
             }
         }
+    }
+
+    private fun updateConnectionStatus(observedRoom: Room) {
+        statusText.text = if (observedRoom.remoteParticipants.isNotEmpty()) "Ulandi" else "Kutilmoqda..."
     }
 
     private fun observeEvents(observedRoom: Room) {
@@ -249,6 +260,14 @@ class CallActivity : AppCompatActivity() {
                                 FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
                             )
                         }
+                    }
+                    if (event is RoomEvent.ParticipantConnected) {
+                        breadcrumb("ParticipantConnected: ${event.participant.identity}")
+                        updateConnectionStatus(observedRoom)
+                    }
+                    if (event is RoomEvent.ParticipantDisconnected) {
+                        breadcrumb("ParticipantDisconnected: ${event.participant.identity}")
+                        updateConnectionStatus(observedRoom)
                     }
                     if (event is RoomEvent.Disconnected) {
                         breadcrumb("RoomEvent.Disconnected -> finish()")
