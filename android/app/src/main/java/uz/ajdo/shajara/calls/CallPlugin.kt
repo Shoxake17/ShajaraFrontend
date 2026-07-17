@@ -33,6 +33,7 @@ class CallPlugin : Plugin() {
             // ko'rsatish uchun.
             call.getString("calleeName")?.let { putExtra(CallActivity.EXTRA_PEER_NAME, it) }
             call.getString("calleePhotoUrl")?.let { putExtra(CallActivity.EXTRA_PEER_PHOTO_URL, it) }
+            call.getString("calleeRelation")?.let { putExtra(CallActivity.EXTRA_PEER_RELATION, it) }
         }
         activity.startActivity(intent)
         call.resolve()

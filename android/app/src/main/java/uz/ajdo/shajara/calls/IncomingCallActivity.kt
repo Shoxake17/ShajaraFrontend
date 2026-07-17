@@ -2,6 +2,7 @@ package uz.ajdo.shajara.calls
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -13,6 +14,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -22,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.launch
 import uz.ajdo.shajara.R
+import java.lang.ref.WeakReference
 
 /**
  * Kiruvchi qo'ng'iroq — qulf ekranida ham to'liq ekran ko'rinadi
@@ -29,12 +32,12 @@ import uz.ajdo.shajara.R
  * push kelganda (`data.type == "call"`) NotificationCompat.CallStyle/
  * full-screen-intent orqali shu Activity'ni ochadi. Qo'ng'iroq "band"
  * bo'lsa (Redis TTL — calls.service.ts) yoki chaqiruvchi bekor qilsa,
- * bu ekran ochilgan holatda ham qolib ketmasligi uchun 45soniyalik
+ * bu ekran ochilgan holatda ham qolib ketmasligi uchun 30 soniyalik
  * avtomatik yopilish bor (backend'dagi RINGING_TTL_SECONDS bilan mos).
  *
  * UI — Telegram/Apple uslubidagi qo'ng'iroq ekrani: markazda avatar
- * (rasm yoki ism bosh harfi) + ism + holat, pastda yumaloq yashil
- * (qabul qilish) / qizil (rad etish) tugmalar.
+ * (rasm yoki ism bosh harfi) + ism + qarindoshlik belgisi + holat,
+ * pastda yumaloq yashil (qabul qilish) / qizil (rad etish) tugmalar.
  */
 class IncomingCallActivity : AppCompatActivity() {
     companion object {
@@ -42,7 +45,33 @@ class IncomingCallActivity : AppCompatActivity() {
         const val EXTRA_CALLER_NAME = "callerName"
         const val EXTRA_CALL_TYPE = "callType"
         const val EXTRA_CALLER_AVATAR_URL = "callerAvatarUrl"
-        private const val AUTO_DISMISS_MS = 45_000L
+        const val EXTRA_CALLER_RELATION = "callerRelation"
+        private const val AUTO_DISMISS_MS = 30_000L
+
+        // Bir xil foydalanuvchi bir nechta qurilmada kirgan bo'lsa, hammasiga
+        // push keladi — qaysi biri BIRINCHI javob bersa (yoki rad etsa),
+        // QOLGANLARI ham darhol jiringlashni to'xtatishi kerak. Har bir
+        // qurilma FAQAT o'zining joriy IncomingCallActivity nusxasini biladi
+        // — shu bois statik (jarayon ichida) zaif havola orqali kuzatiladi.
+        private var activeInstance: WeakReference<IncomingCallActivity>? = null
+        private var activeCallId: String? = null
+
+        /** AjdoFirebaseMessagingService (Java) `call_dismiss` push kelganda
+         * chaqiradi — @JvmStatic bo'lmasa Java tomonidan to'g'ridan-to'g'ri
+         * `IncomingCallActivity.dismissIfShowing(...)` sifatida ko'rinmaydi
+         * (faqat `Companion.dismissIfShowing(...)` sifatida). */
+        @JvmStatic
+        fun dismissIfShowing(callId: String) {
+            if (activeCallId != callId) return
+            activeInstance?.get()?.let { activity ->
+                if (!activity.isFinishing) {
+                    activity.breadcrumb("dismissIfShowing: remote dismiss for callId=$callId")
+                    activity.stopRinging()
+                    activity.autoDismiss?.let { activity.window.decorView.removeCallbacks(it) }
+                    activity.finish()
+                }
+            }
+        }
     }
 
     private var ringtone: Ringtone? = null
@@ -67,7 +96,7 @@ class IncomingCallActivity : AppCompatActivity() {
 
     // launchMode="singleTask" (AndroidManifest.xml) — agar oldingi
     // qo'ng'iroqning IncomingCallActivity nusxasi hali tirik bo'lsa
-    // (masalan 45 soniyalik avtomatik yopilish hali tugamagan bo'lsa-yu,
+    // (masalan 30 soniyalik avtomatik yopilish hali tugamagan bo'lsa-yu,
     // YANGI qo'ng'iroq kelsa), Android bu yerga (onNewIntent) yo'naltiradi
     // — YANGI onCreate() chaqirilmaydi. Bu override BO'LMASA, ekranda
     // ESKI qo'ng'iroqning callId/callType/callerName'i qolib ketadi va
@@ -86,9 +115,13 @@ class IncomingCallActivity : AppCompatActivity() {
         val callerName = intent.getStringExtra(EXTRA_CALLER_NAME) ?: "AJDO"
         val callType = intent.getStringExtra(EXTRA_CALL_TYPE) ?: "AUDIO"
         val avatarUrl = intent.getStringExtra(EXTRA_CALLER_AVATAR_URL)
+        val relation = intent.getStringExtra(EXTRA_CALLER_RELATION)
+
+        activeInstance = WeakReference(this)
+        activeCallId = callId
 
         breadcrumb("handleIntent: buildUi")
-        buildUi(callerName, callType == "VIDEO", callId, avatarUrl)
+        buildUi(callerName, callType == "VIDEO", callId, avatarUrl, relation)
         breadcrumb("handleIntent: startRinging")
         startRinging()
         breadcrumb("handleIntent: ringing started OK")
@@ -153,6 +186,7 @@ class IncomingCallActivity : AppCompatActivity() {
                     putExtra(CallActivity.EXTRA_LIVEKIT_URL, res.getString("livekitUrl"))
                     putExtra(CallActivity.EXTRA_PEER_NAME, intent.getStringExtra(EXTRA_CALLER_NAME))
                     putExtra(CallActivity.EXTRA_PEER_PHOTO_URL, intent.getStringExtra(EXTRA_CALLER_AVATAR_URL))
+                    putExtra(CallActivity.EXTRA_PEER_RELATION, intent.getStringExtra(EXTRA_CALLER_RELATION))
                 }
                 startActivity(intent)
             } catch (e: Exception) {
@@ -178,16 +212,16 @@ class IncomingCallActivity : AppCompatActivity() {
     override fun onDestroy() {
         breadcrumb("IncomingCallActivity.onDestroy isFinishing=$isFinishing")
         stopRinging()
+        if (activeInstance?.get() === this) {
+            activeInstance = null
+            activeCallId = null
+        }
         super.onDestroy()
     }
 
-    private fun buildUi(callerName: String, isVideo: Boolean, callId: String?, avatarUrl: String?) {
-        val root = FrameLayout(this).apply {
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xFF0B2B1E.toInt(), 0xFF000000.toInt()),
-            )
-        }
+    private fun buildUi(callerName: String, isVideo: Boolean, callId: String?, avatarUrl: String?, relation: String?) {
+        // Web (IncomingCallBanner.tsx) bilan bir xil — quyuq qora fon.
+        val root = FrameLayout(this).apply { setBackgroundColor(Color.BLACK) }
 
         val center = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -197,6 +231,14 @@ class IncomingCallActivity : AppCompatActivity() {
         val avatarSize = dp(150)
         val avatarFrame = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(avatarSize, avatarSize)
+            // View darajasidagi oval clip — rasm HAR DOIM to'g'ri doira
+            // ko'rinishida chiqishi uchun (faqat bitmap-mask'ga tayanmaslik).
+            outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setOval(0, 0, view.width, view.height)
+                }
+            }
+            clipToOutline = true
         }
         val initialsView = TextView(this).apply {
             gravity = Gravity.CENTER
@@ -226,6 +268,19 @@ class IncomingCallActivity : AppCompatActivity() {
                 setPadding(dp(24), dp(24), dp(24), 0)
             },
         )
+        // Qarindoshlik belgisi ("Aka", "Ona", ...) — Shajara doskasidagi
+        // bilan bir xil, kim qo'ng'iroq qilyapganini aniq bilish uchun.
+        if (!relation.isNullOrBlank()) {
+            center.addView(
+                TextView(this).apply {
+                    text = relation
+                    setTextColor(0xCCFFFFFF.toInt())
+                    textSize = 14f
+                    gravity = Gravity.CENTER
+                    setPadding(0, dp(2), 0, 0)
+                },
+            )
+        }
         center.addView(
             TextView(this).apply {
                 text = if (isVideo) "Video qo'ng'iroq qilyapti..." else "Ovozli qo'ng'iroq qilyapti..."
@@ -279,7 +334,6 @@ class IncomingCallActivity : AppCompatActivity() {
         }
         val icon = ImageView(this).apply {
             setImageResource(R.drawable.ic_call)
-            setColorFilter(Color.WHITE)
             rotation = if (isDecline) 135f else 0f
         }
         val iconSize = dp(28)

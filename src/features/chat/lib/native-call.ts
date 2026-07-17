@@ -12,6 +12,7 @@ interface CallPluginApi {
     callType: 'AUDIO' | 'VIDEO';
     calleeName?: string;
     calleePhotoUrl?: string;
+    calleeRelation?: string;
   }): Promise<void>;
   syncAuthToken(options: { accessToken: string; userId: string }): Promise<void>;
   clearAuthToken(): Promise<void>;
@@ -19,20 +20,23 @@ interface CallPluginApi {
 
 const CallPlugin = registerPlugin<CallPluginApi>('CallPlugin');
 
-// calleeName/calleePhotoUrl — JS'da ALLAQACHON mavjud (ChatContact, server
-// so'rovisiz) — Apple/Telegram uslubidagi qo'ng'iroq ekranida chaqirilayotgan
-// odamning ismi/rasmini DARHOL (tarmoq kutmasdan) ko'rsatish uchun.
+// calleeName/calleePhotoUrl/calleeRelation — JS'da ALLAQACHON mavjud
+// (ChatContact, server so'rovisiz) — Apple/Telegram uslubidagi qo'ng'iroq
+// ekranida chaqirilayotgan odamning ismi/rasmi/qarindoshlik belgisini
+// DARHOL (tarmoq kutmasdan) ko'rsatish uchun.
 export async function startNativeCall(
   calleeId: string,
   callType: 'AUDIO' | 'VIDEO',
   calleeName?: string,
   calleePhotoUrl?: string | null,
+  calleeRelation?: string | null,
 ): Promise<void> {
   await CallPlugin.startCall({
     calleeId,
     callType,
     ...(calleeName ? { calleeName } : {}),
     ...(calleePhotoUrl ? { calleePhotoUrl } : {}),
+    ...(calleeRelation ? { calleeRelation } : {}),
   });
 }
 

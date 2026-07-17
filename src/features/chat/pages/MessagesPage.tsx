@@ -57,7 +57,7 @@ const themeFor = (female: boolean) =>
  */
 function placeCall(contact: ChatContact, type: 'AUDIO' | 'VIDEO'): void {
   if (Capacitor.isNativePlatform()) {
-    void startNativeCall(contact.userId, type, contact.fullName, contact.photoUrl);
+    void startNativeCall(contact.userId, type, contact.fullName, contact.photoUrl, contact.relation);
   } else {
     void useCallStore.getState().startCall(contact, type);
   }

@@ -86,6 +86,18 @@ public class AjdoFirebaseMessagingService extends MessagingService {
             return;
         }
 
+        // Bir xil foydalanuvchi bir nechta qurilmada kirgan bo'lsa — hammasi
+        // jiringlaydi; qaysi biri birinchi javob bersa/rad etsa, QOLGANLARI
+        // shu "jim" signalni olib, agar hozir aynan shu callId bilan
+        // IncomingCallActivity ko'rsatilayotgan bo'lsa — darhol yopadi.
+        if ("call_dismiss".equals(data.get("type"))) {
+            String dismissCallId = data.get("callId");
+            if (dismissCallId != null) {
+                IncomingCallActivity.dismissIfShowing(dismissCallId);
+            }
+            return;
+        }
+
         String title = data.get("title");
         String body = data.get("body");
         if (title == null && body == null) {
@@ -177,6 +189,7 @@ public class AjdoFirebaseMessagingService extends MessagingService {
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_NAME, callerName);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALL_TYPE, callType);
         fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_AVATAR_URL, data.get("avatarUrl"));
+        fullScreenIntent.putExtra(IncomingCallActivity.EXTRA_CALLER_RELATION, data.get("callerRelation"));
 
         // Android full-screen-intent bildirishnomani FAQAT ekran o'chiq/
         // qulflangan yoki ilova FONDA bo'lganda avtomatik ochadi — agar AJDO

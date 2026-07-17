@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -59,6 +61,8 @@ class CallActivity : AppCompatActivity() {
         const val EXTRA_LIVEKIT_URL = "livekitUrl"
         const val EXTRA_PEER_NAME = "peerName"
         const val EXTRA_PEER_PHOTO_URL = "peerPhotoUrl"
+        const val EXTRA_PEER_RELATION = "peerRelation"
+        private const val RING_TIMEOUT_MS = 30_000L
     }
 
     private var room: Room? = null
@@ -71,12 +75,14 @@ class CallActivity : AppCompatActivity() {
     private var hadRemotePeer = false
     private var callStartElapsedMs: Long? = null
     private var timerJob: Job? = null
+    private var ringTimeoutJob: Job? = null
 
     private lateinit var remoteVideoContainer: FrameLayout
     private lateinit var centerOverlay: LinearLayout
     private lateinit var avatarPhotoView: ImageView
     private lateinit var avatarInitialsView: TextView
     private lateinit var nameView: TextView
+    private lateinit var relationView: TextView
     private lateinit var statusText: TextView
     private lateinit var topBadge: LinearLayout
     private lateinit var topBadgeText: TextView
@@ -155,6 +161,7 @@ class CallActivity : AppCompatActivity() {
         hadRemotePeer = false
         callStartElapsedMs = null
         stopTimer()
+        ringTimeoutJob?.cancel()
         buildUi()
         startCallFlow()
     }
@@ -164,7 +171,10 @@ class CallActivity : AppCompatActivity() {
         callId = intent.getStringExtra(EXTRA_CALL_ID)
         peerName = intent.getStringExtra(EXTRA_PEER_NAME) ?: "AJDO"
         val peerPhotoUrl = intent.getStringExtra(EXTRA_PEER_PHOTO_URL)
+        val peerRelation = intent.getStringExtra(EXTRA_PEER_RELATION)
         nameView.text = peerName
+        relationView.text = peerRelation
+        relationView.visibility = if (peerRelation.isNullOrBlank()) View.GONE else View.VISIBLE
         CallAvatar.bind(avatarPhotoView, avatarInitialsView, peerName, peerPhotoUrl)
         breadcrumb("startCallFlow isVideo=$isVideo hasPermissions=${hasRequiredPermissions()}")
 
@@ -208,6 +218,7 @@ class CallActivity : AppCompatActivity() {
         }
         statusText.text = "Chaqirilmoqda..."
         breadcrumb("startOutgoingCall calling CallsHttp.invite")
+        startRingTimeout()
         lifecycleScope.launch {
             try {
                 val res = CallsHttp.invite(this@CallActivity, calleeId, type)
@@ -254,9 +265,27 @@ class CallActivity : AppCompatActivity() {
         }
     }
 
+    // Chaqiruvchi tomonda — hech kim 30 soniya ichida javob bermasa,
+    // qo'ng'iroq CHEKSIZ jiringlab turmasligi kerak (Telegram/Apple
+    // uslubi): avtomatik yakunlanadi (backend'da MISSED sifatida
+    // belgilanadi — calls.service.ts'ning end() mantig'i).
+    private fun startRingTimeout() {
+        ringTimeoutJob?.cancel()
+        ringTimeoutJob = lifecycleScope.launch {
+            delay(RING_TIMEOUT_MS)
+            if (!hadRemotePeer) {
+                breadcrumb("Ring timeout - no answer within 30s, auto-ending")
+                statusText.text = "Javob berilmadi"
+                delay(700)
+                finishCall(notifyBackend = true)
+            }
+        }
+    }
+
     private fun updateConnectionStatus(observedRoom: Room) {
         if (observedRoom.remoteParticipants.isNotEmpty()) {
             hadRemotePeer = true
+            ringTimeoutJob?.cancel()
             if (callStartElapsedMs == null) {
                 callStartElapsedMs = SystemClock.elapsedRealtime()
                 startTimer()
@@ -400,6 +429,7 @@ class CallActivity : AppCompatActivity() {
             lifecycleScope.launch { runCatching { CallsHttp.end(this@CallActivity, id) } }
         }
         stopTimer()
+        ringTimeoutJob?.cancel()
         room?.disconnect()
         stopService(Intent(this, ScreenCaptureService::class.java))
         finish()
@@ -413,6 +443,7 @@ class CallActivity : AppCompatActivity() {
     override fun onDestroy() {
         breadcrumb("CallActivity.onDestroy isFinishing=$isFinishing isChangingConfigurations=$isChangingConfigurations")
         stopTimer()
+        ringTimeoutJob?.cancel()
         room?.disconnect()
         super.onDestroy()
     }
@@ -420,12 +451,8 @@ class CallActivity : AppCompatActivity() {
     // ---------- UI qurish ----------
 
     private fun buildUi() {
-        val root = FrameLayout(this).apply {
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xFF0B2B1E.toInt(), 0xFF000000.toInt()),
-            )
-        }
+        // Web (CallOverlay.tsx) bilan bir xil — quyuq qora fon.
+        val root = FrameLayout(this).apply { setBackgroundColor(Color.BLACK) }
 
         remoteVideoContainer = FrameLayout(this)
         root.addView(remoteVideoContainer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
@@ -461,6 +488,17 @@ class CallActivity : AppCompatActivity() {
         val avatarSize = dp(150)
         val avatarFrame = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(avatarSize, avatarSize)
+            // MUHIM: faqat bitmap'ni doiraviy "qirqish" (CallAvatar'dagi
+            // manual mask) ba'zi qurilmalarda to'liq ishlamasligi mumkin —
+            // View DARAJASIDAGI oval clip (hardware-accelerated,
+            // clipToOutline) rasmning HAR DOIM to'rtburchak EMAS, aniq
+            // doira ko'rinishida chiqishini kafolatlaydi.
+            outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setOval(0, 0, view.width, view.height)
+                }
+            }
+            clipToOutline = true
         }
         avatarInitialsView = TextView(this).apply {
             gravity = Gravity.CENTER
@@ -489,6 +527,18 @@ class CallActivity : AppCompatActivity() {
         }
         centerOverlay.addView(nameView)
 
+        // Qarindoshlik belgisi ("Aka", "Ona", ...) — Shajara doskasida
+        // ko'rsatilgan bilan bir xil, kim qo'ng'iroq qilyapganini aniq
+        // bilish uchun.
+        relationView = TextView(this).apply {
+            setTextColor(0xCCFFFFFF.toInt())
+            textSize = 14f
+            gravity = Gravity.CENTER
+            setPadding(0, dp(2), 0, 0)
+            visibility = View.GONE
+        }
+        centerOverlay.addView(relationView)
+
         statusText = TextView(this).apply {
             setTextColor(0xB3FFFFFF.toInt())
             textSize = 16f
@@ -508,13 +558,13 @@ class CallActivity : AppCompatActivity() {
             gravity = Gravity.CENTER
             visibility = View.GONE
         }
-        controlsRow.addView(secondaryButton(android.R.drawable.ic_btn_speak_now) { toggleMic() })
+        controlsRow.addView(secondaryButton(R.drawable.ic_mic) { toggleMic() })
         controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
         if (isVideo) {
-            controlsRow.addView(secondaryButton(android.R.drawable.ic_menu_camera) { toggleCamera() })
+            controlsRow.addView(secondaryButton(R.drawable.ic_videocam) { toggleCamera() })
             controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
         }
-        controlsRow.addView(secondaryButton(android.R.drawable.ic_menu_share) { toggleScreenShare() })
+        controlsRow.addView(secondaryButton(R.drawable.ic_screen_share) { toggleScreenShare() })
         controlsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(24), 1) })
         controlsRow.addView(endCallButton())
 

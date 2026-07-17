@@ -7,6 +7,9 @@ export interface ChatContact {
   fullName: string;
   gender: string;
   photoUrl: string | null;
+  /** Shajara doskasidagi tayyor belgi ("Aka", "Ona", ...) — qo'ng'iroq
+   * ekranida ism ostida ko'rsatish uchun. */
+  relation: string | null;
   lastMessage: string | null;
   lastMessageAt: string | null;
   unreadCount: number;
