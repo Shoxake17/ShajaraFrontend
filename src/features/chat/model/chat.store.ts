@@ -198,5 +198,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 }));
 
 export function chatUnreadTotal(contacts: ChatContact[]): number {
+  // Himoya: bu selektor har bir sahifada (Sidebar/BottomNav, AppLayout
+  // orqali GLOBAL) ishlaydi — agar `contacts` biror lahzada array
+  // bo'lmasa (masalan useSyncExternalStoreWithSelector'ning tranzit
+  // holati), .reduce() BUTUN ilovani ("t.reduce is not a function")
+  // krash qilib qo'yardi.
+  if (!Array.isArray(contacts)) return 0;
   return contacts.reduce((sum, c) => sum + c.unreadCount, 0);
 }
