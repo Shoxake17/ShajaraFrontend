@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import uz.ajdo.shajara.R
+import java.lang.ref.WeakReference
 import java.util.Locale
 
 /**
@@ -76,6 +77,29 @@ class CallService : Service() {
          * tanlanishi kerak (pastga qarang: onStartCommand). */
         fun startIntent(context: android.content.Context, isVideo: Boolean): Intent =
             Intent(context, CallService::class.java).putExtra(EXTRA_STARTING_VIDEO, isVideo)
+
+        // IncomingCallActivity'dagi bilan BIR XIL naqsh — bitta jarayonda
+        // faqat bitta faol qo'ng'iroq xizmati bo'ladi, shu bois statik
+        // zaif havola orqali kuzatiladi.
+        private var activeInstance: WeakReference<CallService>? = null
+
+        /** AjdoFirebaseMessagingService (Java) `call_accepted` push kelganda
+         * chaqiradi — chaqiruvchi (bu qurilma) hali WebRTC darajasida boshqa
+         * tomonni ko'rmagan bo'lsa ham (ParticipantConnected hodisasi bir
+         * necha soniya kechikishi mumkin), SIGNALIZATSIYA darajasida
+         * ALLAQACHON qabul qilingani ma'lum bo'lgani uchun 30 soniyalik
+         * jiringlash taymerini DARHOL bekor qiladi. Aks holda: qabul
+         * qiluvchining WebRTC ulanishi biroz kechiksa (masalan sekin
+         * tarmoq) va aynan shu payt 30s chegarasiga to'g'ri kelib qolsa,
+         * taymer ALLAQACHON qabul qilingan qo'ng'iroqni "javob berilmadi"
+         * deb noto'g'ri yakunlab, /calls/end so'rovini yuborardi.
+         */
+        @JvmStatic
+        fun cancelRingTimeoutFor(callId: String) {
+            activeInstance?.get()?.let { service ->
+                if (service.callId == callId) service.ringTimeoutJob?.cancel()
+            }
+        }
     }
 
     interface Listener {
@@ -153,6 +177,7 @@ class CallService : Service() {
     override fun onCreate() {
         super.onCreate()
         isRunning = true
+        activeInstance = WeakReference(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -490,6 +515,7 @@ class CallService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        if (activeInstance?.get() === this) activeInstance = null
         stopTimer()
         ringTimeoutJob?.cancel()
         room?.disconnect()

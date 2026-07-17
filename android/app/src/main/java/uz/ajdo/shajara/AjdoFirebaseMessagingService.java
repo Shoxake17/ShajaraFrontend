@@ -22,6 +22,7 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import com.capacitorjs.plugins.pushnotifications.MessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import uz.ajdo.shajara.calls.CallService;
 import uz.ajdo.shajara.calls.IncomingCallActivity;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -94,6 +95,20 @@ public class AjdoFirebaseMessagingService extends MessagingService {
             String dismissCallId = data.get("callId");
             if (dismissCallId != null) {
                 IncomingCallActivity.dismissIfShowing(dismissCallId);
+            }
+            return;
+        }
+
+        // Chaqiruvchi (bu qurilma) tomonda: qabul qiluvchi Accept bosgani
+        // haqida SIGNALIZATSIYA darajasida DARHOL xabar — CallService o'zining
+        // 30 soniyalik jiringlash taymerini WebRTC ulanishini (bir necha
+        // soniya kechikishi mumkin) kutmasdan bekor qilishi uchun. Aks holda
+        // taymer ALLAQACHON qabul qilingan qo'ng'iroqni "javob berilmadi"
+        // deb noto'g'ri yakunlab yuborishi mumkin edi.
+        if ("call_accepted".equals(data.get("type"))) {
+            String acceptedCallId = data.get("callId");
+            if (acceptedCallId != null) {
+                CallService.cancelRingTimeoutFor(acceptedCallId);
             }
             return;
         }
