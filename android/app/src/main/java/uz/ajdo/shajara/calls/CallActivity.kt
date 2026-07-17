@@ -2,17 +2,21 @@ package uz.ajdo.shajara.calls
 
 import android.Manifest
 import android.app.Activity
+import android.app.PictureInPictureParams
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Rational
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -83,11 +87,17 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
     private lateinit var statusText: TextView
     private lateinit var topBadge: LinearLayout
     private lateinit var topBadgeText: TextView
+    private lateinit var remoteStatusRow: LinearLayout
+    private lateinit var remoteCameraOffBadge: TextView
+    private lateinit var remoteMicOffBadge: TextView
     private lateinit var controlsRow: LinearLayout
+    private lateinit var controlsColumn: LinearLayout
+    private lateinit var minimizeButton: FrameLayout
     private lateinit var micButton: ToggleButton
     private var cameraButton: ToggleButton? = null
     private lateinit var speakerButton: ToggleButton
     private lateinit var screenShareButton: ToggleButton
+    private var isInPip = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -289,6 +299,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         topBadgeText.text = "${svc.peerName} · ${svc.statusLabel}"
         val remoteActive = remoteVideoContainer.childCount > 0
         controlsRow.visibility = if (svc.hadRemotePeer) View.VISIBLE else View.GONE
+        minimizeButton.visibility = if (svc.isVideo && !isInPip) View.VISIBLE else View.GONE
         if (::micButton.isInitialized) setToggleState(micButton, svc.micMuted, R.drawable.ic_mic_off, R.drawable.ic_mic)
         cameraButton?.let { setToggleState(it, svc.cameraOff, R.drawable.ic_videocam_off, R.drawable.ic_videocam) }
         if (::speakerButton.isInitialized) setToggleState(speakerButton, svc.speakerOn, R.drawable.ic_volume_up, R.drawable.ic_volume_up)
@@ -302,7 +313,14 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             // unpublish qilingan, faqat renderer View'ini tozalash qoladi).
             detachLocalPreview()
         }
-        updateVideoLayout(remoteActive)
+        // Suhbatdoshning kamera/mikrofon holati — Zoom/Telegram uslubidagi
+        // "Kamera o'chirilgan"/"Mikrofon o'chirilgan" belgilari (faqat
+        // haqiqiy suhbatdosh bo'lganda ma'noli).
+        remoteCameraOffBadge.visibility = if (svc.hadRemotePeer && svc.remoteCameraOff) View.VISIBLE else View.GONE
+        remoteMicOffBadge.visibility = if (svc.hadRemotePeer && svc.remoteMicMuted) View.VISIBLE else View.GONE
+        remoteStatusRow.visibility = if (remoteCameraOffBadge.visibility == View.VISIBLE || remoteMicOffBadge.visibility == View.VISIBLE) View.VISIBLE else View.GONE
+        updateVideoLayout(remoteActive, svc.hadRemotePeer)
+        updatePipParams()
     }
 
     override fun onRemoteVideoTrack(track: VideoTrack?) {
@@ -319,7 +337,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             remoteVideoRenderer = renderer
             remoteVideoContainer.addView(renderer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
-        updateVideoLayout(track != null)
+        updateVideoLayout(track != null, svc.hadRemotePeer)
     }
 
     override fun onCallEnded() {
@@ -331,7 +349,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         val remoteTrack = svc.currentRemoteVideoTrack()
         if (remoteTrack != null) onRemoteVideoTrack(remoteTrack)
         if (svc.isVideo && !svc.cameraOff) attachLocalPreview(svc)
-        updateVideoLayout(remoteTrack != null)
+        updateVideoLayout(remoteTrack != null, svc.hadRemotePeer)
     }
 
     private fun attachLocalPreview(svc: CallService) {
@@ -363,29 +381,127 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         remoteVideoContainer.removeAllViews()
     }
 
-    /** Video joylashuvi: hali suhbatdosh (masofaviy video) yo'q bo'lsa —
-     * MENING kamерам TO'LIQ EKRAN (Telegram/Apple "kutish" holati);
-     * suhbatdosh qo'shilgach — u to'liq ekran, meniki kichik burchakdagi
-     * oynaga ("PiP") almashadi. */
-    private fun updateVideoLayout(remoteActive: Boolean) {
+    /** Video joylashuvi:
+     *  - hali hech kim yo'q, lekin MENING kamерам ishlayapti — TO'LIQ EKRAN
+     *    (Telegram/Apple "kutish" holati);
+     *  - suhbatdosh BOR va uning videosi ham bor — u to'liq ekran, meniki
+     *    kichik burchakdagi oynaga ("PiP") almashadi;
+     *  - suhbatdosh BOR, lekin kamераsi o'chiq — o'RTADA uning (mening
+     *    EMAS) avatari/ismi ko'rsatiladi (centerOverlay allaqachon
+     *    prefillFromIntent() orqali suhbatdosh ma'lumoti bilan to'ldirilgan). */
+    private fun updateVideoLayout(remoteActive: Boolean, hadRemotePeer: Boolean) {
+        if (isInPip) return // PiP rejimida applyPipLayout() alohida boshqaradi
         val hasLocal = localVideoContainer.childCount > 0
-        if (remoteActive) {
-            localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
-                topMargin = dp(56)
-                rightMargin = dp(16)
+        when {
+            remoteActive -> {
+                localVideoContainer.layoutParams = FrameLayout.LayoutParams(dp(110), dp(150), Gravity.TOP or Gravity.END).apply {
+                    topMargin = dp(56)
+                    rightMargin = dp(16)
+                }
+                localVideoContainer.visibility = if (hasLocal) View.VISIBLE else View.GONE
+                centerOverlay.visibility = View.GONE
+                topBadge.visibility = View.VISIBLE
             }
-            localVideoContainer.visibility = if (hasLocal) View.VISIBLE else View.GONE
-            centerOverlay.visibility = View.GONE
-            topBadge.visibility = View.VISIBLE
-        } else if (hasLocal) {
-            localVideoContainer.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            localVideoContainer.visibility = View.VISIBLE
-            centerOverlay.visibility = View.GONE
-            topBadge.visibility = View.VISIBLE
-        } else {
-            localVideoContainer.visibility = View.GONE
-            centerOverlay.visibility = View.VISIBLE
+            hadRemotePeer -> {
+                // Suhbatdosh ulangan, lekin video yo'q (kamераsi o'chiq) —
+                // MENING to'liq ekran preview'im emas, SUHBATDOSHNING
+                // avatari ko'rinishi kerak.
+                localVideoContainer.visibility = View.GONE
+                centerOverlay.visibility = View.VISIBLE
+                topBadge.visibility = View.VISIBLE
+            }
+            hasLocal -> {
+                localVideoContainer.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                localVideoContainer.visibility = View.VISIBLE
+                centerOverlay.visibility = View.GONE
+                topBadge.visibility = View.VISIBLE
+            }
+            else -> {
+                localVideoContainer.visibility = View.GONE
+                centerOverlay.visibility = View.VISIBLE
+                topBadge.visibility = View.GONE
+            }
+        }
+    }
+
+    // ---------- Picture-in-Picture (Telegram uslubida, ilovadan chiqilganda) ----------
+
+    private fun canUsePip(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    private fun updatePipParams() {
+        if (!canUsePip()) return
+        val svc = callService ?: return
+        if (!svc.isVideo) return
+        try {
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(9, 16))
+                    .build(),
+            )
+        } catch (_: Exception) {
+        }
+    }
+
+    /** Foydalanuvchi Uy tugmasini bossa yoki boshqa ilovaga o'tsa (Orqaga
+     * tugmasi EMAS — faqat shu) chaqiriladi. Video qo'ng'iroq faol bo'lsa,
+     * Telegram uslubida avtomatik kichik suzuvchi oynaga ("PiP") o'tadi —
+     * qo'ng'iroq davom etadi, foydalanuvchi butun qurilma bo'ylab (boshqa
+     * ilovalar ustida) uni ko'radi va istalgan joyga surishi mumkin (buni
+     * Android tizimining o'zi boshqaradi — qo'shimcha kod shart emas). */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val svc = callService
+        if (canUsePip() && svc != null && svc.isVideo && (svc.hadRemotePeer || localVideoContainer.childCount > 0)) {
+            enterPip()
+        }
+    }
+
+    private fun enterPip() {
+        if (!canUsePip()) return
+        try {
+            val params = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(9, 16))
+                .build()
+            enterPictureInPictureMode(params)
+        } catch (e: Exception) {
+            breadcrumb("enterPip FAILED: ${e.message}")
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        isInPip = isInPictureInPictureMode
+        applyPipLayout(isInPictureInPictureMode)
+    }
+
+    /** PiP oynasiga kirganda ekran juda kichik bo'ladi — faqat SUHBATDOSH
+     * (men EMAS) to'liq oynani egallashi kerak: uning videosi bo'lsa video,
+     * bo'lmasa avatari. Boshqaruv tugmalari/matn kabi mayda elementlar
+     * kichik oynada o'qib bo'lmaydigan holga kelgani uchun yashiriladi —
+     * Android o'zi PiP oynasi ustida tizim tugmalari (kengaytirish/
+     * yopish)ni chizadi. */
+    private fun applyPipLayout(inPip: Boolean) {
+        if (inPip) {
+            controlsColumn.visibility = View.GONE
+            minimizeButton.visibility = View.GONE
             topBadge.visibility = View.GONE
+            remoteStatusRow.visibility = View.GONE
+            nameView.visibility = View.GONE
+            relationView.visibility = View.GONE
+            statusText.visibility = View.GONE
+            localVideoContainer.visibility = View.GONE
+            val hasRemoteVideo = remoteVideoContainer.childCount > 0
+            remoteVideoContainer.visibility = if (hasRemoteVideo) View.VISIBLE else View.GONE
+            centerOverlay.visibility = if (hasRemoteVideo) View.GONE else View.VISIBLE
+        } else {
+            nameView.visibility = View.VISIBLE
+            relationView.visibility = if (relationView.text.isNullOrBlank()) View.GONE else View.VISIBLE
+            statusText.visibility = View.VISIBLE
+            val svc = callService
+            updateVideoLayout(remoteVideoContainer.childCount > 0, svc?.hadRemotePeer ?: false)
+            if (svc != null) onCallStateChanged()
         }
     }
 
@@ -446,6 +562,39 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
             topBadge,
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
                 topMargin = dp(56)
+            },
+        )
+
+        // Suhbatdoshning kamera/mikrofon holati belgilari (Zoom/Telegram
+        // uslubida) — yuqori qismda, topBadge'dan pastroqda.
+        remoteCameraOffBadge = statusPill("Kamera o'chirilgan")
+        remoteMicOffBadge = statusPill("Mikrofon o'chirilgan")
+        remoteStatusRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            addView(remoteCameraOffBadge)
+            addView(View(this@CallActivity).apply { layoutParams = LinearLayout.LayoutParams(dp(8), 1) })
+            addView(remoteMicOffBadge)
+        }
+        root.addView(
+            remoteStatusRow,
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
+                topMargin = dp(104)
+            },
+        )
+
+        // Kichraytirish (Picture-in-Picture) tugmasi — video qo'ng'iroqda
+        // yuqori-chap burchakda, istalgan payt qo'lda kichik suzuvchi
+        // oynaga o'tish uchun (Uy tugmasini kutmasdan, Telegram uslubi).
+        minimizeButton = actionButton(R.drawable.ic_minimize) { enterPip() }.apply {
+            visibility = View.GONE
+        }
+        root.addView(
+            minimizeButton,
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply {
+                topMargin = dp(56)
+                leftMargin = dp(16)
             },
         )
 
@@ -538,7 +687,7 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
         screenShareButton = makeToggleButton(R.drawable.ic_screen_share) { onScreenShareTapped() }
         controlsRow.addView(screenShareButton.circle)
 
-        val controlsColumn = LinearLayout(this).apply {
+        controlsColumn = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             // MUHIM: LinearLayout(VERTICAL).addView(child) — child uchun
@@ -636,6 +785,20 @@ class CallActivity : AppCompatActivity(), CallService.Listener {
     }
 
     private fun spacer(): View = View(this).apply { layoutParams = LinearLayout.LayoutParams(dp(16), 1) }
+
+    /** Kichik pastki-belgi ("Kamera o'chirilgan" kabi) — Zoom/Telegram
+     * uslubidagi qizil-shaffof yorliq. */
+    private fun statusPill(text: String): TextView = TextView(this).apply {
+        this.text = text
+        setTextColor(Color.WHITE)
+        textSize = 12f
+        setPadding(dp(10), dp(4), dp(10), dp(4))
+        background = GradientDrawable().apply {
+            cornerRadius = dp(12).toFloat()
+            setColor(0xB3FF3B30.toInt())
+        }
+        visibility = View.GONE
+    }
 
     private fun endCallButton(): FrameLayout {
         val size = dp(64)

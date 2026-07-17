@@ -61,6 +61,7 @@ class CallService : Service() {
         private const val NOTIFICATION_ID = 5002
         private const val RING_TIMEOUT_MS = 30_000L
         private const val EXTRA_STARTING_VIDEO = "startingVideo"
+        private const val ACTION_HANGUP = "uz.ajdo.shajara.calls.ACTION_HANGUP"
 
         /** CallActivity ilovaga qaytilganda "qayta boshlash shartmi yo'qmi"ni
          * shu bilan tekshiradi — allaqachon faol xizmat bo'lsa, yangi
@@ -124,6 +125,12 @@ class CallService : Service() {
         private set
     var hadRemotePeer = false
         private set
+    /** Suhbatdoshning kamераsi o'chiqmi (umuman ulashilmagan yoki
+     * pauza qilingan) — video hali kelmagan bo'lsa TRUE (standart). */
+    var remoteCameraOff = true
+        private set
+    var remoteMicMuted = false
+        private set
     private var usingFrontCamera = true
     private var callStartElapsedMs: Long? = null
     private var timerJob: Job? = null
@@ -149,6 +156,13 @@ class CallService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Doimiy bildirishnomadagi (CallStyle) "Yakunlash" tugmasi shu
+        // orqali ishlaydi — Activity ochilmasdan, to'g'ridan-to'g'ri xizmatga.
+        if (intent?.action == ACTION_HANGUP) {
+            breadcrumb("CallService: hangup from notification action")
+            endCall(notifyBackend = true)
+            return START_NOT_STICKY
+        }
         // MUHIM: foregroundServiceType="camera" bilan startForeground()
         // chaqirish uchun ilova CAMERA ruxsatini ALLAQACHON ushlab turishi
         // SHART (Android 14+), aks holda SecurityException. Ovozli
@@ -331,6 +345,20 @@ class CallService : Service() {
         timerJob = null
     }
 
+    /** Suhbatdoshning kamera/mikrofon holatini yangilaydi — qo'ng'iroq
+     * ekranida "Kamera o'chirilgan"/"Mikrofon o'chirilgan" belgilarini
+     * ko'rsatish uchun (Telegram/Zoom uslubi). Nashr qilinmagan (hali
+     * umuman ulashilmagan) trek ham "o'chiq" deb hisoblanadi — faqat
+     * pauza (muted) emas. */
+    private fun refreshRemoteMediaState(observedRoom: Room) {
+        val remote = observedRoom.remoteParticipants.values.firstOrNull()
+        val camPub = remote?.getTrackPublication(Track.Source.CAMERA)
+        val micPub = remote?.getTrackPublication(Track.Source.MICROPHONE)
+        remoteCameraOff = camPub == null || camPub.muted
+        remoteMicMuted = micPub == null || micPub.muted
+        listener?.onCallStateChanged()
+    }
+
     private fun observeEvents(observedRoom: Room) {
         scope.launch {
             observedRoom.events.events.collect { event ->
@@ -339,12 +367,20 @@ class CallService : Service() {
                     if (event is RoomEvent.TrackSubscribed) {
                         val track = event.track
                         if (track is VideoTrack) listener?.onRemoteVideoTrack(track)
+                        refreshRemoteMediaState(observedRoom)
                     }
                     if (event is RoomEvent.TrackUnsubscribed) {
                         if (event.track is VideoTrack) listener?.onRemoteVideoTrack(currentRemoteVideoTrack())
+                        refreshRemoteMediaState(observedRoom)
+                    }
+                    if (event is RoomEvent.TrackMuted || event is RoomEvent.TrackUnmuted ||
+                        event is RoomEvent.TrackPublished || event is RoomEvent.TrackUnpublished
+                    ) {
+                        refreshRemoteMediaState(observedRoom)
                     }
                     if (event is RoomEvent.ParticipantConnected) {
                         updateConnectionStatus(observedRoom)
+                        refreshRemoteMediaState(observedRoom)
                     }
                     if (event is RoomEvent.ParticipantDisconnected) {
                         // MUHIM: boshqa tomon Qizil tugmani bossa, BU tomon
@@ -479,13 +515,28 @@ class CallService : Service() {
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val hangUpIntent = PendingIntent.getService(
+            this,
+            1,
+            Intent(this, CallService::class.java).setAction(ACTION_HANGUP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        // NotificationCompat.CallStyle — Android'ning telefon qo'ng'iroqlari
+        // uchun MO'LJALLANGAN rasmiy uslubi (Telegram/WhatsApp shunga o'xshash
+        // ko'rinish ishlatadi): yashil "davom etayotgan qo'ng'iroq" ko'rinishi,
+        // status panelida chip, bevosita bildirishnomadan "Yakunlash" tugmasi.
+        val person = androidx.core.app.Person.Builder().setName(peerName).build()
+        val style = NotificationCompat.CallStyle.forOngoingCall(person, hangUpIntent)
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(peerName)
             .setContentText(statusLabel.ifBlank { "Qo'ng'iroq davom etmoqda" })
             .setSmallIcon(R.drawable.ic_stat_notify)
             .setOngoing(true)
             .setContentIntent(contentIntent)
+            .setStyle(style)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
             .build()
     }
 
