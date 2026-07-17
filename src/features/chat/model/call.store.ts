@@ -87,12 +87,44 @@ let listenersWired = false;
 // urinishi bo'lishini kafolatlovchi sinxron qulf.
 let joinInFlight = false;
 
-async function joinRoom(token: string, livekitUrl: string, callType: CallType): Promise<Room> {
+interface JoinResult {
+  room: Room;
+  micFailed: boolean;
+  cameraFailed: boolean;
+}
+
+async function joinRoom(token: string, livekitUrl: string, callType: CallType): Promise<JoinResult> {
   const room = new Room();
   await room.connect(livekitUrl, token);
-  await room.localParticipant.setMicrophoneEnabled(true);
-  if (callType === 'VIDEO') await room.localParticipant.setCameraEnabled(true);
-  return room;
+  // MUHIM TUZATISH ("ulanadi-darhol-uziladi" xatosi): `room.connect()`
+  // O'ZI muvaffaqiyatli bo'lishi bilanoq suhbatdosh (masalan native
+  // chaqiruvchi) buni allaqachon ParticipantConnected sifatida ko'radi.
+  // Lekin mikrofon/kamera ULASHISH (getUserMedia) BUTUNLAY BOSHQA qadam —
+  // brauzer ruxsat so'ramasa/rad etsa, mikrofon boshqa oynada band bo'lsa
+  // yoki qurilma topilmasa, bu chaqiruvlar CHIQARIB YUBORARDI (throw), va
+  // bu istisno yuqoriga — acceptIncoming()/startCall()ning catch blokiga
+  // o'tib, ALLAQACHON MUVAFFAQIYATLI o'rnatilgan xona ulanishini
+  // reset()'ga majburlardi. Natijada: xona serverga ULANDI (shu bois
+  // boshqa tomon uni ko'rdi), lekin DARHOL qayta uzildi — garchi ulanishning
+  // o'zi mutlaqo sog'lom bo'lsa ham. Endi media xatosi ulanishni O'LDIRMAYDI
+  // — Zoom/Telegram kabi, ruxsat/qurilma muammosi bo'lsa ham qo'ng'iroq
+  // DAVOM ETADI (shunchaki o'sha trek uzatilmaydi, foydalanuvchi keyinroq
+  // qo'lda yoqishga urinishi mumkin).
+  let micFailed = false;
+  let cameraFailed = false;
+  try {
+    await room.localParticipant.setMicrophoneEnabled(true);
+  } catch {
+    micFailed = true;
+  }
+  if (callType === 'VIDEO') {
+    try {
+      await room.localParticipant.setCameraEnabled(true);
+    } catch {
+      cameraFailed = true;
+    }
+  }
+  return { room, micFailed, cameraFailed };
 }
 
 export const useCallStore = create<CallState>((set, get) => ({
@@ -171,7 +203,7 @@ export const useCallStore = create<CallState>((set, get) => ({
       // muddat tugagunga qadar jiringlab QOLIB KETARDI. Endi `callId`
       // invite() javob berishi bilanoq (joinRoom'ni kutmasdan) o'rnatiladi.
       set({ callId: session.callId });
-      const room = await joinRoom(session.token, session.livekitUrl, type);
+      const { room, micFailed, cameraFailed } = await joinRoom(session.token, session.livekitUrl, type);
       // Ulanish tugagunga qadar foydalanuvchi qizil tugmani bosib ulgurgan
       // (hangUp -> reset()) bo'lishi mumkin — bu holda `callId` allaqachon
       // null (yoki boshqa qo'ng'iroqniki). Bunday "kech qolgan" ulanishni
@@ -181,7 +213,7 @@ export const useCallStore = create<CallState>((set, get) => ({
         void room.disconnect();
         return;
       }
-      set({ room });
+      set({ room, micMuted: micFailed, cameraOff: type === 'VIDEO' && cameraFailed });
     } catch (e) {
       set({ error: (e as Error).message });
       get().reset();
@@ -218,14 +250,20 @@ export const useCallStore = create<CallState>((set, get) => ({
     });
     try {
       const session = await callsApi.accept(incoming.callId);
-      const room = await joinRoom(session.token, session.livekitUrl, incoming.callType);
+      const { room, micFailed, cameraFailed } = await joinRoom(session.token, session.livekitUrl, incoming.callType);
       // startCall()dagi bilan bir xil himoya — foydalanuvchi ulanish
       // tugagunga qadar qizil tugmani bosib ulgurgan bo'lishi mumkin.
       if (get().callId !== incoming.callId) {
         void room.disconnect();
         return;
       }
-      set({ room, phase: 'active', incoming: null });
+      set({
+        room,
+        phase: 'active',
+        incoming: null,
+        micMuted: micFailed,
+        cameraOff: incoming.callType === 'VIDEO' && cameraFailed,
+      });
     } catch (e) {
       set({ error: (e as Error).message });
       get().reset();
