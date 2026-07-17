@@ -113,6 +113,19 @@ public class AjdoFirebaseMessagingService extends MessagingService {
             return;
         }
 
+        // Chaqiruvchi (bu qurilma) tomonda: qabul qiluvchi Rad etish tugmasini
+        // bosgani haqida DARHOL xabar — aks holda socket'i yo'q native
+        // chaqiruvchi buni HECH QACHON bilmasdi (LiveKit darajasida hech
+        // qanday hodisa bo'lmaydi, chunki suhbatdosh xonaga umuman qo'shilmagan)
+        // va faqat 30 soniyalik ring-timeout tugagach avtomatik yakunlanardi.
+        if ("call_declined".equals(data.get("type"))) {
+            String declinedCallId = data.get("callId");
+            if (declinedCallId != null) {
+                CallService.endCallFor(declinedCallId);
+            }
+            return;
+        }
+
         String title = data.get("title");
         String body = data.get("body");
         if (title == null && body == null) {

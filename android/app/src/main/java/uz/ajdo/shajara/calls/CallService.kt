@@ -100,6 +100,22 @@ class CallService : Service() {
                 if (service.callId == callId) service.ringTimeoutJob?.cancel()
             }
         }
+
+        /** AjdoFirebaseMessagingService `call_declined` push kelganda chaqiradi —
+         * qabul qiluvchi Rad etish tugmasini bosganda chaqiruvchi (bu qurilma)
+         * hali LiveKit darajasida HECH QANDAY hodisa ko'rmaydi (suhbatdosh
+         * hech qachon xonaga qo'shilmagan), shu bois bu haqda bilishning
+         * BOSHQA yo'li yo'q — socket bo'lmagani uchun (call_accepted push'idagi
+         * bilan bir xil sabab) faqat 30 soniyalik ring-timeout orqali
+         * "javob berilmadi" deb yakunlanardi. Endi DARHOL yakunlanadi —
+         * backend allaqachon holatni yangilagani uchun notifyBackend=false.
+         */
+        @JvmStatic
+        fun endCallFor(callId: String) {
+            activeInstance?.get()?.let { service ->
+                if (service.callId == callId) service.endCall(notifyBackend = false)
+            }
+        }
     }
 
     interface Listener {
