@@ -75,6 +75,18 @@ interface CallState {
 
 let listenersWired = false;
 
+// MUHIM TUZATISH ("ulanadi-keyin-uziladi" xatosi): tugma bosilgani bilan
+// React holati SINXRON yangilanmaydi (render/commit keyingi tsiklda) — shu
+// oraliqda ikkinchi marta bosish (tez ikki marta bosish, yoki hodisa
+// navbatida allaqachon turgan ikkinchi klik) startCall()/acceptIncoming()ni
+// IKKINCHI marta ishga tushirar, natijada IKKITA mustaqil Room() obyekti
+// BIR VAQTDA ulanardi. LiveKit BIR XIL identity bilan ikkinchi marta
+// ulanishni ko'rgach BIRINCHI ulanishni SERVER TOMONDAN uzadi — aynan shu
+// "connected" dan darhol keyin "disconnected -> connecting" holat almashinuvi
+// konsolda ko'ringan sabab edi. Yechim: bitta vaqtda faqat BITTA ulanish
+// urinishi bo'lishini kafolatlovchi sinxron qulf.
+let joinInFlight = false;
+
 async function joinRoom(token: string, livekitUrl: string, callType: CallType): Promise<Room> {
   const room = new Room();
   await room.connect(livekitUrl, token);
@@ -115,7 +127,13 @@ export const useCallStore = create<CallState>((set, get) => ({
     const socket = getChatSocket();
 
     socket.on('call:invite', (payload: IncomingCallInfo) => {
-      // Band bo'lsak (allaqachon boshqa qo'ng'iroqdamiz) — avtomatik rad etamiz
+      // Xuddi shu qo'ng'iroq uchun ikkinchi marta 'call:invite' kelishi
+      // mumkin (masalan socket qisqa uzilib qayta ulansa) — bu holda
+      // HECH NARSA qilmaymiz (avtomatik rad etib QO'YMAYMIZ), aks holda
+      // ALLAQACHON javob berilgan/qabul qilingan qo'ng'iroq tasodifan
+      // rad etilib, ulanib turgan aloqa uzilib qolar edi.
+      if (payload.callId === get().callId) return;
+      // Band bo'lsak (allaqachon BOSHQA qo'ng'iroqdamiz) — avtomatik rad etamiz
       if (get().phase !== 'idle') {
         void callsApi.decline(payload.callId);
         return;
@@ -129,6 +147,12 @@ export const useCallStore = create<CallState>((set, get) => ({
   },
 
   startCall: async (contact, type) => {
+    // Allaqachon boshqa qo'ng'iroq jarayonida bo'lsak (yoki tugma tez-tez
+    // bosilib IKKINCHI marta shu funksiya ishga tushirilgan bo'lsa) — indamay
+    // chiqamiz. Bu ikki mustaqil LiveKit ulanishning (va ulardan biri server
+    // tomonidan majburan uzilishining) oldini oladi.
+    if (get().phase !== 'idle' || joinInFlight) return;
+    joinInFlight = true;
     set({
       phase: 'ringing-outgoing',
       peer: { fullName: contact.fullName, photoUrl: contact.photoUrl, relation: contact.relation, gender: contact.gender },
@@ -148,24 +172,43 @@ export const useCallStore = create<CallState>((set, get) => ({
       // invite() javob berishi bilanoq (joinRoom'ni kutmasdan) o'rnatiladi.
       set({ callId: session.callId });
       const room = await joinRoom(session.token, session.livekitUrl, type);
+      // Ulanish tugagunga qadar foydalanuvchi qizil tugmani bosib ulgurgan
+      // (hangUp -> reset()) bo'lishi mumkin — bu holda `callId` allaqachon
+      // null (yoki boshqa qo'ng'iroqniki). Bunday "kech qolgan" ulanishni
+      // holatga QO'SHMASDAN darhol uzamiz, aks holda allaqachon bekor
+      // qilingan qo'ng'iroq ekranga qaytib kelib "jonlanib" qolar edi.
+      if (get().callId !== session.callId) {
+        void room.disconnect();
+        return;
+      }
       set({ room });
     } catch (e) {
       set({ error: (e as Error).message });
       get().reset();
+    } finally {
+      joinInFlight = false;
     }
   },
 
   acceptIncoming: async () => {
+    // `joinInFlight` — startCall bilan bir xil qulf: tez-tez ikki marta
+    // bosish (yoki hodisa navbatidagi ikkinchi klik) ikkinchi marta
+    // ishga tushishining oldini oladi.
+    if (joinInFlight) return;
     const incoming = get().incoming;
     if (!incoming) return;
+    joinInFlight = true;
     // MUHIM TUZATISH: avval `peer` FAQAT startCall() (chiquvchi qo'ng'iroq)
     // paytida o'rnatilardi — kiruvchini qabul qilganda `incoming` "active"
     // bosqichida null'ga tozalangach, CallOverlay'da chaqiruvchining ismi/
     // rasmi/qarindoshligi ko'rsatiladigan HECH QANDAY ma'lumot qolmasdi
     // (shu bois "AJDO" standart matni ko'rinardi). Endi `incoming`dan
-    // `peer`ga ko'chiriladi.
+    // `peer`ga ko'chiriladi. `incoming` shu yerdayoq null qilinadi — aks
+    // holda tugma DOMda hali turgan lahzada ikkinchi klik xuddi shu
+    // `incoming`ni qayta o'qib, accept() so'rovini IKKINCHI marta yuborardi.
     set({
       phase: 'connecting',
+      incoming: null,
       peer: {
         fullName: incoming.callerName,
         photoUrl: incoming.callerAvatarUrl,
@@ -176,10 +219,18 @@ export const useCallStore = create<CallState>((set, get) => ({
     try {
       const session = await callsApi.accept(incoming.callId);
       const room = await joinRoom(session.token, session.livekitUrl, incoming.callType);
+      // startCall()dagi bilan bir xil himoya — foydalanuvchi ulanish
+      // tugagunga qadar qizil tugmani bosib ulgurgan bo'lishi mumkin.
+      if (get().callId !== incoming.callId) {
+        void room.disconnect();
+        return;
+      }
       set({ room, phase: 'active', incoming: null });
     } catch (e) {
       set({ error: (e as Error).message });
       get().reset();
+    } finally {
+      joinInFlight = false;
     }
   },
 

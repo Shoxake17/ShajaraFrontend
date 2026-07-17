@@ -49,6 +49,10 @@ function placeCall(contact: ChatContact, type: 'AUDIO' | 'VIDEO'): void {
   if (Capacitor.isNativePlatform()) {
     void startNativeCall(contact.userId, type, contact.fullName, contact.photoUrl, contact.relation);
   } else {
+    // Tugma tez-tez bosilsa ham (yoki allaqachon boshqa qo'ng'iroq
+    // ekranda bo'lsa) ikkinchi chaqiruv oqimini boshlab yubormaslik —
+    // asosiy himoya call.store.ts'da, bu faqat qo'shimcha qatlam.
+    if (useCallStore.getState().phase !== 'idle') return;
     void useCallStore.getState().startCall(contact, type);
   }
 }
