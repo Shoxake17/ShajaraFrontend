@@ -202,23 +202,21 @@ function TreeBoard() {
     return nodes.filter((n) => visible(n.data.side) || n.data.spouses.some((sp) => visible(sp.side)));
   }, [nodes, sideFilter]);
 
-  // Joriy tanlangan tomondagi (Ota YOKI Ona, ALOHIDA-ALOHIDA) odamlar
-  // soni — karta emas, har bir shaxs alohida (turmush o'rtoqlari ham)
-  // hisoblanadi. QAT'IY side===sideFilter (NEUTRAL ARALASHMAYDI) — shu
-  // bois Ota va Ona tomon sonlari bir-biriga QO'SHILMAYDI/bir-birini
-  // "yeb qo'ymaydi" (fikr-mulohaza: "ota-ona tomonining umumiysi emas,
-  // ikkalasi alohida hisoblansin"). Filter almashganda son ham mos
-  // ravishda o'zgaradi.
+  // Joriy tanlangan tomonda (Ota YOKI Ona) EKRANDA ko'rinayotgan odamlar
+  // soni — displayedNodes'dagi HAR BIR ko'rinayotgan kartaning barcha
+  // a'zolarini (asosiy + turmush o'rtoqlar, tomonidan qat'i nazar)
+  // sanaydi, xuddi displayedNodes'ning O'ZI qaysi kartalarni ko'rsatishni
+  // hal qilgani kabi (NEUTRAL va qarama-qarshi tomon turmush o'rtoqlari
+  // HAM kiradi — chunki ular ekranda ko'rinib turgan kartaning bir qismi).
+  // Filtrlash mantig'ining o'zi (displayedNodes) TEGILMAGAN — faqat son
+  // shu bilan mos kelishi uchun hisoblash formulasi o'zgardi.
   const sideCount = useMemo(() => {
     let count = 0;
-    for (const n of nodes) {
-      if (n.data.side === sideFilter) count++;
-      for (const sp of n.data.spouses) {
-        if (sp.side === sideFilter) count++;
-      }
+    for (const n of displayedNodes) {
+      count += 1 + n.data.spouses.length;
     }
     return count;
-  }, [nodes, sideFilter]);
+  }, [displayedNodes]);
   const displayedEdges = useMemo(() => {
     const visibleIds = new Set(displayedNodes.map((n) => n.id));
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
