@@ -48,6 +48,20 @@ export const SoundIcon = mk(<><path d="M4.5 9.5h3l4-3v11l-4-3h-3Z" /><path d="M1
 export const AlertIcon = mk(<><path d="M12 4 3 19.5h18Z" /><path d="M12 10v4" /><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none" /></>);
 export const UsersIcon2 = mk(<><circle cx="9" cy="8" r="3" /><path d="M3.5 19c1-2.6 3-4 5.5-4s4.5 1.4 5.5 4M16 5.2a3 3 0 0 1 0 5.6M17.5 15c2 .4 3.4 1.7 4 4" /></>);
 export const LogoutIcon2 = mk(<><path d="M14 4.5H6.5A2 2 0 0 0 4.5 6.5v11a2 2 0 0 0 2 2H14" /><path d="M17 8.5 20.5 12 17 15.5M20 12H9.5" /></>);
+export const SunIcon = mk(
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 3.5v2M12 18.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3.5 12h2M18.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
+  </>,
+);
+export const MoonIcon = mk(<path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a6.6 6.6 0 0 0 10.3 10.3Z" />);
+export const SparklesIcon = mk(
+  <>
+    <path d="m12 3 1.4 4.1L17.5 8.5 13.4 9.9 12 14l-1.4-4.1L6.5 8.5l4.1-1.4Z" />
+    <path d="M18 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7Z" />
+  </>,
+);
+export const CheckIcon = mk(<path d="M5 13l4.5 4.5L19 8" />);
 export const PaletteIcon = mk(
   <>
     <path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8s3.4 7.5 7 7.5c1 0 1.5-.6 1.5-1.3 0-.4-.2-.7-.4-1-.2-.3-.4-.6-.4-1 0-.8.6-1.4 1.4-1.4H14c3 0 5.5-2.3 5.5-5.3 0-3.6-3.4-5.5-7.5-5.5Z" />

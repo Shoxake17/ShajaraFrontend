@@ -82,6 +82,14 @@ const FullscreenExitIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M21 16h-3a2 2 0 0 0-2 2v3M8 21v-3a2 2 0 0 0-2-2H3" />
   </svg>
 );
+// Applayout.png namunasidagi profil bandi (avatar + ism-familiya + pastga
+// yo'naltirilgan strelka) uchun — faqat vizual, funksiyasi hamon "o'zimga
+// o'tish" (goToMe).
+const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="14" height="14" {...iconBase} {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
 
 // Ota tomon / ona tomon tanlovi — oxirgi holat SAQLANADI (localStorage),
 // aks holda har safar sahifa qayta yuklanganda (restart) doim "Ota tomon"ga
@@ -428,14 +436,16 @@ function TreeBoard() {
                 disabled={!myId}
                 title={t('tree.board.goToMeTitle')}
                 aria-label={t('tree.board.goToMeTitle')}
-                className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
+                className="hidden shrink-0 items-center gap-2 rounded-full bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
                 <span
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
                   aria-hidden
                 >
                   {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
                 </span>
+                <span className="max-w-[9rem] truncate">{user?.fullName}</span>
+                <ChevronDownIcon className="shrink-0 text-brand-400" />
               </button>
               {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
                   Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).

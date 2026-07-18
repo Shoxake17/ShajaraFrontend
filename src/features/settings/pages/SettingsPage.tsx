@@ -7,7 +7,6 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Moon, Sparkles, Sun } from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/shared/hooks/useRegion';
@@ -63,6 +62,11 @@ import {
   UsersIcon2,
   LogoutIcon2,
   PaletteIcon,
+  SunIcon,
+  MoonIcon,
+  SparklesIcon,
+  CheckIcon,
+  type IconCmp,
 } from '../components/settings-ui';
 import { useTheme, type AppTheme } from '@/shared/hooks/useTheme';
 
@@ -93,36 +97,40 @@ function LanguageSwitch() {
   );
 }
 
-/** Ko'rinish rejimi tanlagichi — 3 ta tanlanadigan karta (Soft/Light/Dark),
+/** Ko'rinish rejimi tanlagichi — boshqa Sozlamalar bo'limlaridagi qatorlar
+    (Row) bilan BIR XIL uzun-blok "chip" ko'rinishida (kichik 3 ustunli
+    kartalar emas — "qolgan bloklarga o'xshab" fikr-mulohaza bo'yicha).
     useTheme.ts orqali <html data-theme> ni darhol o'zgartiradi (index.css'dagi
     global override qoidalari butun ilovaga qo'llanadi). */
 function AppearanceSwitch() {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
-  const options: { value: AppTheme; Icon: typeof Sun; labelKey: string; descKey: string }[] = [
-    { value: 'soft', Icon: Sun, labelKey: 'settings.appearance.soft', descKey: 'settings.appearance.softDesc' },
-    { value: 'light', Icon: Sparkles, labelKey: 'settings.appearance.light', descKey: 'settings.appearance.lightDesc' },
-    { value: 'dark', Icon: Moon, labelKey: 'settings.appearance.dark', descKey: 'settings.appearance.darkDesc' },
+  const options: { value: AppTheme; Icon: IconCmp; labelKey: string; descKey: string }[] = [
+    { value: 'soft', Icon: SunIcon, labelKey: 'settings.appearance.soft', descKey: 'settings.appearance.softDesc' },
+    { value: 'light', Icon: SparklesIcon, labelKey: 'settings.appearance.light', descKey: 'settings.appearance.lightDesc' },
+    { value: 'dark', Icon: MoonIcon, labelKey: 'settings.appearance.dark', descKey: 'settings.appearance.darkDesc' },
   ];
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="space-y-2">
       {options.map(({ value, Icon, labelKey, descKey }) => {
         const active = theme === value;
         return (
-          <button
+          <Row
             key={value}
-            type="button"
+            Icon={Icon}
+            label={t(labelKey)}
             onClick={() => setTheme(value)}
-            className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
-              active ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-600' : 'border-brand-100 hover:bg-brand-50/60'
-            }`}
-          >
-            <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-600'}`}>
-              <Icon size={18} />
-            </span>
-            <span className="text-sm font-semibold text-brand-900">{t(labelKey)}</span>
-            <span className="text-xs text-brand-500">{t(descKey)}</span>
-          </button>
+            right={
+              <span className="flex flex-col items-end gap-0.5">
+                <span className="text-[11px] text-neutral-400">{t(descKey)}</span>
+                {active && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white">
+                    <CheckIcon width={12} height={12} />
+                  </span>
+                )}
+              </span>
+            }
+          />
         );
       })}
     </div>
