@@ -427,7 +427,8 @@ function TreeBoard() {
                 onClick={goToMe}
                 disabled={!myId}
                 title={t('tree.board.goToMeTitle')}
-                className="hidden items-center gap-1.5 rounded-full bg-brand-50 py-1.5 pl-1.5 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
+                aria-label={t('tree.board.goToMeTitle')}
+                className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
                 <span
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
@@ -435,7 +436,6 @@ function TreeBoard() {
                 >
                   {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
                 </span>
-                {user?.fullName}
               </button>
               {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
                   Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
@@ -468,25 +468,25 @@ function TreeBoard() {
                 type="button"
                 onClick={onArrange}
                 disabled={arranging || nodes.length < 2}
+                title={arranging ? t('tree.board.arranging') : t('tree.board.arrange')}
                 aria-label={t('tree.board.arrange')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
               >
-                {/* Tartiblash (auto-arrange) ikonkasi — mobilда HAM ko'rinadi (faqat
-                    ikonka), desktop bilan bir xil vazifa — sm+ da matn ham chiqadi */}
+                {/* Tartiblash (auto-arrange) ikonkasi — barcha o'lchamlarda
+                    faqat ikonka (joyi o'zgarmagan), matn olib tashlandi
+                    (Applayout.png namunasidagi ixcham, faqat-ikonka uslub). */}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
                   <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
                 </svg>
-                <span className="hidden sm:inline">{arranging ? t('tree.board.arranging') : t('tree.board.arrange')}</span>
               </button>
               <button
                 type="button"
                 onClick={openAddDefault}
                 title={t('tree.board.addRelative')}
                 aria-label={t('tree.board.addRelative')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800 sm:h-auto sm:w-auto sm:rounded-full sm:px-4 sm:py-2"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800"
               >
-                <PlusIcon className="sm:hidden" />
-                <span className="hidden sm:inline text-sm font-semibold">{t('tree.board.addRelativeShort')}</span>
+                <PlusIcon />
               </button>
             </div>
           </>,

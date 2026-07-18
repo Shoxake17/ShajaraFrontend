@@ -12,6 +12,19 @@
   input::placeholder {
     @apply text-neutral-400;
   }
+
+  /* Butun ilova bo'ylab (barcha ko'rinish rejimlarida — Soft/Light/Dark)
+     vizual scrollbar chizig'i (tepaga/pastga tushib-chiqadigan, o'ng
+     tomondagi) YASHIRILADI — Apple uslubidagi tozaroq ko'rinish uchun.
+     Scroll funksionalligining o'zi to'liq saqlanadi, faqat chizilgan
+     scrollbar ko'rinmaydi. */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* eski Edge/IE */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/yangi Edge */
+  }
 }
 
 @layer components {
