@@ -201,6 +201,21 @@ function TreeBoard() {
     const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
     return nodes.filter((n) => visible(n.data.side) || n.data.spouses.some((sp) => visible(sp.side)));
   }, [nodes, sideFilter]);
+
+  // Joriy tomonda (Ota/Ona) ko'rinayotgan ODAMLAR soni — karta emas, har
+  // bir shaxs alohida (turmush o'rtoqlari ham) hisoblanadi, xuddi
+  // FamilyMembersPage'dagi "N ta a'zo" bilan bir xil mantiqda.
+  const sideCount = useMemo(() => {
+    const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
+    let count = 0;
+    for (const n of nodes) {
+      if (visible(n.data.side)) count++;
+      for (const sp of n.data.spouses) {
+        if (visible(sp.side)) count++;
+      }
+    }
+    return count;
+  }, [nodes, sideFilter]);
   const displayedEdges = useMemo(() => {
     const visibleIds = new Set(displayedNodes.map((n) => n.id));
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
@@ -358,12 +373,27 @@ function TreeBoard() {
                 ICHIDA esa justify-center — natijada guruh ajratilgan bo'sh
                 joy ichida markazlashadi, logotip va profil klasterlari
                 o'zgarmas holda chetlarda qoladi. */}
+            {/* Sarlavha + joriy tomondagi (Ota/Ona) a'zolar soni — xuddi
+                FamilyMembersPage'dagi "Oila a'zolarim — N ta a'zo" bilan bir
+                xil andozada. Kichik mobil telefonlarda BUTUNLAY yashiringan
+                (joy tejash uchun) — faqat planshet/desktop'da (sm+) ko'rinadi.
+                (Fikr-mulohaza bo'yicha qaytarildi — Applayout.png namunasida
+                yo'q edi, lekin umumiy a'zolar soni funksiyasi kerak.) */}
+            <div className="hidden min-w-0 shrink-0 sm:block">
+              <p className="truncate text-sm font-semibold text-brand-900">{t('tree.board.title')}</p>
+              <p className="truncate text-xs text-brand-500">
+                {t('tree.board.memberCount', {
+                  side: sideFilter === 'PATERNAL' ? t('tree.board.paternalSide') : t('tree.board.maternalSide'),
+                  count: sideCount,
+                })}
+              </p>
+            </div>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 sm:gap-3">
               {/* Ota tomon / Ona tomon — radio: doim aynan bittasi faol, ikkalasi
                   birga yoki "hammasi" holati yo'q. Doira ikonkalar (♂/♀), o'z
                   bordered "bloki" ichida — app uslubi. Ona tomon tanlansa PUSHTI,
                   Ota tomon — brend yashili (o'z holicha). */}
-              <div role="radiogroup" aria-label={t('tree.board.sideGroupLabel')} className="flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
+              <div role="radiogroup" aria-label={t('tree.board.sideGroupLabel')} className="flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1 shadow-sm">
                 <button
                   type="button"
                   onClick={() => setSideFilter('PATERNAL')}
@@ -406,7 +436,7 @@ function TreeBoard() {
                 title={t('common.search')}
                 aria-label={t('common.search')}
                 aria-pressed={mobileSearchOpen}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:hidden ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors md:hidden ${
                   mobileSearchOpen
                     ? 'border-brand-700 bg-brand-700 text-white'
                     : 'border-brand-200 text-brand-700 hover:bg-brand-50'
@@ -428,10 +458,10 @@ function TreeBoard() {
                       : t('tree.board.singleDragOnTitle')
                   }
                   aria-pressed={layoutEdit}
-                  className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors sm:flex ${
+                  className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors sm:flex ${
                     layoutEdit
-                      ? 'bg-brand-700 text-white hover:bg-brand-800'
-                      : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
+                      ? 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800'
+                      : 'border-brand-100 bg-brand-50 text-brand-800 hover:bg-brand-100'
                   }`}
                 >
                   {/* Surish (move) ikonkasi */}
@@ -450,7 +480,7 @@ function TreeBoard() {
                 disabled={arranging || nodes.length < 2}
                 title={arranging ? t('tree.board.arranging') : t('tree.board.arrange')}
                 aria-label={t('tree.board.arrange')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 shadow-sm transition-colors hover:bg-brand-100 disabled:opacity-40"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
                   <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
@@ -476,7 +506,7 @@ function TreeBoard() {
                 onClick={() => navigate('/xabarlar')}
                 title={t('tree.board.notifications')}
                 aria-label={t('tree.board.notifications')}
-                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100"
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 shadow-sm transition-colors hover:bg-brand-100"
               >
                 <BellIcon />
                 {unreadTotal > 0 && (
@@ -490,7 +520,7 @@ function TreeBoard() {
                 disabled={!myId}
                 title={t('tree.board.goToMeTitle')}
                 aria-label={t('tree.board.goToMeTitle')}
-                className="hidden shrink-0 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
+                className="hidden shrink-0 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 shadow-sm transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
                 <span
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
@@ -515,8 +545,14 @@ function TreeBoard() {
 
       {/* Doska */}
       <div className="relative min-h-0 flex-1">
-        {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-brand-50/70">
+        {/* Yuklanish ko'rsatkichi FAQAT ma'lumot HALI UMUMAN yo'q bo'lganda
+            (birinchi marta ochilganda) ko'rinadi — sahifaga qayta kirganda
+            (ma'lumot allaqachon xotirada) fon "xiralashtiruvchi" qatlamsiz,
+            sokin fonda yangilanadi (fikr-mulohaza: "ekran xiralashib
+            ketyapti"). Xira/tiniq fon qatlami ham OLIB TASHLANDI — faqat
+            kichik aylanuvchi belgi, doska fonini bosib-xiralatmaydi. */}
+        {loading && nodes.length === 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
             <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-200 border-t-brand-700" />
           </div>
         )}

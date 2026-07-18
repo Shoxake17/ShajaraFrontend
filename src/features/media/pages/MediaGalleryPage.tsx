@@ -141,8 +141,11 @@ function FilterPicker({
         <div
           role="listbox"
           aria-label={label}
-          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-max min-w-full overflow-y-auto rounded-2xl border border-brand-100 bg-white p-1.5 shadow-xl"
+          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-max min-w-full space-y-1 overflow-y-auto rounded-2xl border border-brand-100 bg-white p-1.5 shadow-xl"
         >
+          {/* Har bir variant O'ZINING chegarasi bilan — Sozlamalar
+              qatorlaridagi "chip" uslubiga o'xshab, bir-biridan ANIQ
+              ajralib turishi uchun (fikr-mulohaza bo'yicha). */}
           {options.map((o) => {
             const selected = o.value === value;
             return (
@@ -155,8 +158,10 @@ function FilterPicker({
                   onChange(o.value);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
-                  selected ? 'bg-brand-50 font-medium text-brand-800' : 'text-brand-900 hover:bg-neutral-50'
+                className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                  selected
+                    ? 'border-brand-200 bg-brand-50 font-medium text-brand-800'
+                    : 'border-brand-100 bg-white text-brand-900 hover:bg-brand-50/60'
                 }`}
               >
                 <span className="truncate">{o.label}</span>
