@@ -421,32 +421,41 @@ function FamilyMembersBoard() {
              izohda tushuntirilgan sabab bilan: umumiy index.css qoidalari
              bu sahifaning alohida React Flow JS chunk'iga yetib bormaydi). */
           [data-theme='light'] .bg-white,
-          [data-theme='light'] .bg-white\/90 {
-            background-color: rgb(255 255 255 / 0.28) !important;
-            backdrop-filter: blur(30px) saturate(160%);
-            -webkit-backdrop-filter: blur(30px) saturate(160%);
-          }
-          /* Sahifaning O'ZI (bu doskaning butun foni) — .bg-white kabi
-             alohida panel emas, shu bois BLUR YO'Q (aks holda tabiat
-             surati butun ekran bo'ylab xiralashib ko'rinmay qolardi). */
-          [data-theme='light'] .bg-brand-50,
+          [data-theme='light'] .bg-white\/90,
+          [data-theme='light'] .bg-pink-50,
+          [data-theme='light'] .bg-brand-50\/40,
+          [data-theme='light'] .bg-brand-50\/50,
           [data-theme='light'] .bg-brand-50\/60,
           [data-theme='light'] .bg-brand-50\/70 {
+            background-color: rgb(255 255 255 / 0.22) !important;
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+          }
+          /* Sahifaning O'ZI (bu doskaning butun foni) — FAQAT bare
+             bg-brand-50 (opacity-suffiksisiz) — .bg-white kabi alohida
+             panel emas, shu bois BLUR YO'Q (aks holda tabiat surati
+             butun ekran bo'ylab xiralashib ko'rinmay qolardi). */
+          [data-theme='light'] .bg-brand-50 {
             background-color: rgb(255 255 255 / 0.06) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
           }
           [data-theme='light'] .border-brand-100,
           [data-theme='light'] .border-brand-200 {
-            border-color: rgb(255 255 255 / 0.4) !important;
+            border-color: rgb(255 255 255 / 0.45) !important;
           }
           [data-theme='light'] .react-flow__controls {
-            border-color: rgb(255 255 255 / 0.4);
-            background: rgb(255 255 255 / 0.28);
-            backdrop-filter: blur(30px) saturate(160%);
+            border-color: rgb(255 255 255 / 0.45);
+            background: rgb(255 255 255 / 0.22);
+            backdrop-filter: blur(20px) saturate(160%);
           }
           [data-theme='light'] .react-flow__controls-button {
             background: transparent;
+            color: #17291E;
+          }
+          [data-theme='light'] .react-flow__controls-button:hover {
+            background: rgb(255 255 255 / 0.3);
+            color: #17291E;
           }
 
           [data-theme='dark'] .bg-white,

@@ -11,6 +11,7 @@ import { useStorageStore, formatBytes } from '@/features/storage/storage.store';
 import { useChatStore, chatUnreadTotal } from '@/features/chat/model/chat.store';
 import { teardownWebPush } from '@/features/push/push.web';
 import { PricingModal } from '@/features/billing/components/PricingModal';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { useNavItems, LogoutIcon } from './nav-items';
 
 const MB = 1024 * 1024;
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ fullscreen }: SidebarProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const NAV = useNavItems();
   const navigate = useNavigate();
   const clearSession = useAuthStore((s) => s.logout);
@@ -61,43 +63,63 @@ export function Sidebar({ fullscreen }: SidebarProps) {
     }
   };
 
+  // Faol sahifa belgisi endi FAQAT ikonka ustida (matn yozuvi hech qanday
+  // fon olmaydi, faqat rangi to'qlashadi) — ikonka rangi doim TO'Q YASHIL.
+  // Light (shisha) rejimda faol ikonka ostidagi belgi YENGIL xira bilan
+  // (backdrop-blur-sm — 4px, kuchli 30px EMAS: ikonka atigi 36x36px, kuchli
+  // blur uni "shakli yo'q dog'"ga aylantirib qo'yardi).
+  const iconActiveBg =
+    theme === 'light'
+      ? 'bg-white/55 backdrop-blur-sm ring-1 ring-white/70'
+      : theme === 'dark'
+        ? 'bg-white/10'
+        : 'bg-brand-100';
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors',
+      'flex items-center gap-3 rounded-full px-2 py-1.5 text-sm font-medium transition-colors',
       'justify-center lg:justify-start',
-      isActive
-        ? 'bg-brand-800 text-white shadow-sm'
-        : 'text-brand-700 hover:bg-brand-50 hover:text-brand-900',
+      isActive ? 'text-brand-900' : 'text-brand-700 hover:text-brand-900',
     ].join(' ');
 
   return (
     // AJDO logotipi endi BU YERDA emas — umumiy AppLayout header'ida
     // (mockup: desktopajdo.png — logotip butun sahifa tepasida, Sidebar
     // ustida yagona chiziq). Sidebar o'zi suzuvchi bordered/yumaloq karta.
+    // Light rejimda: shisha chekkasi bo'rttirilgan (ring + ichki tepa
+    // yorug'lik chizig'i) — haqiqiy oynaga o'xshab.
     <aside
-      className={`mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:flex ${
+      className={`relative mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:flex ${
         fullscreen
           ? 'lg:w-0 lg:min-w-0 lg:-translate-x-6 lg:border-transparent lg:opacity-0'
-          : 'border-brand-100 lg:w-60 lg:translate-x-0'
+          : theme === 'light'
+            ? 'border-white/50 ring-1 ring-white/30 lg:w-60 lg:translate-x-0'
+            : 'border-brand-100 lg:w-60 lg:translate-x-0'
       }`}
     >
       {/* Navigatsiya */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {NAV.map(({ to, label, Icon, img, end }) => (
           <NavLink key={to} to={to} end={end} className={linkClass} title={label}>
-            <span className="relative shrink-0">
-              {img ? (
-                <img src={img} alt="" className="-ml-1.5 h-8 w-8 object-contain" />
-              ) : Icon ? (
-                <Icon />
-              ) : null}
-              {to === '/xabarlar' && unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${isActive ? iconActiveBg : ''}`}
+                >
+                  {img ? (
+                    <img src={img} alt="" className="h-8 w-8 object-contain" />
+                  ) : Icon ? (
+                    <Icon />
+                  ) : null}
+                  {to === '/xabarlar' && unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-            <span className={`hidden lg:block ${img ? '-ml-2' : ''}`}>{label}</span>
+                <span className="hidden lg:block">{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

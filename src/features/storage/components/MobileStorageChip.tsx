@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HIDE_CHIP_MAX_PERCENT, formatBytes, storagePercent, useStorageStore } from '../storage.store';
 import { PricingModal } from '@/features/billing/components/PricingModal';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 const MB = 1024 * 1024;
 const DRAG_HIDE_THRESHOLD = 56; // shuncha pikseldan ko'p o'ngga tortilsa — yashiriladi
@@ -29,6 +30,7 @@ export function useStorageChipVisibility() {
 
 export function MobileStorageChip() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const usedBytes = useStorageStore((s) => s.usedBytes);
   const limitBytes = useStorageStore((s) => s.limitBytes);
   const loadUsage = useStorageStore((s) => s.loadUsage);
@@ -169,9 +171,17 @@ export function MobileStorageChip() {
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
           style={{ background: `conic-gradient(${ringColor} ${percent * 3.6}deg, #E5E7EB 0deg)` }}
         >
+          {/* MUHIM: bu doiracha atigi 28px — Light rejimdagi umumiy shisha
+              qoidasi (blur) juda kichik elementlarda "shakli yo'q dog'"ga
+              aylanib, atrofdagi rangli halqadan (ringColor) rang "yuqib"
+              o'tishiga sabab bo'lardi. Shu bois bu yerda .bg-white
+              ISHLATILMAYDI — o'rniga aniq, blursiz rang beriladi. */}
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[9px] font-bold"
-            style={{ color: ringColor }}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[9px] font-bold"
+            style={{
+              color: ringColor,
+              backgroundColor: theme === 'dark' ? '#1c1e1c' : theme === 'light' ? 'rgb(255 255 255 / 0.9)' : '#fff',
+            }}
           >
             {percent}%
           </span>
