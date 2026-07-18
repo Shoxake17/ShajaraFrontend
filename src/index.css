@@ -85,7 +85,10 @@
 /* MUHIM: saturate() effekti OLIB TASHLANDI — orqa fon suratidagi (masalan
    osmon) ranglarni blur ostida "bo'rttirib", panellarga kutilmagan KO'K
    xiralik/tint berayotgan edi (foydalanuvchi xabar berdi). Endi FAQAT
-   blur + shaffoflik — haqiqiy "rangsiz" shisha. */
+   blur + shaffoflik — haqiqiy "rangsiz" shisha. Xiralik (opacity) va blur
+   YANADA pasaytirildi — orqa fondagi surat "xira dog'" emas, ANIQ
+   ko'rinadigan darajada shaffof bo'lishi uchun (foydalanuvchi so'rovi:
+   "orqa fon ko'rinadigon darajada" 100% sof shisha). */
 [data-theme='light'] .bg-white,
 [data-theme='light'] .bg-white\/90,
 [data-theme='light'] .bg-white\/95,
@@ -94,9 +97,9 @@
 [data-theme='light'] .bg-brand-50\/50,
 [data-theme='light'] .bg-brand-50\/60,
 [data-theme='light'] .bg-brand-50\/70 {
-  background-color: rgb(255 255 255 / 0.3) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background-color: rgb(255 255 255 / 0.16) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* MUHIM: FAQAT bare bg-brand-50 (opacity-suffiksisiz) — SAHIFANING O'ZI
@@ -130,11 +133,15 @@
 
 /* Chekka (border) yaxshi ko'rinishi uchun — panellar ajralib turishi,
    ayniqsa och/tumanli fon ustida ("chekada border yo'q" degan
-   fikr-mulohaza bo'yicha kuchaytirildi). */
+   fikr-mulohaza bo'yicha kuchaytirildi). MUHIM: OQ chekka OQ (shaffof)
+   panellar YONMA-YON turganda (masalan Sozlamalar kartalari) yetarli
+   farq bermaydi — "oq ustiga oq" muammosi. Shu bois TO'Q (qorong'i,
+   yarim shaffof) chekka ishlatiladi — istalgan fon ustida ham (yorug'
+   surat, boshqa oq panel) ANIQ ko'rinadi. */
 [data-theme='light'] .border-brand-100,
 [data-theme='light'] .border-brand-200,
 [data-theme='light'] .border-pink-200 {
-  border-color: rgb(255 255 255 / 0.65) !important;
+  border-color: rgb(23 41 30 / 0.16) !important;
 }
 
 /* Input maydonlari (TextField va o'xshash — login/register/sozlamalar
@@ -149,7 +156,7 @@
 
 [data-theme='light'] .shadow-card,
 [data-theme='light'] .shadow-sm {
-  box-shadow: 0 8px 32px -8px rgb(23 41 30 / 0.2), inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+  box-shadow: 0 10px 36px -6px rgb(23 41 30 / 0.28), inset 0 1px 0 0 rgb(255 255 255 / 0.6);
 }
 
 [data-theme='dark'] body {

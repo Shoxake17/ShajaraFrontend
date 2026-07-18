@@ -600,9 +600,9 @@ function TreeBoard() {
           [data-theme='light'] .bg-brand-50\/50,
           [data-theme='light'] .bg-brand-50\/60,
           [data-theme='light'] .bg-brand-50\/70 {
-            background-color: rgb(255 255 255 / 0.3) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background-color: rgb(255 255 255 / 0.16) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
           }
           /* Sahifaning O'ZI (bu doskaning butun foni) — FAQAT bare
              bg-brand-50 (opacity-suffiksisiz) — .bg-white kabi alohida
@@ -626,7 +626,7 @@ function TreeBoard() {
           [data-theme='light'] .border-brand-100,
           [data-theme='light'] .border-brand-200,
           [data-theme='light'] .border-pink-200 {
-            border-color: rgb(255 255 255 / 0.65) !important;
+            border-color: rgb(23 41 30 / 0.16) !important;
           }
           [data-theme='light'] .border-neutral-200 {
             border-color: rgb(255 255 255 / 0.7) !important;
@@ -634,8 +634,8 @@ function TreeBoard() {
           }
           [data-theme='light'] .react-flow__controls {
             border-color: rgb(255 255 255 / 0.65);
-            background: rgb(255 255 255 / 0.3);
-            backdrop-filter: blur(20px);
+            background: rgb(255 255 255 / 0.16);
+            backdrop-filter: blur(12px);
           }
           [data-theme='light'] .react-flow__controls-button {
             background: transparent;
@@ -644,6 +644,10 @@ function TreeBoard() {
           [data-theme='light'] .react-flow__controls-button:hover {
             background: rgb(255 255 255 / 0.3);
             color: #17291E;
+          }
+          [data-theme='light'] .shadow-card,
+          [data-theme='light'] .shadow-sm {
+            box-shadow: 0 10px 36px -6px rgb(23 41 30 / 0.28), inset 0 1px 0 0 rgb(255 255 255 / 0.6);
           }
 
           [data-theme='dark'] .bg-white,
