@@ -478,17 +478,39 @@ function FamilyMembersBoard() {
           }
 
           [data-theme='dark'] .bg-white,
-          [data-theme='dark'] .bg-white\/90 {
-            background-color: #1c1e1c !important;
-          }
-          [data-theme='dark'] .bg-brand-50,
+          [data-theme='dark'] .bg-white\/90,
+          [data-theme='dark'] .bg-pink-50,
+          [data-theme='dark'] .bg-brand-50\/40,
+          [data-theme='dark'] .bg-brand-50\/50,
           [data-theme='dark'] .bg-brand-50\/60,
           [data-theme='dark'] .bg-brand-50\/70 {
-            background-color: #171917 !important;
+            background-color: rgb(18 20 18 / 0.55) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+          }
+          [data-theme='dark'] .bg-brand-50 {
+            background-color: rgb(6 8 6 / 0.35) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+          [data-theme='dark'] .bg-brand-50.border-transparent {
+            background-color: rgb(24 26 24 / 0.6) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-color: rgb(255 255 255 / 0.16) !important;
           }
           [data-theme='dark'] .border-brand-100,
-          [data-theme='dark'] .border-brand-200 {
-            border-color: #2b2e2b !important;
+          [data-theme='dark'] .border-brand-200,
+          [data-theme='dark'] .border-pink-200 {
+            border-color: rgb(255 255 255 / 0.14) !important;
+          }
+          [data-theme='dark'] .border-neutral-200 {
+            border-color: rgb(255 255 255 / 0.14) !important;
+            box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.06), 0 2px 8px -4px rgb(0 0 0 / 0.5);
+          }
+          [data-theme='dark'] .shadow-card,
+          [data-theme='dark'] .shadow-sm {
+            box-shadow: 0 10px 36px -6px rgb(0 0 0 / 0.5), inset 0 1px 0 0 rgb(255 255 255 / 0.06);
           }
           [data-theme='dark'] .text-brand-900 { color: #F0F2EA !important; }
           [data-theme='dark'] .text-brand-800 { color: #E2E6DA !important; }
@@ -496,17 +518,18 @@ function FamilyMembersBoard() {
           [data-theme='dark'] .text-brand-600 { color: #A8B69C !important; }
           [data-theme='dark'] .text-brand-500 { color: #8FA084 !important; }
           [data-theme='dark'] .react-flow__controls {
-            border-color: #2b2e2b;
-            background: #1c1e1c;
+            border-color: rgb(255 255 255 / 0.14);
+            background: rgb(18 20 18 / 0.55);
+            backdrop-filter: blur(12px);
             box-shadow: none;
           }
           [data-theme='dark'] .react-flow__controls-button {
-            background: #1c1e1c;
+            background: transparent;
             color: #C6D0BC;
-            border-bottom-color: #2b2e2b;
+            border-bottom-color: rgb(255 255 255 / 0.1);
           }
           [data-theme='dark'] .react-flow__controls-button:hover {
-            background: #232523;
+            background: rgb(255 255 255 / 0.08);
             color: #F0F2EA;
           }
         `}</style>

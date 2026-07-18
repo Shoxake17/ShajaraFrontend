@@ -85,15 +85,17 @@ export function Sidebar({ fullscreen }: SidebarProps) {
     // AJDO logotipi endi BU YERDA emas — umumiy AppLayout header'ida
     // (mockup: desktopajdo.png — logotip butun sahifa tepasida, Sidebar
     // ustida yagona chiziq). Sidebar o'zi suzuvchi bordered/yumaloq karta.
-    // Light rejimda: shisha chekkasi bo'rttirilgan (ring + ichki tepa
-    // yorug'lik chizig'i) — haqiqiy oynaga o'xshab.
+    // Light/Dark (ikkalasi ham shisha) rejimda: chekka bo'rttirilgan
+    // (ring + ichki tepa yorug'lik chizig'i) — haqiqiy oynaga o'xshab.
     <aside
       className={`relative mx-3 mb-3 mt-3 hidden min-h-0 w-16 shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:flex ${
         fullscreen
           ? 'lg:w-0 lg:min-w-0 lg:-translate-x-6 lg:border-transparent lg:opacity-0'
           : theme === 'light'
             ? 'border-white/50 ring-1 ring-white/30 lg:w-60 lg:translate-x-0'
-            : 'border-brand-100 lg:w-60 lg:translate-x-0'
+            : theme === 'dark'
+              ? 'border-white/10 ring-1 ring-white/10 lg:w-60 lg:translate-x-0'
+              : 'border-brand-100 lg:w-60 lg:translate-x-0'
       }`}
     >
       {/* Navigatsiya */}
