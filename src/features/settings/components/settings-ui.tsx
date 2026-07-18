@@ -48,6 +48,14 @@ export const SoundIcon = mk(<><path d="M4.5 9.5h3l4-3v11l-4-3h-3Z" /><path d="M1
 export const AlertIcon = mk(<><path d="M12 4 3 19.5h18Z" /><path d="M12 10v4" /><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none" /></>);
 export const UsersIcon2 = mk(<><circle cx="9" cy="8" r="3" /><path d="M3.5 19c1-2.6 3-4 5.5-4s4.5 1.4 5.5 4M16 5.2a3 3 0 0 1 0 5.6M17.5 15c2 .4 3.4 1.7 4 4" /></>);
 export const LogoutIcon2 = mk(<><path d="M14 4.5H6.5A2 2 0 0 0 4.5 6.5v11a2 2 0 0 0 2 2H14" /><path d="M17 8.5 20.5 12 17 15.5M20 12H9.5" /></>);
+export const PaletteIcon = mk(
+  <>
+    <path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8s3.4 7.5 7 7.5c1 0 1.5-.6 1.5-1.3 0-.4-.2-.7-.4-1-.2-.3-.4-.6-.4-1 0-.8.6-1.4 1.4-1.4H14c3 0 5.5-2.3 5.5-5.3 0-3.6-3.4-5.5-7.5-5.5Z" />
+    <circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none" />
+    <circle cx="15.5" cy="10" r=".9" fill="currentColor" stroke="none" />
+  </>,
+);
 
 export function Card({ title, desc, children, className = '' }: { title: string; desc?: string; children: ReactNode; className?: string }) {
   return (

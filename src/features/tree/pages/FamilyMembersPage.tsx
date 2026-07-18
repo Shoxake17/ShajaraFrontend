@@ -415,6 +415,69 @@ function FamilyMembersBoard() {
           .react-flow__controls-button:disabled svg {
             fill-opacity: 0.35;
           }
+
+          /* Ko'rinish rejimlari (Soft/Light/Dark) — index.css'dagi BIR XIL
+             override texnikasi, shu sahifaga TAKRORLANGAN (yuqoridagi
+             izohda tushuntirilgan sabab bilan: umumiy index.css qoidalari
+             bu sahifaning alohida React Flow JS chunk'iga yetib bormaydi). */
+          [data-theme='light'] .bg-white,
+          [data-theme='light'] .bg-white\/90 {
+            background-color: rgb(255 255 255 / 0.62) !important;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+          }
+          [data-theme='light'] .bg-brand-50,
+          [data-theme='light'] .bg-brand-50\/60,
+          [data-theme='light'] .bg-brand-50\/70 {
+            background-color: rgb(255 255 255 / 0.32) !important;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+          }
+          [data-theme='light'] .border-brand-100,
+          [data-theme='light'] .border-brand-200 {
+            border-color: rgb(255 255 255 / 0.55) !important;
+          }
+          [data-theme='light'] .react-flow__controls {
+            border-color: rgb(255 255 255 / 0.55);
+            background: rgb(255 255 255 / 0.5);
+            backdrop-filter: blur(18px);
+          }
+          [data-theme='light'] .react-flow__controls-button {
+            background: transparent;
+          }
+
+          [data-theme='dark'] .bg-white,
+          [data-theme='dark'] .bg-white\/90 {
+            background-color: #1c1e1c !important;
+          }
+          [data-theme='dark'] .bg-brand-50,
+          [data-theme='dark'] .bg-brand-50\/60,
+          [data-theme='dark'] .bg-brand-50\/70 {
+            background-color: #171917 !important;
+          }
+          [data-theme='dark'] .border-brand-100,
+          [data-theme='dark'] .border-brand-200 {
+            border-color: #2b2e2b !important;
+          }
+          [data-theme='dark'] .text-brand-900 { color: #F0F2EA !important; }
+          [data-theme='dark'] .text-brand-800 { color: #E2E6DA !important; }
+          [data-theme='dark'] .text-brand-700 { color: #C6D0BC !important; }
+          [data-theme='dark'] .text-brand-600 { color: #A8B69C !important; }
+          [data-theme='dark'] .text-brand-500 { color: #8FA084 !important; }
+          [data-theme='dark'] .react-flow__controls {
+            border-color: #2b2e2b;
+            background: #1c1e1c;
+            box-shadow: none;
+          }
+          [data-theme='dark'] .react-flow__controls-button {
+            background: #1c1e1c;
+            color: #C6D0BC;
+            border-bottom-color: #2b2e2b;
+          }
+          [data-theme='dark'] .react-flow__controls-button:hover {
+            background: #232523;
+            color: #F0F2EA;
+          }
         `}</style>
       </div>
     </div>

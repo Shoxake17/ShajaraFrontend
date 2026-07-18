@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
+import { ThemeBackground } from './ThemeBackground';
 import { useSessionLiveness } from '@/features/auth/hooks/useSessionLiveness';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { useCallStore } from '@/features/chat/model/call.store';
@@ -78,7 +79,7 @@ export function AppLayout() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-brand-50">
-      
+      <ThemeBackground />
       <header
         className={`mx-3 flex h-14 shrink-0 items-center gap-2.5 overflow-hidden rounded-full border bg-white px-3 shadow-sm transition-all duration-300 ${EASE} sm:gap-3 sm:px-4 ${
           boardFullscreen

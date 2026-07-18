@@ -7,6 +7,7 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Moon, Sparkles, Sun } from 'lucide-react';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/shared/hooks/useRegion';
@@ -61,7 +62,9 @@ import {
   AlertIcon,
   UsersIcon2,
   LogoutIcon2,
+  PaletteIcon,
 } from '../components/settings-ui';
+import { useTheme, type AppTheme } from '@/shared/hooks/useTheme';
 
 const SECTIONS = [
   { id: 'profil', labelKey: 'settings.sections.profile', Icon: UserIcon2 },
@@ -70,6 +73,7 @@ const SECTIONS = [
   { id: 'maxfiylik', labelKey: 'settings.sections.privacy', Icon: LockIcon2 },
   { id: 'bildirishnoma', labelKey: 'settings.sections.notifications', Icon: BellIcon },
   { id: 'til', labelKey: 'settings.sections.language', Icon: GlobeIcon },
+  { id: 'korinish', labelKey: 'settings.sections.appearance', Icon: PaletteIcon },
   { id: 'eksport', labelKey: 'settings.sections.export', Icon: DownloadIcon },
   { id: 'yordam', labelKey: 'settings.sections.help', Icon: HelpIcon },
   { id: 'tizim', labelKey: 'settings.sections.system', Icon: InfoIcon },
@@ -86,6 +90,42 @@ function LanguageSwitch() {
       label={LANGUAGE_NAMES[language]}
       options={(['uz', 'ru', 'en'] as const).map((lang) => ({ value: lang, label: LANGUAGE_NAMES[lang] }))}
     />
+  );
+}
+
+/** Ko'rinish rejimi tanlagichi — 3 ta tanlanadigan karta (Soft/Light/Dark),
+    useTheme.ts orqali <html data-theme> ni darhol o'zgartiradi (index.css'dagi
+    global override qoidalari butun ilovaga qo'llanadi). */
+function AppearanceSwitch() {
+  const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
+  const options: { value: AppTheme; Icon: typeof Sun; labelKey: string; descKey: string }[] = [
+    { value: 'soft', Icon: Sun, labelKey: 'settings.appearance.soft', descKey: 'settings.appearance.softDesc' },
+    { value: 'light', Icon: Sparkles, labelKey: 'settings.appearance.light', descKey: 'settings.appearance.lightDesc' },
+    { value: 'dark', Icon: Moon, labelKey: 'settings.appearance.dark', descKey: 'settings.appearance.darkDesc' },
+  ];
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {options.map(({ value, Icon, labelKey, descKey }) => {
+        const active = theme === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setTheme(value)}
+            className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+              active ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-600' : 'border-brand-100 hover:bg-brand-50/60'
+            }`}
+          >
+            <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-600'}`}>
+              <Icon size={18} />
+            </span>
+            <span className="text-sm font-semibold text-brand-900">{t(labelKey)}</span>
+            <span className="text-xs text-brand-500">{t(descKey)}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -606,6 +646,12 @@ export function SettingsPage() {
                       right={<span className="text-brand-500">{t(regionFormat.hour12 ? 'settings.language.hour12' : 'settings.language.hour24')}</span>}
                     />
                   </div>
+                </Card>
+              </div>
+
+              <div id="korinish" className="scroll-mt-6">
+                <Card title={t('settings.sections.appearance')} desc={t('settings.appearance.desc')}>
+                  <AppearanceSwitch />
                 </Card>
               </div>
 

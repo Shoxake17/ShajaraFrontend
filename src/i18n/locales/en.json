@@ -34,6 +34,7 @@
       "privacy": "Privacy",
       "notifications": "Notifications",
       "language": "Language & region",
+      "appearance": "Appearance",
       "export": "Data & export",
       "help": "Help & support",
       "system": "About"
@@ -90,6 +91,15 @@
       "usa": "USA",
       "hour24": "24-hour",
       "hour12": "12-hour (AM/PM)"
+    },
+    "appearance": {
+      "desc": "Choose the app's appearance.",
+      "soft": "Soft",
+      "softDesc": "Current default, white look",
+      "light": "Light",
+      "lightDesc": "Frosted glass style with a nature background",
+      "dark": "Dark",
+      "darkDesc": "Dark mode"
     },
     "export": {
       "desc": "Download or export your data.",

@@ -34,6 +34,7 @@
       "privacy": "Maxfiylik",
       "notifications": "Bildirishnomalar",
       "language": "Til va mintaqa",
+      "appearance": "Ko'rinish",
       "export": "Ma'lumotlar va eksport",
       "help": "Yordam va qo'llab-quvvatlash",
       "system": "Tizim haqida"
@@ -90,6 +91,15 @@
       "usa": "AQSH",
       "hour24": "24 soat",
       "hour12": "12 soat (AM/PM)"
+    },
+    "appearance": {
+      "desc": "Ilova ko'rinishini tanlang.",
+      "soft": "Soft",
+      "softDesc": "Hozirgi standart, oq ko'rinish",
+      "light": "Light",
+      "lightDesc": "Shisha (glass) uslub, tabiat foni bilan",
+      "dark": "Dark",
+      "darkDesc": "Qorong'i rejim"
     },
     "export": {
       "desc": "Ma'lumotlaringizni yuklab oling yoki eksport qiling.",

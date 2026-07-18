@@ -59,3 +59,101 @@
     animation: chat-search-marquee 10s linear infinite;
   }
 }
+
+/* ---------------------------------------------------------------------
+ * Ko'rinish rejimlari (Soft / Light / Dark) — useTheme.ts
+ * <html data-theme="..."> orqali boshqariladi.
+ *
+ * MUHIM: bu qoidalar ATAYLAB @layer'DAN TASHQARIDA (Tailwind'ning o'z
+ * @layer base/components/utilities'idan KEYIN, oddiy CSS sifatida)
+ * yozilgan — CSS'da layer'ga KIRMAGAN qoidalar har doim layer'ga kirgan
+ * qoidalardan USTUN turadi (spetsifiklikdan qat'i nazar). Shu bois bu
+ * yerdagi [data-theme="..."] selektorlari HECH QANDAY component faylini
+ * o'zgartirmasdan, Tailwind kompilyatsiya qilgan .bg-white/.bg-brand-50
+ * kabi sinflarni GLOBAL ravishda qayta belgilay oladi — butun ilova
+ * bo'ylab (AppLayout orqali render qilinadigan har qanday sahifada)
+ * avtomatik qamrov beradi. "Soft" (standart, data-theme="soft" yoki
+ * atribut yo'q) uchun BU YERDA HECH QANDAY qoida yo'q — demak hozirgi
+ * dizayn 100% teginilmagan qoladi.
+ *
+ * ISTISNO: TreeBoardPage.tsx/FamilyMembersPage.tsx'ga bu qoidalar
+ * YETIB BORMAYDI (React Flow o'z alohida JS chunk'ida — yuqoridagi
+ * .react-flow__controls-button eslatmasiga qarang) — o'sha ikki sahifada
+ * BIR XIL qoidalar ICHKI <style> teg orqali TAKRORLANGAN.
+ * --------------------------------------------------------------------- */
+
+[data-theme='light'] .bg-white,
+[data-theme='light'] .bg-white\/90,
+[data-theme='light'] .bg-white\/95 {
+  background-color: rgb(255 255 255 / 0.62) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+[data-theme='light'] .bg-brand-50 {
+  background-color: rgb(255 255 255 / 0.3) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+[data-theme='light'] .bg-brand-50\/40,
+[data-theme='light'] .bg-brand-50\/50,
+[data-theme='light'] .bg-brand-50\/60,
+[data-theme='light'] .bg-brand-50\/70 {
+  background-color: rgb(255 255 255 / 0.38) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme='light'] .border-brand-100,
+[data-theme='light'] .border-brand-200 {
+  border-color: rgb(255 255 255 / 0.55) !important;
+}
+
+[data-theme='light'] .shadow-card,
+[data-theme='light'] .shadow-sm {
+  box-shadow: 0 8px 32px -8px rgb(23 41 30 / 0.15);
+}
+
+[data-theme='dark'] body {
+  background-color: #121412;
+  color: #EDEFE9;
+}
+
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .bg-white\/90,
+[data-theme='dark'] .bg-white\/95 {
+  background-color: #1c1e1c !important;
+}
+
+[data-theme='dark'] .bg-brand-50,
+[data-theme='dark'] .bg-brand-50\/40,
+[data-theme='dark'] .bg-brand-50\/50,
+[data-theme='dark'] .bg-brand-50\/60,
+[data-theme='dark'] .bg-brand-50\/70 {
+  background-color: #171917 !important;
+}
+
+[data-theme='dark'] .border-brand-100,
+[data-theme='dark'] .border-brand-200 {
+  border-color: #2b2e2b !important;
+}
+
+[data-theme='dark'] .text-brand-900 {
+  color: #F0F2EA !important;
+}
+[data-theme='dark'] .text-brand-800 {
+  color: #E2E6DA !important;
+}
+[data-theme='dark'] .text-brand-700 {
+  color: #C6D0BC !important;
+}
+[data-theme='dark'] .text-brand-600 {
+  color: #A8B69C !important;
+}
+[data-theme='dark'] .text-brand-500 {
+  color: #8FA084 !important;
+}
+[data-theme='dark'] input::placeholder {
+  color: #6B7566 !important;
+}
