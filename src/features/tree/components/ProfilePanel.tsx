@@ -11,7 +11,21 @@ import type { PersonData } from '@/features/tree/model/tree.store';
 import type { Gender } from '@/features/tree/model/relations';
 import type { BoardAccess } from '@/features/tree/types';
 import { describeLife } from '@/features/tree/model/age';
+import { useTheme } from '@/shared/hooks/useTheme';
 import type { EditablePerson } from './EditPersonDialog';
+
+// PersonNode.tsx'dagi bilan BIR XIL sabab: Dark rejimda och bg-pink-100/
+// bg-brand-100 + global matn rangi override'i to'qnashib, harf ko'rinmay
+// qolardi — shu bois Dark uchun mustaqil, aniq kontrastli rang (erkak —
+// yashil, ayol — QIZIL, pushti EMAS) ishlatiladi.
+function avatarThemeFor(female: boolean, appTheme: 'soft' | 'light' | 'dark') {
+  if (appTheme === 'dark') {
+    return female
+      ? 'bg-red-950/70 text-rose-100 ring-1 ring-inset ring-pink-400/40'
+      : 'bg-emerald-950/70 text-emerald-100 ring-1 ring-inset ring-emerald-400/30';
+  }
+  return female ? 'bg-pink-100 text-pink-700' : 'bg-brand-100 text-brand-800';
+}
 
 interface ProfilePanelProps {
   /** Ochiq bo'lsa — tanlangan tugun ma'lumoti */
@@ -152,6 +166,7 @@ function Detail({
   hidden,
 }: DetailProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
 
@@ -164,9 +179,7 @@ function Detail({
           <img src={photoUrl} alt={name} className="h-20 w-20 rounded-full object-cover" />
         ) : (
           <span
-            className={`flex h-20 w-20 items-center justify-center rounded-full font-serif text-xl font-semibold ${
-              female ? 'bg-pink-100 text-pink-700' : 'bg-brand-100 text-brand-800'
-            }`}
+            className={`flex h-20 w-20 items-center justify-center rounded-full font-serif text-xl font-semibold ${avatarThemeFor(female, theme)}`}
           >
             {initials(name)}
           </span>
@@ -252,6 +265,7 @@ function MobileDetail({
   hidden,
 }: DetailProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const female = gender === 'FEMALE';
   const { years, age } = describeLife(birthYear, deathYear);
 
@@ -264,9 +278,7 @@ function MobileDetail({
           <img src={photoUrl} alt={name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
         ) : (
           <span
-            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-serif text-base font-semibold ${
-              female ? 'bg-pink-100 text-pink-700' : 'bg-brand-100 text-brand-800'
-            }`}
+            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-serif text-base font-semibold ${avatarThemeFor(female, theme)}`}
           >
             {initials(name)}
           </span>

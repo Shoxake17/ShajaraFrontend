@@ -191,7 +191,7 @@ export function AddPersonDialog({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-brand-900 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              className="flex-1 rounded-field border border-neutral-200 py-3.5 text-[15px] font-medium text-red-600 transition-colors hover:border-red-200 hover:bg-red-50"
             >
               {t('common.cancel')}
             </button>
