@@ -426,12 +426,15 @@ function FamilyMembersBoard() {
             backdrop-filter: blur(22px);
             -webkit-backdrop-filter: blur(22px);
           }
+          /* Sahifaning O'ZI (bu doskaning butun foni) — .bg-white kabi
+             alohida panel emas, shu bois BLUR YO'Q (aks holda tabiat
+             surati butun ekran bo'ylab xiralashib ko'rinmay qolardi). */
           [data-theme='light'] .bg-brand-50,
           [data-theme='light'] .bg-brand-50\/60,
           [data-theme='light'] .bg-brand-50\/70 {
-            background-color: rgb(255 255 255 / 0.32) !important;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            background-color: rgb(255 255 255 / 0.06) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
           }
           [data-theme='light'] .border-brand-100,
           [data-theme='light'] .border-brand-200 {

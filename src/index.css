@@ -90,19 +90,22 @@
   -webkit-backdrop-filter: blur(22px);
 }
 
-[data-theme='light'] .bg-brand-50 {
-  background-color: rgb(255 255 255 / 0.3) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
+/* MUHIM: bg-brand-50 — SAHIFANING O'ZI (AppLayout root, TreeBoardPage
+   root va h.k. — BUTUN ekranni qoplaydigan konteyner) uchun ishlatiladi,
+   .bg-white kabi alohida PANEL emas. Agar bunga ham blur berilsa, orqa
+   fondagi tabiat surati BUTUN EKRAN bo'ylab xiralashib, "nima ekani
+   umuman ko'rinmaydigan" holga kelardi (avvalgi xato) — shu bois bu
+   yerda BLUR YO'Q, deyarli TO'LIQ SHAFFOF (surat tiniq ko'rinishi
+   uchun). Shisha ("glass") ta'siri FAQAT .bg-white orqali (header,
+   sidebar, kartalar, xabar pufakchalari) beriladi. */
+[data-theme='light'] .bg-brand-50,
 [data-theme='light'] .bg-brand-50\/40,
 [data-theme='light'] .bg-brand-50\/50,
 [data-theme='light'] .bg-brand-50\/60,
 [data-theme='light'] .bg-brand-50\/70 {
-  background-color: rgb(255 255 255 / 0.38) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: rgb(255 255 255 / 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 [data-theme='light'] .border-brand-100,
