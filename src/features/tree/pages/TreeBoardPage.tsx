@@ -197,6 +197,24 @@ function TreeBoard() {
     return nodes.find((n) => n.data.isRoot)?.id ?? null;
   }, [nodes, access]);
 
+  // Header'dagi Profil tugmasi uchun — AuthUser'ning O'ZIDA rasm maydoni
+  // YO'Q (faqat ism/email/telefon), profil surati aslida DARAXTDAGI "Men"
+  // shaxsining (yoki VIEWER bo'lsa — anchor sifatida ko'rsatilgan shaxsning)
+  // photoUrl'ida saqlanadi (Sozlamalar → Profil ham shu maydonni tahrirlaydi).
+  // Shu bois faqat `user.fullName` bosh harfiga tayanish o'RNIGA — aynan
+  // shu shaxsning (primary YOKI spouse bo'lishi mumkin) haqiqiy rasmi
+  // qidiriladi ("rasm bo'lsa ham ko'rinmayapti" fikr-mulohaza sababi).
+  const myPhotoUrl = useMemo(() => {
+    const targetId = access?.anchorMemberId ?? nodes.find((n) => n.data.isRoot)?.id ?? null;
+    if (!targetId) return null;
+    for (const n of nodes) {
+      if (n.id === targetId) return n.data.photoUrl;
+      const sp = n.data.spouses.find((s) => s.id === targetId);
+      if (sp) return sp.photoUrl;
+    }
+    return null;
+  }, [nodes, access]);
+
   const displayedNodes = useMemo(() => {
     // Kartadagi biror kishi (primary yoki turmush o'rtoqlaridan biri) tanlangan
     // tomonga mos yoki NEUTRAL bo'lsa, butun karta ko'rinadi.
@@ -525,12 +543,21 @@ function TreeBoard() {
                 aria-label={t('tree.board.goToMeTitle')}
                 className="hidden shrink-0 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 shadow-sm transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
-                  aria-hidden
-                >
-                  {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
-                </span>
+                {myPhotoUrl ? (
+                  <img
+                    src={myPhotoUrl}
+                    alt=""
+                    className="h-7 w-7 shrink-0 rounded-full object-cover"
+                    aria-hidden
+                  />
+                ) : (
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
+                    aria-hidden
+                  >
+                    {(user?.fullName ?? '?').trim().charAt(0).toUpperCase()}
+                  </span>
+                )}
                 <span className="max-w-[9rem] truncate">{user?.fullName}</span>
                 <ChevronDownIcon className="shrink-0 text-brand-400" />
               </button>
@@ -707,26 +734,32 @@ function TreeBoard() {
           }
 
           [data-theme='dark'] .bg-white,
+          [data-theme='dark'] .bg-white\/60,
           [data-theme='dark'] .bg-white\/90,
           [data-theme='dark'] .bg-pink-50,
           [data-theme='dark'] .bg-brand-50\/40,
           [data-theme='dark'] .bg-brand-50\/50,
           [data-theme='dark'] .bg-brand-50\/60,
           [data-theme='dark'] .bg-brand-50\/70 {
-            background-color: rgb(14 16 14 / 0.32) !important;
+            background-color: rgb(12 14 12 / 0.22) !important;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
           }
           [data-theme='dark'] .bg-brand-50 {
-            background-color: rgb(4 6 4 / 0.14) !important;
+            background-color: rgb(4 6 4 / 0.08) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
           }
           [data-theme='dark'] .bg-brand-50.border-transparent {
-            background-color: rgb(20 22 20 / 0.4) !important;
+            background-color: rgb(18 20 18 / 0.28) !important;
             backdrop-filter: blur(14px) !important;
             -webkit-backdrop-filter: blur(14px) !important;
             border-color: rgb(255 255 255 / 0.16) !important;
+          }
+          [data-theme='dark'] .hover\:bg-white:hover,
+          [data-theme='dark'] .hover\:bg-brand-50:hover,
+          [data-theme='dark'] .hover\:bg-brand-100:hover {
+            background-color: rgb(255 255 255 / 0.07) !important;
           }
           [data-theme='dark'] .border-brand-100,
           [data-theme='dark'] .border-brand-200,
