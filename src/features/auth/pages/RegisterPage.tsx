@@ -13,6 +13,7 @@ import { Alert } from '@/shared/ui/Alert';
 import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
 import { TreeLogo } from '@/shared/ui/TreeLogo';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
+import { useTheme } from '@/shared/hooks/useTheme';
 import {
   ArrowLeftIcon,
   ChevronDownIcon,
@@ -63,11 +64,21 @@ export function RegisterPage() {
   // haqiqatda mount qilinadi (CSS emas, JS orqali) — mobil JSX/UI o'zi
   // O'ZGARTIRILMAGAN, faqat qachon mount bo'lishi shu shart bilan boshqariladi.
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const { theme } = useTheme();
+  const dark = theme === 'dark';
 
   if (isDesktop) {
     return (
-      <div data-testid="register-desktop" className="flex h-dvh">
-        <div className="flex w-[43%] shrink-0 flex-col items-center justify-center gap-3 bg-gradient-to-b from-brand-800 via-brand-900 to-brand-950 p-10 text-center">
+      <div
+        data-testid="register-desktop"
+        className="flex h-dvh"
+        style={dark ? { background: "url('/loginbgdark.png') center / cover no-repeat" } : undefined}
+      >
+        <div
+          className={`flex w-[43%] shrink-0 flex-col items-center justify-center gap-3 p-10 text-center ${
+            dark ? '' : 'bg-gradient-to-b from-brand-800 via-brand-900 to-brand-950'
+          }`}
+        >
           <img
             src="/shajaratree.png"
             alt="Shajara daraxti"
@@ -76,14 +87,35 @@ export function RegisterPage() {
             style={{ maskImage: treeMask, WebkitMaskImage: treeMask }}
           />
           <h1 className="mt-2 font-serif text-5xl font-semibold text-white">{t('auth.brand')}</h1>
-          <p className="text-sm leading-relaxed text-brand-100">
+          <p className={`text-sm leading-relaxed ${dark ? 'text-[#cfe0d2]' : 'text-brand-100'}`}>
             {t('auth.login.heroTaglineLine1')}
             <br />
             {t('auth.login.heroTaglineLine2')}
           </p>
         </div>
 
-        <div className="flex flex-1 flex-col overflow-y-auto bg-white bg-[url('/bgtree.png')] bg-cover bg-center bg-no-repeat px-16 py-8">
+        {/* Glass/register.png namunasidagi kabi Dark rejimda karta suzuvchi
+            (margin bilan), yumaloq burchakli, yarim shaffof to'q shisha
+            panelga aylanadi — bgtree.png rasm o'rniga orqadagi
+            loginbgdark.png ko'rinib turadi. Ichkaridagi Tailwind sinflari
+            (TextField/SocialButtons: bg-white/border-neutral-200/
+            text-brand-900) index.css'dagi GLOBAL Dark qoidalari orqali
+            avtomatik moslashadi. */}
+        <div
+          className={`flex flex-1 flex-col overflow-y-auto px-16 py-8 ${
+            dark ? 'm-8 ml-0 rounded-[28px] border border-white/15' : "bg-white bg-[url('/bgtree.png')] bg-cover bg-center bg-no-repeat"
+          }`}
+          style={
+            dark
+              ? {
+                  backgroundColor: 'rgb(10 14 10 / 0.34)',
+                  backdropFilter: 'blur(18px)',
+                  WebkitBackdropFilter: 'blur(18px)',
+                  boxShadow: '0 24px 60px rgb(0 0 0 / 0.5)',
+                }
+              : undefined
+          }
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TreeLogo className="h-7 w-7 text-brand-800" />
@@ -269,9 +301,13 @@ export function RegisterPage() {
     <div
       data-testid="register-mobile"
       className="relative flex h-dvh flex-col overflow-hidden bg-[#F4F5EF] bg-cover bg-center"
-      style={{ backgroundImage: "url('/bgtree.png')" }}
+      style={{ backgroundImage: dark ? "url('/loginbgdark.png')" : "url('/bgtree.png')" }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-white/30" />
+      {/* Yorug' xira qatlam FAQAT Soft/Light'da kerak (och rasmni
+          "yumshatish" uchun) — Dark'da esa TESKARI ta'sir qilib (surat
+          ustiga oq tuman tashlab) fotosuratni xiralashtirar edi, shu
+          bois Dark'da butunlay olib tashlandi. */}
+      {!dark && <div className="pointer-events-none absolute inset-0 bg-white/30" />}
 
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col px-4 pb-3 pt-3 sm:max-w-lg">
 
@@ -283,10 +319,13 @@ export function RegisterPage() {
             alt="Shajara logosi"
             draggable={false}
             // mix-blend-multiply: logoning oq foni och fonga "erib" ketadi
-            className="min-h-0 w-auto flex-1 select-none object-contain mix-blend-multiply [max-height:9.5rem]"
+            // (FAQAT och fonda ishlaydi). Dark'da esa TESKARI — mix-blend-
+            // lighten (LoginPage'dagi daraxt surati bilan bir xil mantiq),
+            // aks holda logo to'q fonda butunlay yo'qolib qolardi.
+            className={`min-h-0 w-auto flex-1 select-none object-contain [max-height:9.5rem] ${dark ? 'mix-blend-lighten' : 'mix-blend-multiply'}`}
           />
-          <h1 className="font-serif text-3xl font-semibold text-brand-800 sm:text-4xl">{t('auth.brand')}</h1>
-          <p className="mt-1 text-[13px] leading-snug text-brand-700">
+          <h1 className={`font-serif text-3xl font-semibold sm:text-4xl ${dark ? 'text-white' : 'text-brand-800'}`}>{t('auth.brand')}</h1>
+          <p className={`mt-1 text-[13px] leading-snug ${dark ? 'text-[#cfe0d2]' : 'text-brand-700'}`}>
             {t('auth.register.mobileSubtitle')}
           </p>
         </header>

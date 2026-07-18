@@ -222,3 +222,51 @@
     color: #4c7552;
   }
 }
+
+/* ==========================================================================
+   DARK (shisha) rejim — glass/login.png namunasiga mos: butun sahifa
+   loginbgdark.png tungi o'rmon surati bilan qoplanadi, karta esa QATTIQ
+   OQ/bgtree.png o'rniga yarim shaffof TO'Q shisha panelga aylanadi.
+   Ichkaridagi Tailwind sinflari (TextField, SocialButtons — bg-white/
+   border-neutral-200/text-brand-900) index.css'dagi GLOBAL [data-theme=
+   'dark'] qoidalari orqali AVTOMATIK to'g'irlanadi (bu sahifa React Flow
+   chunk'ida EMAS, umumiy CSS unga to'liq yetib boradi) — bu yerda faqat
+   CSS-module'ga xos (Tailwind sinfi bo'lmagan) qattiq ranglar tuzatiladi. */
+:global([data-theme='dark']) .page {
+  background: url('/loginbgdark.png') center / cover no-repeat;
+}
+
+:global([data-theme='dark']) .card {
+  background-color: rgb(10 14 10 / 0.34);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 -16px 40px rgb(0 0 0 / 0.45);
+}
+
+:global([data-theme='dark']) .heroTagline {
+  color: #cfe0d2;
+}
+
+@media (min-width: 1024px) {
+  :global([data-theme='dark']) .card {
+    margin: 2rem 2rem 2rem 0;
+    height: calc(100% - 4rem);
+    border-radius: 28px;
+    background-image: none;
+    background-color: rgb(10 14 10 / 0.34);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.5);
+  }
+
+  :global([data-theme='dark']) .desktopLogoText {
+    color: #fff;
+  }
+
+  :global([data-theme='dark']) .desktopLangBtn {
+    color: #cfe0d2;
+  }
+
+  :global([data-theme='dark']) .desktopSubtitle {
+    color: #9fc79f;
+  }
+}
