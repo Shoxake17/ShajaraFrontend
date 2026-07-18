@@ -1,7 +1,7 @@
 // app/ThemeBackground.tsx
 // "Light" va "Dark" (ikkalasi ham shisha) ko'rinish rejimlarida butun
 // ekranni qopligan tabiat surati — Light: desktop.jpg (lg+) / mobile.jpg
-// (kichik ekran); Dark: darkdesktop.png (lg+) / darkmobile.png (kichik
+// (kichik ekran); Dark: desktopdark.jpg (lg+) / mobiledark.jpg (kichik
 // ekran, tungi/qorong'i surat). "Soft" rejimida umuman render qilinmaydi.
 //
 // MUHIM: har bir breakpoint uchun O'ZINING mustaqil `fixed inset-0`
@@ -25,8 +25,8 @@ export function ThemeBackground() {
   const { theme } = useTheme();
   if (theme === 'soft') return null;
 
-  const mobileUrl = theme === 'dark' ? '/darkmobile.png' : '/mobile.jpg';
-  const desktopUrl = theme === 'dark' ? '/darkdesktop.png' : '/desktop.jpg';
+  const mobileUrl = theme === 'dark' ? '/mobiledark.jpg' : '/mobile.jpg';
+  const desktopUrl = theme === 'dark' ? '/desktopdark.jpg' : '/desktop.jpg';
 
   return (
     <>
