@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { PersonNodeType } from '@/features/tree/model/tree.store';
 import type { Gender } from '@/features/tree/model/relations';
 import { describeLife } from '@/features/tree/model/age';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 function initials(name: string): string {
   return name
@@ -13,10 +14,23 @@ function initials(name: string): string {
     .join('');
 }
 
-const themeFor = (female: boolean) =>
-  female
+// Dark (shisha) rejimda och bg-brand-100/bg-pink-100 + text-brand-800
+// juftligi index.css'ning global matn rangi override'i (.text-brand-800
+// -> deyarli oq) bilan to'qnashib, harf O'ZI ko'rinmay ("oq bo'lib
+// yo'qolib") qolardi — chunki fon HAM och (o'zgarmagan) edi. Shu bois
+// Dark uchun avatarga MUSTAQIL, o'zi ANIQ kontrastli rang beriladi:
+// erkak — to'q yashil shisha + och yashil matn, ayol — to'q QIZIL
+// (pushti EMAS, glass/blog.png namunasidagi kabi) shisha + och matn.
+const themeFor = (female: boolean, appTheme: 'soft' | 'light' | 'dark') => {
+  if (appTheme === 'dark') {
+    return female
+      ? { avatar: 'bg-red-950/70 text-rose-100 ring-1 ring-inset ring-pink-400/40', sub: 'text-pink-300' }
+      : { avatar: 'bg-emerald-950/70 text-emerald-100 ring-1 ring-inset ring-emerald-400/30', sub: 'text-emerald-300' };
+  }
+  return female
     ? { avatar: 'bg-pink-100 text-pink-700', sub: 'text-pink-500' }
     : { avatar: 'bg-brand-100 text-brand-800', sub: 'text-brand-500' };
+};
 
 /** Ism o'rniga umumiy siluet — cardHidden bo'lgan (ya'ni "Kimlar sizni topa
     olishi mumkin" = "Hech kim" tanlangan) kartalar uchun. */
@@ -72,8 +86,9 @@ function Person({
   cardHidden?: boolean;
 }) {
   const { t: translate } = useTranslation();
+  const { theme: appTheme } = useTheme();
   const female = gender === 'FEMALE';
-  const t = themeFor(female);
+  const t = themeFor(female, appTheme);
   const { years, age } = describeLife(birthYear, deathYear);
 
   if (cardHidden) return <HiddenPerson />;

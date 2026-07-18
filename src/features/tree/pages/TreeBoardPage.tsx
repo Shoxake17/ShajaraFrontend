@@ -36,6 +36,7 @@ import {
 } from '@/features/tree/components/ConnectRelativeDialog';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { MobileStorageChip, useStorageChipVisibility } from '@/features/storage/components/MobileStorageChip';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 // Modul darajasida — har renderda qayta yaratilmaydi (React Flow talabi)
 const nodeTypes = { person: PersonNode };
@@ -125,6 +126,7 @@ function TreeBoard() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const unreadTotal = useChatStore((s) => chatUnreadTotal(s.contacts));
+  const { theme } = useTheme();
   // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — shu yerga
   // qidiruv/filtr/tugmalarni portal qilamiz (logotip AJDO ikki marta
   // takrorlanmasin uchun, u AppLayout'ning o'zida).
@@ -581,7 +583,11 @@ function TreeBoard() {
           defaultEdgeOptions={{ type: 'smoothstep' }}
           proOptions={{ hideAttribution: true }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />
+          {/* Mayda nuqtalar to'ri FAQAT Soft (standart) rejimda — Light/Dark
+              (shisha) rejimlarda orqa fondagi tabiat surati TEKIS va
+              YAQQOL ko'rinishi kerak, nuqtalar unga xalaqit berardi
+              (fikr-mulohaza bo'yicha yashirildi). */}
+          {theme === 'soft' && <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} color="#C8D6C4" />}
           {/* Mobilda MobileStorageChip pastda joylashgani uchun panel ozgina
               YUQORIGA suriladi (pill balandligiga mos) — chip foydalanuvchi
               tomonidan o'ngga surib yashirilgan bo'lsa, bo'shliq shart emas,
@@ -707,19 +713,19 @@ function TreeBoard() {
           [data-theme='dark'] .bg-brand-50\/50,
           [data-theme='dark'] .bg-brand-50\/60,
           [data-theme='dark'] .bg-brand-50\/70 {
-            background-color: rgb(18 20 18 / 0.55) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background-color: rgb(14 16 14 / 0.32) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
           }
           [data-theme='dark'] .bg-brand-50 {
-            background-color: rgb(6 8 6 / 0.35) !important;
+            background-color: rgb(4 6 4 / 0.14) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
           }
           [data-theme='dark'] .bg-brand-50.border-transparent {
-            background-color: rgb(24 26 24 / 0.6) !important;
-            backdrop-filter: blur(16px) !important;
-            -webkit-backdrop-filter: blur(16px) !important;
+            background-color: rgb(20 22 20 / 0.4) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
             border-color: rgb(255 255 255 / 0.16) !important;
           }
           [data-theme='dark'] .border-brand-100,
