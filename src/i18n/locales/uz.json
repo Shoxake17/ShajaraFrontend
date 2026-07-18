@@ -95,8 +95,11 @@
     "appearance": {
       "desc": "Ilova ko'rinishini tanlang.",
       "soft": "Soft",
+      "softDesc": "Hozirgi standart, oq ko'rinish",
       "light": "Light",
-      "dark": "Dark"
+      "lightDesc": "Shisha (glass) uslub, tabiat foni bilan",
+      "dark": "Dark",
+      "darkDesc": "Qorong'i rejim"
     },
     "export": {
       "desc": "Ma'lumotlaringizni yuklab oling yoki eksport qiling.",
@@ -455,6 +458,7 @@
       "paternalSide": "Ota tomon",
       "maternalSide": "Ona tomon",
       "memberCount": "{{side}} — {{count}} ta a‘zo",
+      "totalMemberCount": "Jami — {{count}} ta a‘zo",
       "sideGroupLabel": "Qarindoshlik tomoni",
       "paternalOnlyTitle": "Faqat ota tomon oila a‘zolarini ko‘rsatish",
       "maternalOnlyTitle": "Faqat ona tomon oila a‘zolarini ko‘rsatish",

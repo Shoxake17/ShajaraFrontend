@@ -477,6 +477,7 @@
       "paternalSide": "По отцу",
       "maternalSide": "По матери",
       "memberCount": "{{side}} — {{count}} чел.",
+      "totalMemberCount": "Всего — {{count}} чел.",
       "sideGroupLabel": "Сторона родства",
       "paternalOnlyTitle": "Показать только родственников по отцу",
       "maternalOnlyTitle": "Показать только родственников по матери",

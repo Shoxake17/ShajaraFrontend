@@ -202,20 +202,18 @@ function TreeBoard() {
     return nodes.filter((n) => visible(n.data.side) || n.data.spouses.some((sp) => visible(sp.side)));
   }, [nodes, sideFilter]);
 
-  // Joriy tomonda (Ota/Ona) ko'rinayotgan ODAMLAR soni — karta emas, har
-  // bir shaxs alohida (turmush o'rtoqlari ham) hisoblanadi, xuddi
-  // FamilyMembersPage'dagi "N ta a'zo" bilan bir xil mantiqda.
-  const sideCount = useMemo(() => {
-    const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
+  // Daraxtdagi UMUMIY odamlar soni — karta emas, har bir shaxs alohida
+  // (turmush o'rtoqlari ham) hisoblanadi, TOMON FILTRIDAN QAT'I NAZAR
+  // (barcha `nodes`, `displayedNodes` emas). Avval faqat joriy tanlangan
+  // tomon (Ota/Ona) bo'yicha hisoblanardi — shu sabab "kam ko'rsatyapti"
+  // fikr-mulohazasi bo'ldi (boshqa tomondagilar hisobga kirmasdi).
+  const totalCount = useMemo(() => {
     let count = 0;
     for (const n of nodes) {
-      if (visible(n.data.side)) count++;
-      for (const sp of n.data.spouses) {
-        if (visible(sp.side)) count++;
-      }
+      count += 1 + n.data.spouses.length;
     }
     return count;
-  }, [nodes, sideFilter]);
+  }, [nodes]);
   const displayedEdges = useMemo(() => {
     const visibleIds = new Set(displayedNodes.map((n) => n.id));
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
@@ -382,10 +380,7 @@ function TreeBoard() {
             <div className="hidden min-w-0 shrink-0 sm:block">
               <p className="truncate text-sm font-semibold text-brand-900">{t('tree.board.title')}</p>
               <p className="truncate text-xs text-brand-500">
-                {t('tree.board.memberCount', {
-                  side: sideFilter === 'PATERNAL' ? t('tree.board.paternalSide') : t('tree.board.maternalSide'),
-                  count: sideCount,
-                })}
+                {t('tree.board.totalMemberCount', { count: totalCount })}
               </p>
             </div>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 sm:gap-3">

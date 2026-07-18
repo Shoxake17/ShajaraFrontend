@@ -95,6 +95,7 @@
     "appearance": {
       "desc": "Choose the app's appearance.",
       "soft": "Soft",
+      "softDesc": "Current default, white look",
       "light": "Light",
       "lightDesc": "Frosted glass style with a nature background",
       "dark": "Dark",
@@ -468,6 +469,7 @@
       "paternalSide": "Paternal side",
       "maternalSide": "Maternal side",
       "memberCount": "{{side}} — {{count}} members",
+      "totalMemberCount": "Total — {{count}} members",
       "sideGroupLabel": "Family side",
       "paternalOnlyTitle": "Show only paternal-side family members",
       "maternalOnlyTitle": "Show only maternal-side family members",

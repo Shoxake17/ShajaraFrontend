@@ -1,6 +1,6 @@
 // app/ThemeBackground.tsx
 // "Light" (shisha) ko'rinish rejimida butun ekranni qopligan tabiat
-// surati — desktop.png (lg+) yoki mobile.png (kichik ekran). Boshqa
+// surati — desktop.jpg (lg+) yoki mobile.jpg (kichik ekran). Boshqa
 // rejimlarda (soft/dark) umuman render qilinmaydi.
 //
 // MUHIM: har bir breakpoint uchun O'ZINING mustaqil `fixed inset-0`
@@ -27,8 +27,8 @@ export function ThemeBackground() {
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-0 -z-10 lg:hidden" aria-hidden="true" style={coverStyle('/mobile.png')} />
-      <div className="pointer-events-none fixed inset-0 -z-10 hidden lg:block" aria-hidden="true" style={coverStyle('/desktop.png')} />
+      <div className="pointer-events-none fixed inset-0 -z-10 lg:hidden" aria-hidden="true" style={coverStyle('/mobile.jpg')} />
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden lg:block" aria-hidden="true" style={coverStyle('/desktop.jpg')} />
     </>
   );
 }
