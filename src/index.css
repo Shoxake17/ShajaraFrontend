@@ -122,6 +122,16 @@
   border-color: rgb(255 255 255 / 0.65) !important;
 }
 
+/* Input maydonlari (TextField va o'xshash — login/register/sozlamalar
+   va h.k.dagi barcha kirish maydonlari) border-neutral-200 ishlatadi —
+   bu YUQORIDAGI border-brand-* guruhiga kirmaydi, shu bois alohida
+   qo'shildi ("input ga border bilinmayapti" fikr-mulohaza bo'yicha).
+   Nozik ichki yorug'lik + tashqi soya — shisha "bortirilgan" chekka. */
+[data-theme='light'] .border-neutral-200 {
+  border-color: rgb(255 255 255 / 0.7) !important;
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.6), 0 2px 8px -4px rgb(23 41 30 / 0.12);
+}
+
 [data-theme='light'] .shadow-card,
 [data-theme='light'] .shadow-sm {
   box-shadow: 0 8px 32px -8px rgb(23 41 30 / 0.2), inset 0 1px 0 0 rgb(255 255 255 / 0.6);

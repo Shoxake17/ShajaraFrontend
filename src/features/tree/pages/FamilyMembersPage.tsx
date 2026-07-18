@@ -445,6 +445,10 @@ function FamilyMembersBoard() {
           [data-theme='light'] .border-pink-200 {
             border-color: rgb(255 255 255 / 0.65) !important;
           }
+          [data-theme='light'] .border-neutral-200 {
+            border-color: rgb(255 255 255 / 0.7) !important;
+            box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.6), 0 2px 8px -4px rgb(23 41 30 / 0.12);
+          }
           [data-theme='light'] .react-flow__controls {
             border-color: rgb(255 255 255 / 0.65);
             background: rgb(255 255 255 / 0.3);

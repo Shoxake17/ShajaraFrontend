@@ -22,8 +22,9 @@ export function BottomNav({ fullscreen, instant }: BottomNavProps) {
   const NAV = useNavItems();
   const unreadCount = useChatStore((s) => chatUnreadTotal(s.contacts));
   // Odatiy holatda ikon/yozuv YASHIL — qaysi sahifada ekanligini bilish
-  // uchun FAQAT joriy (faol) sahifaning ikonkasi kichik to'q yashil
-  // doira ustida OQ bo'lib ajralib turadi.
+  // uchun joriy (faol) sahifaning ikonkasi OQ doira ustida turadi (ikonka
+  // rangi to'q yashilligicha qoladi, faqat orqa fon oq bo'lib ajralib
+  // turadi — "yashil emas, oq bo'lsin" fikr-mulohaza bo'yicha).
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
       'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
@@ -50,11 +51,11 @@ export function BottomNav({ fullscreen, instant }: BottomNavProps) {
             <>
               <span
                 className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                  isActive ? 'bg-brand-700 text-white' : ''
+                  isActive ? 'bg-white shadow-sm' : ''
                 }`}
               >
                 {img ? (
-                  <img src={img} alt="" className={`h-6 w-6 object-contain ${isActive ? 'brightness-0 invert' : ''}`} />
+                  <img src={img} alt="" className="h-6 w-6 object-contain" />
                 ) : Icon ? (
                   <Icon width={19} height={19} />
                 ) : null}
