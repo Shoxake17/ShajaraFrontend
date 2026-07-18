@@ -13,8 +13,8 @@ export function ThemeBackground() {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
-      <div className="h-full w-full bg-[url(/mobile.png)] bg-cover bg-center lg:hidden" />
-      <div className="hidden h-full w-full bg-[url(/desktop.png)] bg-cover bg-center lg:block" />
+      <div className="h-full w-full bg-cover bg-center lg:hidden" style={{ backgroundImage: "url('/mobile.png')" }} />
+      <div className="hidden h-full w-full bg-cover bg-center lg:block" style={{ backgroundImage: "url('/desktop.png')" }} />
     </div>
   );
 }
