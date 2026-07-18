@@ -422,9 +422,9 @@ function FamilyMembersBoard() {
              bu sahifaning alohida React Flow JS chunk'iga yetib bormaydi). */
           [data-theme='light'] .bg-white,
           [data-theme='light'] .bg-white\/90 {
-            background-color: rgb(255 255 255 / 0.62) !important;
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
+            background-color: rgb(255 255 255 / 0.28) !important;
+            backdrop-filter: blur(30px) saturate(160%);
+            -webkit-backdrop-filter: blur(30px) saturate(160%);
           }
           /* Sahifaning O'ZI (bu doskaning butun foni) — .bg-white kabi
              alohida panel emas, shu bois BLUR YO'Q (aks holda tabiat
@@ -438,12 +438,12 @@ function FamilyMembersBoard() {
           }
           [data-theme='light'] .border-brand-100,
           [data-theme='light'] .border-brand-200 {
-            border-color: rgb(255 255 255 / 0.55) !important;
+            border-color: rgb(255 255 255 / 0.4) !important;
           }
           [data-theme='light'] .react-flow__controls {
-            border-color: rgb(255 255 255 / 0.55);
-            background: rgb(255 255 255 / 0.5);
-            backdrop-filter: blur(18px);
+            border-color: rgb(255 255 255 / 0.4);
+            background: rgb(255 255 255 / 0.28);
+            backdrop-filter: blur(30px) saturate(160%);
           }
           [data-theme='light'] .react-flow__controls-button {
             background: transparent;
