@@ -580,7 +580,7 @@ export function SettingsPage() {
 
               <div id="obuna" className="scroll-mt-6">
                 <Card title={t('settings.sections.billing')} desc={t('settings.billing.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={AwardIcon} label={t('settings.billing.plan')} onClick={() => setPricingOpen(true)} right={chevron} />
                   </div>
                 </Card>
@@ -588,7 +588,7 @@ export function SettingsPage() {
 
               <div id="xavfsizlik" className="scroll-mt-6">
                 <Card title={t('settings.sections.security')} desc={t('settings.security.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={KeyIcon} label={t('settings.security.changePassword')} onClick={() => setPasswordOpen(true)} right={chevron} />
                     <Row
                       Icon={ShieldIcon}
@@ -609,7 +609,7 @@ export function SettingsPage() {
 
             <div id="maxfiylik" className="scroll-mt-6">
                 <Card title={t('settings.sections.privacy')} desc={t('settings.privacy.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<ProfileVisibilitySwitch />} />
                     <Row Icon={ChatIcon} label={t('settings.privacy.whoCanMessage')} right={<MessageVisibilitySwitch />} />
                     <Row Icon={UsersIcon2} label={t('settings.privacy.whoCanFind')} right={<SearchVisibilitySwitch />} />
@@ -620,7 +620,7 @@ export function SettingsPage() {
 
               <div id="bildirishnoma" className="scroll-mt-6">
                 <Card title={t('settings.sections.notifications')} desc={t('settings.notifications.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={BellIcon} label={t('settings.notifications.push')} right={<Toggle on={notif.push} onChange={(v) => setNotif((n) => ({ ...n, push: v }))} />} />
                     <Row Icon={MailIcon2} label={t('settings.notifications.email')} right={<Toggle on={notif.email} onChange={(v) => setNotif((n) => ({ ...n, email: v }))} />} />
                     <Row Icon={SoundIcon} label={t('settings.notifications.system')} right={<Toggle on={notif.system} onChange={(v) => setNotif((n) => ({ ...n, system: v }))} />} />
@@ -631,7 +631,7 @@ export function SettingsPage() {
 
             <div id="til" className="scroll-mt-6">
                 <Card title={t('settings.sections.language')} desc={t('settings.language.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={GlobeIcon} label={t('settings.language.language')} right={<LanguageSwitch />} />
                     <Row Icon={PinIcon} label={t('settings.language.region')} right={<RegionSwitch />} />
                     {/* Sana/Vaqt formati — mintaqaga qarab AVTOMATIK, qo'lda o'zgartirilmaydi (chevron yo'q) */}
@@ -657,7 +657,7 @@ export function SettingsPage() {
 
               <div id="eksport" className="scroll-mt-6">
                 <Card title={t('settings.sections.export')} desc={t('settings.export.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={DownloadIcon} label={t('settings.export.download')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={FileIcon} label={t('settings.export.export')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={LayersIcon} label={t('settings.export.googleDrive')} right={<><SoonBadge />{chevron}</>} />
@@ -668,7 +668,7 @@ export function SettingsPage() {
 
               <div id="yordam" className="scroll-mt-6">
                 <Card title={t('settings.sections.help')} desc={t('settings.help.desc')}>
-                  <div className="space-y-1">
+                  <div className="divide-y divide-brand-100">
                     <Row Icon={HelpIcon} label={t('settings.help.helpCenter')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={ChatIcon} label={t('settings.help.contact')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={InfoIcon} label={t('settings.help.faq')} right={<><SoonBadge />{chevron}</>} />

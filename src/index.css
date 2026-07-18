@@ -144,6 +144,15 @@
   border-color: rgb(23 41 30 / 0.16) !important;
 }
 
+/* Sozlamalar sahifasidagi qatorlar (Row — "Parolni o'zgartirish",
+   "Ikki bosqichli autentifikatsiya" va h.k.) bir-biriga "yopishib"
+   ko'rinardi — orasida hech qanday chiziq yo'q edi. divide-brand-100
+   Tailwind utility'si BOSHQA selektor (`> :not([hidden]) ~ :not([hidden])`)
+   orqali ishlaydi, shu bois .border-brand-100'dan ALOHIDA qo'shiladi. */
+[data-theme='light'] .divide-brand-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(23 41 30 / 0.12) !important;
+}
+
 /* Input maydonlari (TextField va o'xshash — login/register/sozlamalar
    va h.k.dagi barcha kirish maydonlari) border-neutral-200 ishlatadi —
    bu YUQORIDAGI border-brand-* guruhiga kirmaydi, shu bois alohida
