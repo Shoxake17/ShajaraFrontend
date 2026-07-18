@@ -82,6 +82,10 @@
  * BIR XIL qoidalar ICHKI <style> teg orqali TAKRORLANGAN.
  * --------------------------------------------------------------------- */
 
+/* MUHIM: saturate() effekti OLIB TASHLANDI — orqa fon suratidagi (masalan
+   osmon) ranglarni blur ostida "bo'rttirib", panellarga kutilmagan KO'K
+   xiralik/tint berayotgan edi (foydalanuvchi xabar berdi). Endi FAQAT
+   blur + shaffoflik — haqiqiy "rangsiz" shisha. */
 [data-theme='light'] .bg-white,
 [data-theme='light'] .bg-white\/90,
 [data-theme='light'] .bg-white\/95,
@@ -90,9 +94,9 @@
 [data-theme='light'] .bg-brand-50\/50,
 [data-theme='light'] .bg-brand-50\/60,
 [data-theme='light'] .bg-brand-50\/70 {
-  background-color: rgb(255 255 255 / 0.22) !important;
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background-color: rgb(255 255 255 / 0.3) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* MUHIM: FAQAT bare bg-brand-50 (opacity-suffiksisiz) — SAHIFANING O'ZI
@@ -109,14 +113,18 @@
   -webkit-backdrop-filter: none !important;
 }
 
+/* Chekka (border) yaxshi ko'rinishi uchun — panellar ajralib turishi,
+   ayniqsa och/tumanli fon ustida ("chekada border yo'q" degan
+   fikr-mulohaza bo'yicha kuchaytirildi). */
 [data-theme='light'] .border-brand-100,
-[data-theme='light'] .border-brand-200 {
-  border-color: rgb(255 255 255 / 0.45) !important;
+[data-theme='light'] .border-brand-200,
+[data-theme='light'] .border-pink-200 {
+  border-color: rgb(255 255 255 / 0.65) !important;
 }
 
 [data-theme='light'] .shadow-card,
 [data-theme='light'] .shadow-sm {
-  box-shadow: 0 8px 32px -8px rgb(23 41 30 / 0.15), inset 0 1px 0 0 rgb(255 255 255 / 0.5);
+  box-shadow: 0 8px 32px -8px rgb(23 41 30 / 0.2), inset 0 1px 0 0 rgb(255 255 255 / 0.6);
 }
 
 [data-theme='dark'] body {

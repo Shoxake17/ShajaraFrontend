@@ -427,9 +427,9 @@ function FamilyMembersBoard() {
           [data-theme='light'] .bg-brand-50\/50,
           [data-theme='light'] .bg-brand-50\/60,
           [data-theme='light'] .bg-brand-50\/70 {
-            background-color: rgb(255 255 255 / 0.22) !important;
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            background-color: rgb(255 255 255 / 0.3) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
           }
           /* Sahifaning O'ZI (bu doskaning butun foni) — FAQAT bare
              bg-brand-50 (opacity-suffiksisiz) — .bg-white kabi alohida
@@ -441,13 +441,14 @@ function FamilyMembersBoard() {
             -webkit-backdrop-filter: none !important;
           }
           [data-theme='light'] .border-brand-100,
-          [data-theme='light'] .border-brand-200 {
-            border-color: rgb(255 255 255 / 0.45) !important;
+          [data-theme='light'] .border-brand-200,
+          [data-theme='light'] .border-pink-200 {
+            border-color: rgb(255 255 255 / 0.65) !important;
           }
           [data-theme='light'] .react-flow__controls {
-            border-color: rgb(255 255 255 / 0.45);
-            background: rgb(255 255 255 / 0.22);
-            backdrop-filter: blur(20px) saturate(160%);
+            border-color: rgb(255 255 255 / 0.65);
+            background: rgb(255 255 255 / 0.3);
+            backdrop-filter: blur(20px);
           }
           [data-theme='light'] .react-flow__controls-button {
             background: transparent;

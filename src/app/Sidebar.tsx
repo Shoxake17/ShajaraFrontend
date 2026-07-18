@@ -63,23 +63,20 @@ export function Sidebar({ fullscreen }: SidebarProps) {
     }
   };
 
-  // Faol sahifa belgisi endi FAQAT ikonka ustida (matn yozuvi hech qanday
-  // fon olmaydi, faqat rangi to'qlashadi) — ikonka rangi doim TO'Q YASHIL.
-  // Light (shisha) rejimda faol ikonka ostidagi belgi YENGIL xira bilan
-  // (backdrop-blur-sm — 4px, kuchli 30px EMAS: ikonka atigi 36x36px, kuchli
-  // blur uni "shakli yo'q dog'"ga aylantirib qo'yardi).
-  const iconActiveBg =
+  // Desktopda: faol sahifaning ikonkasi VA yozuvi OQ rangda, orqasida
+  // to'q yashil (shisha) pill — Light rejimda pill YENGIL xira bilan
+  // (backdrop-blur-sm), qattiq 20px+ EMAS (aks holda matn o'qilishi
+  // qiyinlashardi). Nofaol bandlarda ikonka/yozuv rangi TO'Q YASHIL.
+  const activePillClass =
     theme === 'light'
-      ? 'bg-white/55 backdrop-blur-sm ring-1 ring-white/70'
-      : theme === 'dark'
-        ? 'bg-white/10'
-        : 'bg-brand-100';
+      ? 'bg-brand-800/80 backdrop-blur-sm text-white shadow-sm'
+      : 'bg-brand-800 text-white shadow-sm';
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'flex items-center gap-3 rounded-full px-2 py-1.5 text-sm font-medium transition-colors',
+      'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors',
       'justify-center lg:justify-start',
-      isActive ? 'text-brand-900' : 'text-brand-700 hover:text-brand-900',
+      isActive ? activePillClass : 'text-brand-700 hover:bg-brand-50 hover:text-brand-900',
     ].join(' ');
 
   return (
@@ -101,25 +98,19 @@ export function Sidebar({ fullscreen }: SidebarProps) {
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {NAV.map(({ to, label, Icon, img, end }) => (
           <NavLink key={to} to={to} end={end} className={linkClass} title={label}>
-            {({ isActive }) => (
-              <>
-                <span
-                  className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${isActive ? iconActiveBg : ''}`}
-                >
-                  {img ? (
-                    <img src={img} alt="" className="h-8 w-8 object-contain" />
-                  ) : Icon ? (
-                    <Icon />
-                  ) : null}
-                  {to === '/xabarlar' && unreadCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
+            <span className="relative shrink-0">
+              {img ? (
+                <img src={img} alt="" className="-ml-1.5 h-8 w-8 object-contain" />
+              ) : Icon ? (
+                <Icon />
+              ) : null}
+              {to === '/xabarlar' && unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
-                <span className="hidden lg:block">{label}</span>
-              </>
-            )}
+              )}
+            </span>
+            <span className={`hidden lg:block ${img ? '-ml-2' : ''}`}>{label}</span>
           </NavLink>
         ))}
       </nav>
