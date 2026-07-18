@@ -3,7 +3,8 @@
 // tugma bosilganda ro'yxat ochiladi, tanlangan qator ✓ belgi bilan
 // ajralib turadi (MediaGalleryPage'dagi FilterPicker/RelationPicker bilan
 // bir xil andoza).
-import { useEffect, useRef, useState, type SVGProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type SVGProps } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface SelectOption {
   value: string;
@@ -31,12 +32,40 @@ const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
 
 export function SelectPicker({ value, options, onChange, label, className = '' }: SelectPickerProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Ro'yxat oynasi ekranga nisbatan (fixed + portal orqali document.body'ga)
+  // joylashtiriladi — Sozlamalar qatorlari endi o'zining border/shadow'li
+  // "chip"i bilan alohida sirt (Light rejimda backdrop-filter tufayli HAR
+  // BIR qator o'z stacking context'ini hosil qiladi), shu bois oddiy
+  // ichki `position: absolute` ro'yxat DOM tartibida KEYINGI qator ortida
+  // qolib, tanlashga xalaqit berardi ("pastdagi blok ochilib xalaqit
+  // beryapti" — fikr-mulohaza). Portal bu muammoni butunlay bartaraf etadi.
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (triggerRef.current?.contains(t)) return;
+      if (panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -52,7 +81,7 @@ export function SelectPicker({ value, options, onChange, label, className = '' }
   const current = options.find((o) => o.value === value);
 
   return (
-    <div ref={ref} className={`relative min-w-0 ${className}`}>
+    <div ref={triggerRef} className={`relative min-w-0 ${className}`}>
       <button
         type="button"
         aria-label={label}
@@ -67,35 +96,40 @@ export function SelectPicker({ value, options, onChange, label, className = '' }
         <ChevronIcon className={`shrink-0 text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {open && (
-        <div
-          role="listbox"
-          aria-label={label}
-          className="no-scrollbar absolute right-0 z-30 mt-1.5 max-h-72 w-max min-w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
-        >
-          {options.map((o) => {
-            const selected = o.value === value;
-            return (
-              <button
-                key={o.value}
-                type="button"
-                role="option"
-                aria-selected={selected}
-                onClick={() => {
-                  onChange(o.value);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
-                  selected ? 'bg-brand-50 font-medium text-brand-800' : 'text-brand-900 hover:bg-neutral-50'
-                }`}
-              >
-                <span className="truncate">{o.label}</span>
-                {selected && <CheckIcon className="shrink-0 text-brand-700" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            ref={panelRef}
+            role="listbox"
+            aria-label={label}
+            style={{ position: 'fixed', top: pos.top, right: pos.right }}
+            className="no-scrollbar z-50 max-h-72 w-max min-w-[10rem] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
+          >
+            {options.map((o) => {
+              const selected = o.value === value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
+                    selected ? 'bg-brand-50 font-medium text-brand-800' : 'text-brand-900 hover:bg-neutral-50'
+                  }`}
+                >
+                  <span className="truncate">{o.label}</span>
+                  {selected && <CheckIcon className="shrink-0 text-brand-700" />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

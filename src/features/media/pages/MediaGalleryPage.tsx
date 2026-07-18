@@ -127,8 +127,8 @@ function FilterPicker({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-full min-w-0 items-center justify-between gap-1 rounded-field border bg-white px-2.5 py-2 text-left transition-colors sm:px-4 sm:py-3 ${
-          open ? 'border-brand-600' : 'border-neutral-200 hover:border-neutral-300'
+        className={`flex w-full min-w-0 items-center justify-between gap-1 rounded-field border bg-white px-2.5 py-2 text-left shadow-sm transition-colors sm:px-4 sm:py-3 ${
+          open ? 'border-brand-600' : 'border-brand-100 hover:border-brand-200'
         }`}
       >
         <span className="truncate text-[12px] font-medium text-brand-900 sm:text-[15px]">
@@ -141,7 +141,7 @@ function FilterPicker({
         <div
           role="listbox"
           aria-label={label}
-          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-max min-w-full overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
+          className="no-scrollbar absolute z-30 mt-1.5 max-h-72 w-max min-w-full overflow-y-auto rounded-2xl border border-brand-100 bg-white p-1.5 shadow-xl"
         >
           {options.map((o) => {
             const selected = o.value === value;

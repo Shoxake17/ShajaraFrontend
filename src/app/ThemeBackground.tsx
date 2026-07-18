@@ -1,20 +1,34 @@
 // app/ThemeBackground.tsx
 // "Light" (shisha) ko'rinish rejimida butun ekranni qopligan tabiat
 // surati — desktop.png (lg+) yoki mobile.png (kichik ekran). Boshqa
-// rejimlarda (soft/dark) umuman render qilinmaydi. AppLayout root
-// konteynerining ENG BOSHIDA, -z-10 bilan joylashtiriladi — barcha
-// sahifa kontenti (index.css'dagi [data-theme="light"] override
-// qoidalari orqali shaffoflashtirilgan panellar) ustidan ko'rinadi.
+// rejimlarda (soft/dark) umuman render qilinmaydi.
+//
+// MUHIM: har bir breakpoint uchun O'ZINING mustaqil `fixed inset-0`
+// elementi bor (ICHKI qo'shimcha wrapper YO'Q) — o'lchami to'g'ridan-to'g'ri
+// viewport'ga (inset:0) bog'liq, oraliq h-full/w-full % hisoblashiga
+// tayanmaydi. Shu bois har qanday holatda ham butun ekranga (chap/o'ng
+// chetlarigacha) to'liq yoyiladi — "o'ng va chap tomonlariga yoyilmasdan
+// qolib qora bo'lib qolgan" fikr-mulohaza bo'yicha mustahkamlangan.
+// background-size/position/repeat inline style orqali (Tailwind klass
+// emas) — hech qanday specificity/purge shubhasisiz har doim qo'llanadi.
+import type { CSSProperties } from 'react';
 import { useTheme } from '@/shared/hooks/useTheme';
+
+const coverStyle = (url: string): CSSProperties => ({
+  backgroundImage: `url('${url}')`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+});
 
 export function ThemeBackground() {
   const { theme } = useTheme();
   if (theme !== 'light') return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
-      <div className="h-full w-full bg-cover bg-center lg:hidden" style={{ backgroundImage: "url('/mobile.png')" }} />
-      <div className="hidden h-full w-full bg-cover bg-center lg:block" style={{ backgroundImage: "url('/desktop.png')" }} />
-    </div>
+    <>
+      <div className="pointer-events-none fixed inset-0 -z-10 lg:hidden" aria-hidden="true" style={coverStyle('/mobile.png')} />
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden lg:block" aria-hidden="true" style={coverStyle('/desktop.png')} />
+    </>
   );
 }

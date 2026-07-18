@@ -105,14 +105,14 @@ function LanguageSwitch() {
 function AppearanceSwitch() {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
-  const options: { value: AppTheme; Icon: IconCmp; labelKey: string; descKey: string }[] = [
-    { value: 'soft', Icon: SunIcon, labelKey: 'settings.appearance.soft', descKey: 'settings.appearance.softDesc' },
-    { value: 'light', Icon: SparklesIcon, labelKey: 'settings.appearance.light', descKey: 'settings.appearance.lightDesc' },
-    { value: 'dark', Icon: MoonIcon, labelKey: 'settings.appearance.dark', descKey: 'settings.appearance.darkDesc' },
+  const options: { value: AppTheme; Icon: IconCmp; labelKey: string }[] = [
+    { value: 'soft', Icon: SunIcon, labelKey: 'settings.appearance.soft' },
+    { value: 'light', Icon: SparklesIcon, labelKey: 'settings.appearance.light' },
+    { value: 'dark', Icon: MoonIcon, labelKey: 'settings.appearance.dark' },
   ];
   return (
     <div className="space-y-2">
-      {options.map(({ value, Icon, labelKey, descKey }) => {
+      {options.map(({ value, Icon, labelKey }) => {
         const active = theme === value;
         return (
           <Row
@@ -121,14 +121,11 @@ function AppearanceSwitch() {
             label={t(labelKey)}
             onClick={() => setTheme(value)}
             right={
-              <span className="flex flex-col items-end gap-0.5">
-                <span className="text-[11px] text-neutral-400">{t(descKey)}</span>
-                {active && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white">
-                    <CheckIcon width={12} height={12} />
-                  </span>
-                )}
-              </span>
+              active ? (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white">
+                  <CheckIcon width={12} height={12} />
+                </span>
+              ) : undefined
             }
           />
         );
@@ -697,14 +694,15 @@ export function SettingsPage() {
               </Card>
             </div>
 
-            {/* Hisobdan chiqish — mobilда (Sidebar yashiringan holatda) yagona
-                chiqish yo'li; desktopда ham qulaylik uchun qoldirilgan
-                (Sidebar'dagi bilan bir xil vazifa). */}
+            {/* Hisobdan chiqish — mobil/tabletda (Sidebar yashiringan holatda)
+                yagona chiqish yo'li. Desktopда (lg+) Sidebar'ning O'ZIDA bir
+                xil "Chiqish" tugmasi bor, shu bois bu yerda TAKRORLANMASIN
+                deb yashiringan (fikr-mulohaza bo'yicha). */}
             <button
               type="button"
               onClick={() => void onLogout()}
               disabled={loggingOut}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-4 py-3.5 text-sm font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-4 py-3.5 text-sm font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:opacity-50 lg:hidden"
             >
               <LogoutIcon2 width={18} height={18} />
               {loggingOut ? t('common.loggingOut') : t('settings.logoutAccount')}

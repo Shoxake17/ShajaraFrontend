@@ -450,7 +450,7 @@ function TreeBoard() {
                 disabled={arranging || nodes.length < 2}
                 title={arranging ? t('tree.board.arranging') : t('tree.board.arrange')}
                 aria-label={t('tree.board.arrange')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
                   <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
@@ -476,7 +476,7 @@ function TreeBoard() {
                 onClick={() => navigate('/xabarlar')}
                 title={t('tree.board.notifications')}
                 aria-label={t('tree.board.notifications')}
-                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100"
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100"
               >
                 <BellIcon />
                 {unreadTotal > 0 && (
@@ -490,7 +490,7 @@ function TreeBoard() {
                 disabled={!myId}
                 title={t('tree.board.goToMeTitle')}
                 aria-label={t('tree.board.goToMeTitle')}
-                className="hidden shrink-0 items-center gap-2 rounded-full bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
+                className="hidden shrink-0 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 py-1 pl-1 pr-3 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40 sm:flex"
               >
                 <span
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-800"
