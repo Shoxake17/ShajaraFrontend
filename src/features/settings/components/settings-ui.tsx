@@ -114,7 +114,12 @@ export function Row({
       <span className="flex shrink-0 items-center gap-2 text-xs text-neutral-400">{right}</span>
     </>
   );
-  const cls = 'flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors';
+  // Har bir qator O'ZINING chegarasi/foni bilan — bir nechta qator bitta
+  // bo'lim ichida bo'lganda ham (masalan Hisob xavfsizligi), har biri
+  // alohida "chip" kabi ANIQ ajralib turishi uchun (oddiy ajratuvchi
+  // chiziq yetarlicha ko'zga tashlanmadi — fikr-mulohaza bo'yicha).
+  const cls =
+    'flex w-full items-center gap-3 rounded-xl border border-brand-100 bg-white px-3 py-3 text-left shadow-sm transition-colors';
   return onClick ? (
     <button type="button" onClick={onClick} className={`${cls} hover:bg-brand-50`}>
       {inner}
