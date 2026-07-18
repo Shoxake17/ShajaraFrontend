@@ -113,6 +113,21 @@
   -webkit-backdrop-filter: none !important;
 }
 
+/* ISTISNO: qidiruv/xabar inputlari (MessagesPage kontakt qidiruvi,
+   MemberSearch — Doska/Oila a'zolarim sahifalari, xabar yozish maydoni)
+   HAM bare bg-brand-50 ishlatadi, lekin ular sahifa foni EMAS — kichik,
+   HAQIQIY kirish maydonlari ("border yo'q, bilinmay qolgan" fikr-
+   mulohaza). Ularni bg-brand-50 dan ANIQ ajratish uchun — bularning
+   barchasida QO'SHIMCHA border-transparent sinfi ham bor (composite
+   selektor orqali TANLAB olinadi, boshqa bg-brand-50 ishlatuvchi
+   joylarga (sahifa fonlari) TA'SIR QILMAYDI, chunki ularda border yo'q). */
+[data-theme='light'] .bg-brand-50.border-transparent {
+  background-color: rgb(255 255 255 / 0.35) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgb(255 255 255 / 0.7) !important;
+}
+
 /* Chekka (border) yaxshi ko'rinishi uchun — panellar ajralib turishi,
    ayniqsa och/tumanli fon ustida ("chekada border yo'q" degan
    fikr-mulohaza bo'yicha kuchaytirildi). */

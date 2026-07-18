@@ -440,6 +440,16 @@ function FamilyMembersBoard() {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
           }
+          /* ISTISNO: MemberSearch qidiruv maydoni HAM bare bg-brand-50
+             ishlatadi, lekin sahifa foni EMAS — kichik input. Composite
+             selektor orqali (border-transparent bilan birga) ANIQ
+             ajratiladi. */
+          [data-theme='light'] .bg-brand-50.border-transparent {
+            background-color: rgb(255 255 255 / 0.35) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-color: rgb(255 255 255 / 0.7) !important;
+          }
           [data-theme='light'] .border-brand-100,
           [data-theme='light'] .border-brand-200,
           [data-theme='light'] .border-pink-200 {
