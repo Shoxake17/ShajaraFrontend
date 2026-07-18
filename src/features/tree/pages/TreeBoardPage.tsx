@@ -1,7 +1,7 @@
 // features/tree/pages/TreeBoardPage.tsx
 import { useEffect, useMemo, useState, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Background,
@@ -16,6 +16,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { useAuthStore } from '@/features/auth';
+import { useChatStore, chatUnreadTotal } from '@/features/chat/model/chat.store';
 import { useTreeStore, type PersonNodeType } from '@/features/tree/model/tree.store';
 import type { RelationKey } from '@/features/tree/model/relations';
 import type { Side } from '@/features/tree/model/kinship';
@@ -90,6 +91,12 @@ const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="m6 9 6 6 6-6" />
   </svg>
 );
+const BellIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" {...iconBase} {...p}>
+    <path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 4 1.5 5.5 1.5 5.5H5s1.5-1.5 1.5-5.5Z" />
+    <path d="M10 18.5a2 2 0 0 0 4 0" />
+  </svg>
+);
 
 // Ota tomon / ona tomon tanlovi — oxirgi holat SAQLANADI (localStorage),
 // aks holda har safar sahifa qayta yuklanganda (restart) doim "Ota tomon"ga
@@ -115,7 +122,9 @@ export function TreeBoardPage() {
 function TreeBoard() {
   const { t } = useTranslation();
   const { fitView, setCenter, getNode } = useReactFlow();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const unreadTotal = useChatStore((s) => chatUnreadTotal(s.contacts));
   // AppLayout'ning umumiy header'idagi "amallar" bo'shlig'i — shu yerga
   // qidiruv/filtr/tugmalarni portal qilamiz (logotip AJDO ikki marta
   // takrorlanmasin uchun, u AppLayout'ning o'zida).
@@ -196,21 +205,6 @@ function TreeBoard() {
     const visibleIds = new Set(displayedNodes.map((n) => n.id));
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
   }, [edges, displayedNodes]);
-
-  // Joriy tomonda (Ota/Ona) ko'rinayotgan ODAMLAR soni — karta emas, har
-  // bir shaxs alohida (turmush o'rtoqlari ham) hisoblanadi, xuddi
-  // FamilyMembersPage'dagi "N ta a'zo" bilan bir xil mantiqda.
-  const sideCount = useMemo(() => {
-    const visible = (side: Side | null) => side === 'NEUTRAL' || side === sideFilter;
-    let count = 0;
-    for (const n of nodes) {
-      if (visible(n.data.side)) count++;
-      for (const sp of n.data.spouses) {
-        if (visible(sp.side)) count++;
-      }
-    }
-    return count;
-  }, [nodes, sideFilter]);
 
   useEffect(() => {
     void loadBoard();
@@ -357,32 +351,19 @@ function TreeBoard() {
       {topBarActionsEl &&
         createPortal(
           <>
-            {/* Sarlavha + joriy tomondagi (Ota/Ona) a'zolar soni — xuddi
-                FamilyMembersPage'dagi "Oila a'zolarim — N ta a'zo" bilan
-                bir xil andozada, faqat son tanlangan tomonga qarab o'zgaradi.
-                Kichik mobil telefonlarda BUTUNLAY yashiringan (joy tejash
-                uchun) — faqat planshet/desktop'da (sm: va undan katta)
-                ko'rinadi. */}
-            <div className="hidden min-w-0 shrink-0 sm:block">
-              <p className="truncate text-sm font-semibold text-brand-900">{t('tree.board.title')}</p>
-              <p className="truncate text-xs text-brand-500">
-                {t('tree.board.memberCount', {
-                  side: sideFilter === 'PATERNAL' ? t('tree.board.paternalSide') : t('tree.board.maternalSide'),
-                  count: sideCount,
-                })}
-              </p>
-            </div>
-            {/* Ism/familiya bo'yicha qidirish — topilgan a'zoga kamera uchib boradi */}
-            <div className="mx-2 hidden flex-1 justify-center md:flex">
-              <MemberSearch items={searchItems} onSelect={focusMember} />
-            </div>
-
-            <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+            {/* Markaziy klaster — Gender / Qidiruv / Saralash / A'zo qo'shish,
+                BIR guruh sifatida (Applayout.png namunasi: hammasi o'rtada,
+                logotip bilan bildirishnoma+profil klasteri orasida). flex-1
+                shu guruhga BERILADI (o'ng klaster shrink-0 bo'lgani uchun),
+                ICHIDA esa justify-center — natijada guruh ajratilgan bo'sh
+                joy ichida markazlashadi, logotip va profil klasterlari
+                o'zgarmas holda chetlarda qoladi. */}
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 sm:gap-3">
               {/* Ota tomon / Ona tomon — radio: doim aynan bittasi faol, ikkalasi
                   birga yoki "hammasi" holati yo'q. Doira ikonkalar (♂/♀), o'z
                   bordered "bloki" ichida — app uslubi. Ona tomon tanlansa PUSHTI,
                   Ota tomon — brend yashili (o'z holicha). */}
-              <div role="radiogroup" aria-label={t('tree.board.sideGroupLabel')} className="flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
+              <div role="radiogroup" aria-label={t('tree.board.sideGroupLabel')} className="flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50/60 p-1">
                 <button
                   type="button"
                   onClick={() => setSideFilter('PATERNAL')}
@@ -412,9 +393,13 @@ function TreeBoard() {
                   <FemaleIcon />
                 </button>
               </div>
-              {/* Qidiruv — mobilda lupa ikonkasi pastdagi qatorni ochadi/yopadi;
-                  md+ da yuqoridagi to'liq qidiruv maydoni ko'rinadi (shu tugma yo'q).
-                  O'z bordered "bloki" — app uslubi. */}
+              {/* Ism/familiya bo'yicha qidirish (md+, Applayout.png'dagi
+                  "Qidirish..." maydoni) — topilgan a'zoga kamera uchib boradi.
+                  Kichikroq ekranlarda (< md) o'rniga lupa ikonkasi turadi,
+                  bosilsa pastda qidiruv qatori ochiladi (joy tejash uchun). */}
+              <div className="hidden md:flex">
+                <MemberSearch items={searchItems} onSelect={focusMember} />
+              </div>
               <button
                 type="button"
                 onClick={() => setMobileSearchOpen((v) => !v)}
@@ -429,7 +414,76 @@ function TreeBoard() {
               >
                 <SearchIcon />
               </button>
-              {/* Foydalanuvchi ismini bosish -> o'zimga (root) yo'naltiradi */}
+              {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
+                  Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
+                  O'chiq: kartalar qimirlamaydi. Mobilda (< sm) joy tejash uchun
+                  yashiringan — Tartiblash bilan birga kattaroq ekranda chiqadi. */}
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setLayoutEdit(!layoutEdit)}
+                  title={
+                    layoutEdit
+                      ? t('tree.board.singleDragOffTitle')
+                      : t('tree.board.singleDragOnTitle')
+                  }
+                  aria-pressed={layoutEdit}
+                  className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors sm:flex ${
+                    layoutEdit
+                      ? 'bg-brand-700 text-white hover:bg-brand-800'
+                      : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
+                  }`}
+                >
+                  {/* Surish (move) ikonkasi */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                    <path d="M12 2v20M2 12h20" strokeLinecap="round" />
+                    <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              {/* Saralash/Tartiblash (auto-arrange) — Applayout.png'da "≡"
+                  ikonkasiga mos, joyidan qimirlamadi (gender+qidiruv bilan
+                  bir qatorda, qo'shish tugmasidan oldin). */}
+              <button
+                type="button"
+                onClick={onArrange}
+                disabled={arranging || nodes.length < 2}
+                title={arranging ? t('tree.board.arranging') : t('tree.board.arrange')}
+                aria-label={t('tree.board.arrange')}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
+                  <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={openAddDefault}
+                title={t('tree.board.addRelative')}
+                aria-label={t('tree.board.addRelative')}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800"
+              >
+                <PlusIcon />
+              </button>
+            </div>
+
+            {/* O'ng klaster — Bildirishnoma + Profil (Applayout.png'dagi
+                oxirgi guruh), logotip/markaziy klasterdan mustaqil, doim
+                header'ning eng oxirida turadi. */}
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/xabarlar')}
+                title={t('tree.board.notifications')}
+                aria-label={t('tree.board.notifications')}
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100"
+              >
+                <BellIcon />
+                {unreadTotal > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-pink-600" aria-hidden />
+                )}
+              </button>
+              {/* Profil (ism-familiya + avatar) bosilsa -> o'zimga (root) yo'naltiradi */}
               <button
                 type="button"
                 onClick={goToMe}
@@ -446,57 +500,6 @@ function TreeBoard() {
                 </span>
                 <span className="max-w-[9rem] truncate">{user?.fullName}</span>
                 <ChevronDownIcon className="shrink-0 text-brand-400" />
-              </button>
-              {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
-                  Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
-                  O'chiq: kartalar qimirlamaydi. Mobilda (< sm) joy tejash uchun
-                  yashiringan — Tartiblash bilan birga kattaroq ekranda chiqadi. */}
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => setLayoutEdit(!layoutEdit)}
-                  title={
-                    layoutEdit
-                      ? t('tree.board.singleDragOffTitle')
-                      : t('tree.board.singleDragOnTitle')
-                  }
-                  aria-pressed={layoutEdit}
-                  className={`hidden h-9 w-9 items-center justify-center rounded-full transition-colors sm:flex ${
-                    layoutEdit
-                      ? 'bg-brand-700 text-white hover:bg-brand-800'
-                      : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
-                  }`}
-                >
-                  {/* Surish (move) ikonkasi */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                    <path d="M12 2v20M2 12h20" strokeLinecap="round" />
-                    <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onArrange}
-                disabled={arranging || nodes.length < 2}
-                title={arranging ? t('tree.board.arranging') : t('tree.board.arrange')}
-                aria-label={t('tree.board.arrange')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 disabled:opacity-40"
-              >
-                {/* Tartiblash (auto-arrange) ikonkasi — barcha o'lchamlarda
-                    faqat ikonka (joyi o'zgarmagan), matn olib tashlandi
-                    (Applayout.png namunasidagi ixcham, faqat-ikonka uslub). */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="shrink-0">
-                  <path d="M4 6h16M4 12h10M4 18h13" strokeLinecap="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={openAddDefault}
-                title={t('tree.board.addRelative')}
-                aria-label={t('tree.board.addRelative')}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition-colors hover:bg-brand-800"
-              >
-                <PlusIcon />
               </button>
             </div>
           </>,

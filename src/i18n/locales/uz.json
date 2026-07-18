@@ -95,11 +95,8 @@
     "appearance": {
       "desc": "Ilova ko'rinishini tanlang.",
       "soft": "Soft",
-      "softDesc": "Hozirgi standart, oq ko'rinish",
       "light": "Light",
-      "lightDesc": "Shisha (glass) uslub, tabiat foni bilan",
-      "dark": "Dark",
-      "darkDesc": "Qorong'i rejim"
+      "dark": "Dark"
     },
     "export": {
       "desc": "Ma'lumotlaringizni yuklab oling yoki eksport qiling.",
@@ -462,6 +459,7 @@
       "paternalOnlyTitle": "Faqat ota tomon oila a‘zolarini ko‘rsatish",
       "maternalOnlyTitle": "Faqat ona tomon oila a‘zolarini ko‘rsatish",
       "goToMeTitle": "Menga o‘tish (o‘zimni ko‘rsatish)",
+      "notifications": "Bildirishnomalar",
       "singleDragOffTitle": "Yakka surish rejimini o‘chirish (karta oilasi bilan suriladi)",
       "singleDragOnTitle": "Yakka surish — faqat tanlangan kartani suradi (oilasi joyida qoladi)",
       "arrange": "Tartiblash",

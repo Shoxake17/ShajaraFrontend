@@ -95,7 +95,6 @@
     "appearance": {
       "desc": "Choose the app's appearance.",
       "soft": "Soft",
-      "softDesc": "Current default, white look",
       "light": "Light",
       "lightDesc": "Frosted glass style with a nature background",
       "dark": "Dark",
@@ -473,6 +472,7 @@
       "paternalOnlyTitle": "Show only paternal-side family members",
       "maternalOnlyTitle": "Show only maternal-side family members",
       "goToMeTitle": "Go to me (show myself)",
+      "notifications": "Notifications",
       "singleDragOffTitle": "Turn off solo drag mode (card moves with its family)",
       "singleDragOnTitle": "Solo drag — moves only the selected card (family stays in place)",
       "arrange": "Arrange",
