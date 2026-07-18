@@ -64,12 +64,14 @@ export function Sidebar({ fullscreen }: SidebarProps) {
   };
 
   // Desktopda: faol sahifaning ikonkasi VA yozuvi OQ rangda, orqasida
-  // to'q yashil (shisha) pill — Light rejimda pill YENGIL xira bilan
-  // (backdrop-blur-sm), qattiq 20px+ EMAS (aks holda matn o'qilishi
-  // qiyinlashardi). Nofaol bandlarda ikonka/yozuv rangi TO'Q YASHIL.
+  // to'q yashil (shisha) pill. Light rejimda esa endi FAOL band ham
+  // xuddi HOVER holati bilan BIR XIL rangda (och fon + to'q yashil
+  // matn) — yashil pill EMAS (fikr-mulohaza: "tanlanib kirganda ham
+  // yashil emas, hover rangidek bo'lsin"). Nofaol bandlarda ikonka/
+  // yozuv rangi TO'Q YASHIL.
   const activePillClass =
     theme === 'light'
-      ? 'bg-brand-800/80 backdrop-blur-sm text-white shadow-sm'
+      ? 'bg-brand-50 text-brand-900 shadow-sm'
       : 'bg-brand-800 text-white shadow-sm';
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

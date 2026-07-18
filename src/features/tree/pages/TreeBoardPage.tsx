@@ -202,18 +202,23 @@ function TreeBoard() {
     return nodes.filter((n) => visible(n.data.side) || n.data.spouses.some((sp) => visible(sp.side)));
   }, [nodes, sideFilter]);
 
-  // Daraxtdagi UMUMIY odamlar soni — karta emas, har bir shaxs alohida
-  // (turmush o'rtoqlari ham) hisoblanadi, TOMON FILTRIDAN QAT'I NAZAR
-  // (barcha `nodes`, `displayedNodes` emas). Avval faqat joriy tanlangan
-  // tomon (Ota/Ona) bo'yicha hisoblanardi — shu sabab "kam ko'rsatyapti"
-  // fikr-mulohazasi bo'ldi (boshqa tomondagilar hisobga kirmasdi).
-  const totalCount = useMemo(() => {
+  // Joriy tanlangan tomondagi (Ota YOKI Ona, ALOHIDA-ALOHIDA) odamlar
+  // soni — karta emas, har bir shaxs alohida (turmush o'rtoqlari ham)
+  // hisoblanadi. QAT'IY side===sideFilter (NEUTRAL ARALASHMAYDI) — shu
+  // bois Ota va Ona tomon sonlari bir-biriga QO'SHILMAYDI/bir-birini
+  // "yeb qo'ymaydi" (fikr-mulohaza: "ota-ona tomonining umumiysi emas,
+  // ikkalasi alohida hisoblansin"). Filter almashganda son ham mos
+  // ravishda o'zgaradi.
+  const sideCount = useMemo(() => {
     let count = 0;
     for (const n of nodes) {
-      count += 1 + n.data.spouses.length;
+      if (n.data.side === sideFilter) count++;
+      for (const sp of n.data.spouses) {
+        if (sp.side === sideFilter) count++;
+      }
     }
     return count;
-  }, [nodes]);
+  }, [nodes, sideFilter]);
   const displayedEdges = useMemo(() => {
     const visibleIds = new Set(displayedNodes.map((n) => n.id));
     return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
@@ -380,7 +385,10 @@ function TreeBoard() {
             <div className="hidden min-w-0 shrink-0 sm:block">
               <p className="truncate text-sm font-semibold text-brand-900">{t('tree.board.title')}</p>
               <p className="truncate text-xs text-brand-500">
-                {t('tree.board.totalMemberCount', { count: totalCount })}
+                {t('tree.board.memberCount', {
+                  side: sideFilter === 'PATERNAL' ? t('tree.board.paternalSide') : t('tree.board.maternalSide'),
+                  count: sideCount,
+                })}
               </p>
             </div>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 sm:gap-3">
