@@ -8,10 +8,13 @@ import type {
   ChangePasswordDto,
   ChangePasswordStartResponse,
   ConfirmChangePasswordDto,
+  ConfirmDeleteAccountDto,
   ConfirmForgotPasswordDto,
   ConfirmRegisterDto,
   ConfirmTwoFactorDto,
   ConfirmTwoFactorResponse,
+  DeleteAccountDto,
+  DeleteAccountStartResponse,
   DisableTwoFactorDto,
   ForgotPasswordStartResponse,
   LoginDto,
@@ -97,6 +100,15 @@ export const authApi = {
   /** Parol tiklash kodini qayta yuborish (60s cooldown) */
   resendForgotPasswordCode: (dto: ResendCodeDto) =>
     http.post<{ expiresInSeconds: number }>('/auth/forgot-password/resend', dto).then((r) => r.data),
+  /** Sozlamalar → Xavfsizlik → "Hisobni o'chirish" — 1-bosqich: hisob HALI o'chmaydi, emailga kod yuboriladi */
+  deleteAccount: (dto: DeleteAccountDto) =>
+    http.post<DeleteAccountStartResponse>('/auth/delete-account', dto).then((r) => r.data),
+  /** Hisobni o'chirish — 2-bosqich: to'g'ri kod bilan hisob SHU YERDA HAQIQATAN o'chiriladi (qaytarib bo'lmaydi) */
+  confirmDeleteAccount: (dto: ConfirmDeleteAccountDto) =>
+    http.post<{ success: true }>('/auth/delete-account/confirm', dto).then((r) => r.data),
+  /** Hisobni o'chirish kodini qayta yuborish (60s cooldown) */
+  resendDeleteAccountCode: () =>
+    http.post<{ expiresInSeconds: number }>('/auth/delete-account/resend').then((r) => r.data),
   /** Faol qurilmalar (sessiyalar) ro'yxati */
   sessions: () => http.get<SessionInfo[]>('/auth/sessions').then((r) => r.data),
   /** Bitta qurilma sessiyasini yakunlash */

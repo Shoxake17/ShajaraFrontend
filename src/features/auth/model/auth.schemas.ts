@@ -141,6 +141,14 @@ export function getDisableTwoFactorSchema() {
   });
 }
 
+/** Hisobni o'chirish — parol IXTIYORIY (Google/Telegram orqali ochilgan
+ * hisobda parol yo'q — bo'sh qoldirilsa ham bo'ladi, server tekshiradi) */
+export function getDeleteAccountSchema() {
+  return z.object({
+    password: z.string().optional(),
+  });
+}
+
 export type LoginForm = z.infer<ReturnType<typeof getLoginSchema>>;
 export type RegisterForm = z.infer<ReturnType<typeof getRegisterSchema>>;
 export type ChangePasswordForm = z.infer<ReturnType<typeof getChangePasswordSchema>>;
@@ -150,3 +158,4 @@ export type ResetPasswordForm = z.infer<ReturnType<typeof getResetPasswordSchema
 export type TwoFactorLoginForm = z.infer<ReturnType<typeof getTwoFactorLoginSchema>>;
 export type ConfirmTwoFactorSetupForm = z.infer<ReturnType<typeof getConfirmTwoFactorSetupSchema>>;
 export type DisableTwoFactorForm = z.infer<ReturnType<typeof getDisableTwoFactorSchema>>;
+export type DeleteAccountForm = z.infer<ReturnType<typeof getDeleteAccountSchema>>;

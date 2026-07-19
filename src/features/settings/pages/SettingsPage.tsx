@@ -13,6 +13,7 @@ import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/sha
 import { SelectPicker } from '@/shared/ui/SelectPicker';
 import {
   ChangePasswordDialog,
+  DeleteAccountDialog,
   LoginHistoryDialog,
   SessionsDialog,
   TwoFactorDisableDialog,
@@ -283,6 +284,7 @@ export function SettingsPage() {
   const [twoFactorSetupOpen, setTwoFactorSetupOpen] = useState(false);
   const [twoFactorDisableOpen, setTwoFactorDisableOpen] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -325,6 +327,21 @@ export function SettingsPage() {
     } finally {
       setLoggingOut(false);
     }
+  };
+
+  /** Hisob AuthService.confirmDeleteAccount()da allaqachon bazadan
+   * o'chirilgan va server refresh cookie'ni tozalagan — bu yerda faqat
+   * mahalliy holatni tozalab, kirish sahifasiga qaytariladi (authApi.logout()
+   * chaqirilmaydi, chunki hisob endi mavjud emas). */
+  const onAccountDeleted = () => {
+    setDeleteAccountOpen(false);
+    teardownWebPush().catch(() => undefined);
+    useTreeStore.getState().reset();
+    useStorageStore.getState().reset();
+    useChatStore.getState().disconnect();
+    useChatStore.getState().reset();
+    clearSession();
+    navigate('/login');
   };
 
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -693,7 +710,13 @@ export function SettingsPage() {
                     <Row Icon={DownloadIcon} label={t('settings.export.download')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={FileIcon} label={t('settings.export.export')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={LayersIcon} label={t('settings.export.googleDrive')} right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={TrashIcon} label={t('settings.export.deleteAccount')} danger right={<><SoonBadge />{chevron}</>} />
+                    <Row
+                      Icon={TrashIcon}
+                      label={t('settings.export.deleteAccount')}
+                      danger
+                      onClick={() => setDeleteAccountOpen(true)}
+                      right={chevron}
+                    />
                   </div>
                 </Card>
               </div>
@@ -752,6 +775,11 @@ export function SettingsPage() {
         onDisabled={() => setTwoFactorEnabled(false)}
       />
       <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
+      <DeleteAccountDialog
+        open={deleteAccountOpen}
+        onClose={() => setDeleteAccountOpen(false)}
+        onDeleted={onAccountDeleted}
+      />
     </div>
   );
 }

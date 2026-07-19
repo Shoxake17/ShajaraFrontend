@@ -257,6 +257,20 @@
       "resendWithCooldown": "Resend ({{seconds}}s)",
       "resend": "Resend code"
     },
+    "deleteAccount": {
+      "ariaLabel": "Delete account",
+      "title": "Delete account",
+      "warning": "Your account will be PERMANENTLY and IRREVERSIBLY deleted (login, password, settings). Family members and photos/videos/documents you added will REMAIN in the tree.",
+      "passwordPlaceholder": "Current password",
+      "passwordHint": "If your account was created via Google/Telegram, leave this empty",
+      "continue": "Continue",
+      "confirmEmailTitle": "Confirm your email",
+      "confirmDesc": "To confirm the deletion, we sent a 6-digit code to your email. Your account will be deleted IMMEDIATELY once the code is entered.",
+      "confirm": "Delete account",
+      "codeResent": "New code sent ✓",
+      "resendWithCooldown": "Resend ({{seconds}}s)",
+      "resend": "Resend code"
+    },
     "sessions": {
       "ariaLabel": "Active devices",
       "title": "Active devices",

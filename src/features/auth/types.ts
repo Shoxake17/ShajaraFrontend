@@ -71,6 +71,20 @@ export interface ConfirmChangePasswordDto {
   code: string;
 }
 
+/** Faqat parolli hisobda majburiy — Google/Telegram orqali ochilgan hisobda bo'sh qoldiriladi */
+export interface DeleteAccountDto {
+  password?: string;
+}
+
+/** POST /auth/delete-account javobi — hisob HALI o'chmagan, faqat kod yuborilgan */
+export interface DeleteAccountStartResponse {
+  expiresInSeconds: number;
+}
+
+export interface ConfirmDeleteAccountDto {
+  code: string;
+}
+
 /** POST /auth/forgot-password javobi — hisob mavjud bo'lsa-bo'lmasa ham BIR XIL shakl (enumeration himoyasi) */
 export interface ForgotPasswordStartResponse {
   expiresInSeconds: number;

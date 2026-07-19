@@ -257,6 +257,20 @@
       "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
       "resend": "Kodni qayta yuborish"
     },
+    "deleteAccount": {
+      "ariaLabel": "Hisobni o'chirish",
+      "title": "Hisobni o'chirish",
+      "warning": "Hisobingiz BUTUNLAY va QAYTARIB BO'LMAYDIGAN tarzda o'chiriladi (kirish, parol, sozlamalar). Siz qo'shgan oila a'zolari va rasm/video/hujjatlar daraxtda SAQLANIB QOLADI.",
+      "passwordPlaceholder": "Joriy parol",
+      "passwordHint": "Hisobingiz Google/Telegram orqali ochilgan bo'lsa, bo'sh qoldiring",
+      "continue": "Davom etish",
+      "confirmEmailTitle": "Emailni tasdiqlang",
+      "confirmDesc": "Hisobni o'chirishni tasdiqlash uchun emailingizga 6 xonali kod yubordik. Kod tasdiqlangach hisob SHU YERDA, DARHOL o'chiriladi.",
+      "confirm": "Hisobni o'chirish",
+      "codeResent": "Yangi kod yuborildi ✓",
+      "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
+      "resend": "Kodni qayta yuborish"
+    },
     "sessions": {
       "ariaLabel": "Faol qurilmalar",
       "title": "Faol qurilmalar",
