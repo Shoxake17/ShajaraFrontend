@@ -60,7 +60,9 @@
       "changePassword": "Parolni o'zgartirish",
       "twoFactor": "Ikki bosqichli autentifikatsiya",
       "activeSessions": "Faol qurilmalar",
-      "loginHistory": "Kirish tarixi"
+      "loginHistory": "Kirish tarixi",
+      "telegram": "Telegram orqali bog'lash",
+      "telegramLinked": "Bog'langan ✓"
     },
     "privacy": {
       "desc": "Ma'lumotlaringiz kimlar uchun ko'rinishini boshqaring.",

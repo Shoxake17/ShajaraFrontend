@@ -60,7 +60,9 @@
       "changePassword": "Изменить пароль",
       "twoFactor": "Двухфакторная аутентификация",
       "activeSessions": "Активные устройства",
-      "loginHistory": "История входов"
+      "loginHistory": "История входов",
+      "telegram": "Привязать Telegram",
+      "telegramLinked": "Привязано ✓"
     },
     "privacy": {
       "desc": "Управляйте тем, кто видит вашу информацию.",

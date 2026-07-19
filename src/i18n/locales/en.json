@@ -60,7 +60,9 @@
       "changePassword": "Change password",
       "twoFactor": "Two-factor authentication",
       "activeSessions": "Active devices",
-      "loginHistory": "Login history"
+      "loginHistory": "Login history",
+      "telegram": "Link Telegram",
+      "telegramLinked": "Linked ✓"
     },
     "privacy": {
       "desc": "Control who can see your information.",

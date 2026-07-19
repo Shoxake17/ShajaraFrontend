@@ -75,7 +75,7 @@ describe('ForgotPasswordPage (ikki bosqichli: email -> yangi parol+kod)', () => 
   it("to'g'ri kod kiritilgach yangi parol saqlanadi, sessiya ochiladi va bosh sahifaga o'tadi", async () => {
     mockApi.forgotPassword.mockResolvedValue({ expiresInSeconds: 600 });
     mockApi.confirmForgotPassword.mockResolvedValue({
-      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC' },
+      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false },
       accessToken: 'at-reset-1',
     });
     render(

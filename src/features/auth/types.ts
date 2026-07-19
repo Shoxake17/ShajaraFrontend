@@ -17,6 +17,9 @@ export interface AuthUser {
   dataVisibility: ProfileVisibility;
   /** Sozlamalar → Maxfiylik → "Kimlar sizga xabar yuborishi mumkin" */
   messageVisibility: ProfileVisibility;
+  /** Sozlamalar → Xavfsizlik → "Telegram orqali bog'lash" holati (xom
+   * Telegram ID emas — faqat bog'langan/bog'lanmaganligi) */
+  telegramLinked: boolean;
 }
 
 export interface RegisterDto {

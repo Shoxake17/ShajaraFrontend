@@ -60,6 +60,10 @@ export const authApi = {
   /** Telegram Login Widget bilan kirish/ro'yxatdan o'tish */
   telegram: (dto: TelegramAuthPayload) =>
     http.post<AuthResponse>('/auth/telegram', dto).then((r) => r.data),
+  /** Sozlamalar → Xavfsizlik: ALLAQACHON kirilgan hisobga Telegram'ni
+   * bog'lash (yangi hisob yaratilmaydi) */
+  telegramLink: (dto: TelegramAuthPayload) =>
+    http.post<AuthUser>('/auth/telegram/link', dto).then((r) => r.data),
   /** Joriy sessiya egasi. 401 bo'lsa interceptor cookie orqali avtomatik yangilaydi. */
   me: () => http.get<AuthUser>('/auth/me').then((r) => r.data),
   /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" */
