@@ -28,15 +28,25 @@ export const TELEGRAM_CALLBACK_STORAGE_KEY = 'ajdo:telegram-auth-result';
  * Telegram OAuth popup oynasini ochadi. TASDIQLASH TELEGRAM ILOVASIDA
  * bo'lgach (rasm: telegram/confirm.png), oauth.telegram.org POPUP'NING
  * O'ZI /telegram-callback'ga O'TMAYDI — buning o'rniga popup
- * `window.opener.postMessage({event:'auth_result', result:{...}})`
- * yuboradi va o'zini bo'shatadi (shu sabab avval popup "about:blank"da
- * qotib qolgan edi — telegram/bug.png — biz postMessage'ni umuman
- * tinglamagan edik). Bu — Telegram'ning O'Z rasmiy telegram-widget.js
- * kodidagi mexanizm.
+ * `window.opener.postMessage(JSON.stringify({event:'auth_result',
+ * result:{...}}))` yuboradi va o'zini bo'shatadi (shu sabab avval popup
+ * "about:blank"da qotib qolgan edi — telegram/bug.png). Bu — Telegram'ning
+ * O'Z rasmiy telegram-widget.js kodidan (https://telegram.org/js/
+ * telegram-widget.js) olingan, tasdiqlangan mexanizm — QAT'IY o'sha
+ * kod bilan bir xil qilib takrorlangan:
+ *   - URL'da `embed` parametri UMUMAN YO'Q (avvalgi versiyada xato
+ *     qo'shilgan edi — bu Telegram serverining xatti-harakatini
+ *     o'zgartirib, postMessage yuborilishiga to'sqinlik qilgan bo'lishi
+ *     mumkin edi).
+ *   - `event.data` — JSON.parse() qilinishi SHART bo'lgan satr (oldingi
+ *     versiyada tayyor obyekt deb noto'g'ri o'qilgan edi — shu sabab
+ *     xabar kelsa ham TANILMAS edi).
+ *   - Faqat `event.source === popup` tekshiriladi (Telegram'ning o'zi
+ *     ham `event.origin`ni tekshirmaydi — ortiqcha origin tekshiruvi
+ *     ba'zi holatlarda haqiqiy xabarni RAD ETISHI mumkin edi).
  *
  * ZAXIRA sifatida /telegram-callback (URL query orqali, localStorage'ga
- * yozib) yo'li ham saqlanadi — agar Telegram biror holatda popup'ni
- * haqiqatan return_to'ga yo'naltirsa, shu orqali ham ishlayveradi.
+ * yozib) yo'li ham saqlanadi.
  */
 export function openTelegramLogin(): Promise<TelegramAuthPayload> {
   return new Promise((resolve, reject) => {
@@ -44,9 +54,13 @@ export function openTelegramLogin(): Promise<TelegramAuthPayload> {
     const url =
       `https://oauth.telegram.org/auth?bot_id=${encodeURIComponent(env.telegramBotId)}` +
       `&origin=${encodeURIComponent(window.location.origin)}` +
-      `&embed=1&request_access=write&return_to=${encodeURIComponent(returnTo)}`;
+      `&request_access=write&return_to=${encodeURIComponent(returnTo)}`;
 
-    const popup = window.open(url, 'telegram_oauth', 'width=550,height=520,menubar=no,toolbar=no');
+    const popup = window.open(
+      url,
+      `telegram_oauth_bot${env.telegramBotId}`,
+      'width=550,height=470,status=0,location=0,menubar=0,toolbar=0',
+    );
     if (!popup) {
       reject(new Error('popup_blocked'));
       return;
@@ -87,14 +101,19 @@ export function openTelegramLogin(): Promise<TelegramAuthPayload> {
     };
 
     // ASOSIY yo'l — postMessage. `event.source === popup` tekshiruvi
-    // xabarning AYNAN shu ochilgan oynadan kelganini kafolatlaydi
-    // (Telegram'ning o'z widget kodidagi bilan bir xil tekshiruv) —
-    // origin tekshiruvi ham qo'shimcha himoya sifatida.
+    // xabarning AYNAN shu ochilgan oynadan kelganini kafolatlaydi —
+    // Telegram'ning o'zi ham FAQAT shuni tekshiradi (event.origin'ni
+    // TEKSHIRMAYDI). event.data — JSON.parse() qilinishi SHART bo'lgan
+    // satr (obyekt EMAS).
     const onMessage = (e: MessageEvent) => {
       if (e.source !== popup) return;
-      if (e.origin !== 'https://oauth.telegram.org') return;
-      const data = e.data as { event?: string; result?: TelegramAuthPayload } | undefined;
-      if (data?.event === 'auth_result' && data.result) {
+      let data: { event?: string; result?: TelegramAuthPayload };
+      try {
+        data = JSON.parse(e.data as string) as { event?: string; result?: TelegramAuthPayload };
+      } catch {
+        return;
+      }
+      if (data.event === 'auth_result' && data.result) {
         finish(data.result);
       }
     };
