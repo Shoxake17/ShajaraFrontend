@@ -3,7 +3,7 @@
 // tugma bosilganda ro'yxat ochiladi, tanlangan qator ✓ belgi bilan
 // ajralib turadi (MediaGalleryPage'dagi FilterPicker/RelationPicker bilan
 // bir xil andoza).
-import { useEffect, useLayoutEffect, useRef, useState, type SVGProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface SelectOption {
@@ -17,6 +17,8 @@ interface SelectPickerProps {
   onChange: (value: string) => void;
   label: string;
   className?: string;
+  /** Tugma boshida ixtiyoriy ikonka (masalan Til tanlagichdagi globus) */
+  icon?: ReactNode;
 }
 
 const ChevronIcon = (p: SVGProps<SVGSVGElement>) => (
@@ -30,7 +32,7 @@ const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export function SelectPicker({ value, options, onChange, label, className = '' }: SelectPickerProps) {
+export function SelectPicker({ value, options, onChange, label, className = '', icon }: SelectPickerProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -92,6 +94,7 @@ export function SelectPicker({ value, options, onChange, label, className = '' }
           open ? 'border-brand-600' : 'border-neutral-200 hover:border-neutral-300'
         }`}
       >
+        {icon && <span className="shrink-0 text-brand-700">{icon}</span>}
         <span className="truncate text-[13px] font-medium text-brand-900">{current?.label ?? label}</span>
         <ChevronIcon className={`shrink-0 text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>

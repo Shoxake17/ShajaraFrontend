@@ -1,6 +1,7 @@
 // features/auth/components/SocialButtons.tsx
 import { useTranslation } from 'react-i18next';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { AppleIcon, GoogleIcon, TelegramIcon } from '@/shared/ui/icons';
 
 interface SocialButtonsProps {
@@ -17,6 +18,7 @@ interface SocialButtonsProps {
 export function SocialButtons({ dense }: SocialButtonsProps) {
   const { t } = useTranslation();
   const { signInWithGoogle, loading, error } = useGoogleAuth();
+  const { theme } = useTheme();
   const size = dense ? 'h-11 w-16 lg:h-12' : 'h-14 w-20 lg:h-12';
 
   return (
@@ -44,7 +46,7 @@ export function SocialButtons({ dense }: SocialButtonsProps) {
           disabled
           className={`flex ${size} cursor-not-allowed items-center justify-center gap-2 rounded-field border border-neutral-200 bg-white opacity-50 lg:flex-1 lg:px-3`}
         >
-          <AppleIcon className="text-black" />
+          <AppleIcon className={theme === 'dark' ? 'text-white' : 'text-black'} />
           <span className="hidden text-sm font-medium text-brand-900 lg:inline">Apple</span>
         </button>
         <button

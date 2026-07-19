@@ -6,17 +6,17 @@ import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useRegister } from '@/features/auth/hooks/useRegister';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
+import type { SupportedLanguage } from '@/i18n';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
 import { Alert } from '@/shared/ui/Alert';
 import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
-import { TreeLogo } from '@/shared/ui/TreeLogo';
+import { SelectPicker } from '@/shared/ui/SelectPicker';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import { useTheme } from '@/shared/hooks/useTheme';
 import {
   ArrowLeftIcon,
-  ChevronDownIcon,
   GlobeIcon,
   LockIcon,
   MailIcon,
@@ -34,7 +34,7 @@ const treeMask =
 
 export function RegisterPage() {
   const { t } = useTranslation();
-  const { language, cycleLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const {
     step,
     form,
@@ -118,18 +118,18 @@ export function RegisterPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TreeLogo className="h-7 w-7 text-brand-800" />
+              <img src="/registertree.png" alt="" draggable={false} className="h-7 w-7 shrink-0 select-none object-contain" />
               <span className="font-serif text-xl font-semibold text-brand-900">{t('auth.brand')}</span>
             </div>
-            <button
-              type="button"
-              onClick={cycleLanguage}
-              className="flex items-center gap-1.5 text-sm font-medium text-brand-700"
-            >
-              <GlobeIcon />
-              {LANGUAGE_NAMES[language]}
-              <ChevronDownIcon />
-            </button>
+            {/* Til tanlagichi endi bosilganda ochiladigan/tanlanadigan blok
+                (SelectPicker) — avvalgi bitta tugmali "aylanuvchi" o'rniga. */}
+            <SelectPicker
+              value={language}
+              onChange={(v) => setLanguage(v as SupportedLanguage)}
+              label={LANGUAGE_NAMES[language]}
+              icon={<GlobeIcon />}
+              options={(['uz', 'ru', 'en'] as const).map((l) => ({ value: l, label: LANGUAGE_NAMES[l] }))}
+            />
           </div>
 
           <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col justify-center py-6">

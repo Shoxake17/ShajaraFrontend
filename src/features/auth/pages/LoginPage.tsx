@@ -6,15 +6,15 @@ import { useTranslation } from 'react-i18next';
 import styles from './LoginPage.module.css';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
+import type { SupportedLanguage } from '@/i18n';
 import { SocialButtons } from '@/features/auth/components/SocialButtons';
 import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
 import { Alert } from '@/shared/ui/Alert';
 import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
-import { TreeLogo } from '@/shared/ui/TreeLogo';
+import { SelectPicker } from '@/shared/ui/SelectPicker';
 import {
   ArrowLeftIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   GlobeIcon,
   HelpCircleIcon,
@@ -34,7 +34,7 @@ const treeMask =
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const { language, cycleLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const {
     form,
     submit,
@@ -92,18 +92,19 @@ export function LoginPage() {
       <main className={styles.card}>
         <div className={styles.desktopTopBar}>
           <div className={styles.desktopLogo}>
-            <TreeLogo className="h-7 w-7 text-brand-800" />
+            <img src="/registertree.png" alt="" draggable={false} className="h-7 w-7 shrink-0 select-none object-contain" />
             <span className={styles.desktopLogoText}>{t('auth.brand')}</span>
           </div>
-          <button
-            type="button"
-            onClick={cycleLanguage}
-            className={styles.desktopLangBtn}
-          >
-            <GlobeIcon />
-            {LANGUAGE_NAMES[language]}
-            <ChevronDownIcon />
-          </button>
+          {/* Til tanlagichi endi bosilganda ochiladigan/tanlanadigan blok
+              (SelectPicker) — avvalgi bitta tugmali "aylanuvchi" (cycle)
+              o'rniga (fikr-mulohaza bo'yicha). */}
+          <SelectPicker
+            value={language}
+            onChange={(v) => setLanguage(v as SupportedLanguage)}
+            label={LANGUAGE_NAMES[language]}
+            icon={<GlobeIcon />}
+            options={(['uz', 'ru', 'en'] as const).map((l) => ({ value: l, label: LANGUAGE_NAMES[l] }))}
+          />
         </div>
 
         <div className={styles.desktopFormColumn}>
