@@ -1,6 +1,7 @@
 // features/auth/api/auth.api.ts
 // Faqat HTTP chaqiruvlar — tiplar types.ts da, logika hooks/ da.
 import { http } from '@/shared/api/http';
+import type { TelegramAuthPayload } from '@/shared/lib/telegram';
 import type {
   AuthResponse,
   AuthUser,
@@ -56,6 +57,9 @@ export const authApi = {
    * nativ: idToken (Play Services hisob tanlash oynasi) */
   google: (dto: { accessToken: string } | { idToken: string }) =>
     http.post<AuthResponse>('/auth/google', dto).then((r) => r.data),
+  /** Telegram Login Widget bilan kirish/ro'yxatdan o'tish */
+  telegram: (dto: TelegramAuthPayload) =>
+    http.post<AuthResponse>('/auth/telegram', dto).then((r) => r.data),
   /** Joriy sessiya egasi. 401 bo'lsa interceptor cookie orqali avtomatik yangilaydi. */
   me: () => http.get<AuthUser>('/auth/me').then((r) => r.data),
   /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" */

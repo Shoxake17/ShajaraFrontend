@@ -22,6 +22,9 @@ const RegisterPage = lazy(() =>
 const ForgotPasswordPage = lazy(() =>
   import('@/features/auth/pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
 );
+const TelegramCallbackPage = lazy(() =>
+  import('@/features/auth/pages/TelegramCallbackPage').then((m) => ({ default: m.TelegramCallbackPage })),
+);
 const TreeBoardPage = lazy(() =>
   import('@/features/tree/pages/TreeBoardPage').then((m) => ({ default: m.TreeBoardPage })),
 );
@@ -81,5 +84,6 @@ export const router = createBrowserRouter([
   { path: '/login', element: withSuspense(<LoginPage />) },
   { path: '/register', element: withSuspense(<RegisterPage />) },
   { path: '/forgot-password', element: withSuspense(<ForgotPasswordPage />) },
+  { path: '/telegram-callback', element: withSuspense(<TelegramCallbackPage />) },
   { path: '*', element: <Navigate to="/login" replace /> },
 ]);
