@@ -23,6 +23,7 @@ const baseUser = {
   dataVisibility: 'PUBLIC' as const,
   messageVisibility: 'PUBLIC' as const,
   telegramLinked: true,
+  hasPassword: true,
 };
 
 describe('SharePhoneDialog (Telegram bot orqali telefon ulash)', () => {

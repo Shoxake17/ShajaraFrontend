@@ -21,6 +21,11 @@ export interface AuthUser {
   /** Sozlamalar → Xavfsizlik → "Telegram orqali bog'lash" holati (xom
    * Telegram ID emas — faqat bog'langan/bog'lanmaganligi) */
   telegramLinked: boolean;
+  /** Xom hash EMAS — faqat parol bor/yo'qligi (Google/Telegram orqali
+   * ochilgan hisoblarda parol bo'lmasligi mumkin) — Sozlamalar → Xavfsizlik
+   * "Parolni o'zgartirish" yoki "Parol o'rnatish" qatorlaridan qaysi
+   * birini ko'rsatishni shu bilan hal qiladi. */
+  hasPassword: boolean;
 }
 
 export interface RegisterDto {
@@ -83,6 +88,34 @@ export interface DeleteAccountStartResponse {
 }
 
 export interface ConfirmDeleteAccountDto {
+  code: string;
+}
+
+export interface AddEmailDto {
+  email: string;
+}
+
+/** POST /auth/email/add javobi — email HALI saqlanmagan, faqat kod yuborilgan */
+export interface AddEmailStartResponse {
+  expiresInSeconds: number;
+}
+
+export interface ConfirmAddEmailDto {
+  code: string;
+}
+
+export interface SetPasswordDto {
+  newPassword: string;
+}
+
+/** POST /auth/password/set javobi — parol HALI saqlanmagan (agar
+ * expiresInSeconds === 0 bo'lsa, emaili yo'qligi sabab allaqachon SHU
+ * YERDA o'rnatilgan — kod bosqichi kerak emas) */
+export interface SetPasswordStartResponse {
+  expiresInSeconds: number;
+}
+
+export interface ConfirmSetPasswordDto {
   code: string;
 }
 

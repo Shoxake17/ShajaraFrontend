@@ -141,6 +141,26 @@ export function getDisableTwoFactorSchema() {
   });
 }
 
+/** Sozlamalar → Profil: emaili yo'q hisobga email qo'shish */
+export function getAddEmailSchema() {
+  return z.object({
+    email: z.string().trim().email(i18n.t('auth.validation.emailInvalid')),
+  });
+}
+
+/** Sozlamalar → Xavfsizlik: parol yo'q hisobga birinchi marta parol o'rnatish */
+export function getSetPasswordSchema() {
+  return z
+    .object({
+      newPassword: newPasswordSchema(),
+      confirmPassword: z.string(),
+    })
+    .refine((d) => d.newPassword === d.confirmPassword, {
+      path: ['confirmPassword'],
+      message: i18n.t('auth.validation.passwordsMismatch'),
+    });
+}
+
 /** Hisobni o'chirish — parol IXTIYORIY (Google/Telegram orqali ochilgan
  * hisobda parol yo'q — bo'sh qoldirilsa ham bo'ladi, server tekshiradi) */
 export function getDeleteAccountSchema() {
@@ -159,3 +179,5 @@ export type TwoFactorLoginForm = z.infer<ReturnType<typeof getTwoFactorLoginSche
 export type ConfirmTwoFactorSetupForm = z.infer<ReturnType<typeof getConfirmTwoFactorSetupSchema>>;
 export type DisableTwoFactorForm = z.infer<ReturnType<typeof getDisableTwoFactorSchema>>;
 export type DeleteAccountForm = z.infer<ReturnType<typeof getDeleteAccountSchema>>;
+export type AddEmailForm = z.infer<ReturnType<typeof getAddEmailSchema>>;
+export type SetPasswordForm = z.infer<ReturnType<typeof getSetPasswordSchema>>;

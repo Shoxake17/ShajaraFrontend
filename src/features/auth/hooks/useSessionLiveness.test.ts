@@ -21,7 +21,7 @@ describe('useSessionLiveness', () => {
   });
 
   it('har 20 soniyada /auth/me chaqirib sessiya faolligini tekshiradi', async () => {
-    mockApi.me.mockResolvedValue({ id: 'u1', fullName: 'Test', phone: null, email: 't@t.uz', profileVisibility: 'PUBLIC' as const, searchVisibility: 'PUBLIC' as const, dataVisibility: 'PUBLIC' as const, messageVisibility: 'PUBLIC' as const, telegramLinked: false });
+    mockApi.me.mockResolvedValue({ id: 'u1', fullName: 'Test', phone: null, email: 't@t.uz', profileVisibility: 'PUBLIC' as const, searchVisibility: 'PUBLIC' as const, dataVisibility: 'PUBLIC' as const, messageVisibility: 'PUBLIC' as const, telegramLinked: false, hasPassword: true });
     renderHook(() => useSessionLiveness());
 
     expect(mockApi.me).not.toHaveBeenCalled();
@@ -39,7 +39,7 @@ describe('useSessionLiveness', () => {
   });
 
   it('unmount bo\'lganda intervalni to\'xtatadi', async () => {
-    mockApi.me.mockResolvedValue({ id: 'u1', fullName: 'Test', phone: null, email: 't@t.uz', profileVisibility: 'PUBLIC' as const, searchVisibility: 'PUBLIC' as const, dataVisibility: 'PUBLIC' as const, messageVisibility: 'PUBLIC' as const, telegramLinked: false });
+    mockApi.me.mockResolvedValue({ id: 'u1', fullName: 'Test', phone: null, email: 't@t.uz', profileVisibility: 'PUBLIC' as const, searchVisibility: 'PUBLIC' as const, dataVisibility: 'PUBLIC' as const, messageVisibility: 'PUBLIC' as const, telegramLinked: false, hasPassword: true });
     const { unmount } = renderHook(() => useSessionLiveness());
     unmount();
     await vi.advanceTimersByTimeAsync(60_000);

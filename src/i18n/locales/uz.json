@@ -49,7 +49,9 @@
       "nameTooShort": "Ism kamida 2 ta belgidan iborat bo'lsin",
       "imageOnly": "Faqat rasm faylini tanlang",
       "imageTooLarge": "Rasm 5 MB dan katta bo'lmasin",
-      "saveFailed": "Saqlab bo'lmadi. Qaytadan urinib ko'ring"
+      "saveFailed": "Saqlab bo'lmadi. Qaytadan urinib ko'ring",
+      "addEmail": "Email qo'shish",
+      "addPhoneViaTelegram": "Telefon qo'shish (Telegram orqali)"
     },
     "billing": {
       "desc": "Joriy tarifingizni ko'ring va xotira/a'zolar limitini oshiring.",
@@ -58,6 +60,7 @@
     "security": {
       "desc": "Hisobingiz xavfsizligini ta'minlash uchun parolingiz va sozlamalarni boshqaring.",
       "changePassword": "Parolni o'zgartirish",
+      "setPassword": "Parol o'rnatish",
       "twoFactor": "Ikki bosqichli autentifikatsiya",
       "activeSessions": "Faol qurilmalar",
       "loginHistory": "Kirish tarixi",
@@ -271,6 +274,35 @@
       "codeResent": "Yangi kod yuborildi ✓",
       "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
       "resend": "Kodni qayta yuborish"
+    },
+    "addEmail": {
+      "ariaLabel": "Email qo'shish",
+      "title": "Email qo'shish",
+      "formDesc": "Haqiqiy email manzilingizni kiriting — egaligini tasdiqlash uchun shu manzilga 6 xonali kod yuboramiz.",
+      "emailPlaceholder": "Email manzil",
+      "continue": "Davom etish",
+      "confirmEmailTitle": "Emailni tasdiqlang",
+      "confirmDesc": "Kiritgan emailingizga 6 xonali tasdiqlash kodi yubordik. Email faqat shu kod kiritilgandan so'ng saqlanadi.",
+      "confirm": "Tasdiqlash",
+      "codeResent": "Yangi kod yuborildi ✓",
+      "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
+      "resend": "Kodni qayta yuborish",
+      "successDesc": "Emailingiz muvaffaqiyatli qo'shildi. Endi shu email orqali ham kirishingiz mumkin (parol o'rnatilgan bo'lsa)."
+    },
+    "setPassword": {
+      "ariaLabel": "Parol o'rnatish",
+      "title": "Parol o'rnatish",
+      "formDesc": "Yangi parol kamida 8 ta belgi, bitta katta harf va bitta raqamdan iborat bo'lishi kerak.",
+      "newPasswordPlaceholder": "Yangi parol",
+      "confirmNewPasswordPlaceholder": "Yangi parolni tasdiqlang",
+      "continue": "Davom etish",
+      "confirmEmailTitle": "Emailni tasdiqlang",
+      "confirmDesc": "Xavfsizlik uchun emailingizga 6 xonali tasdiqlash kodi yubordik. Parol faqat shu kod kiritilgandan so'ng o'rnatiladi.",
+      "confirm": "Tasdiqlash",
+      "codeResent": "Yangi kod yuborildi ✓",
+      "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
+      "resend": "Kodni qayta yuborish",
+      "successDesc": "Parolingiz muvaffaqiyatli o'rnatildi. Endi telefon/email va parol bilan ham kirishingiz mumkin."
     },
     "sharePhone": {
       "ariaLabel": "Telefon raqamni Telegram orqali ulash",

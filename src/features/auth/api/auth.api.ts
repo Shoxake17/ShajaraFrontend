@@ -3,14 +3,18 @@
 import { http } from '@/shared/api/http';
 import type { TelegramAuthPayload } from '@/shared/lib/telegram';
 import type {
+  AddEmailDto,
+  AddEmailStartResponse,
   AuthResponse,
   AuthUser,
   ChangePasswordDto,
   ChangePasswordStartResponse,
+  ConfirmAddEmailDto,
   ConfirmChangePasswordDto,
   ConfirmDeleteAccountDto,
   ConfirmForgotPasswordDto,
   ConfirmRegisterDto,
+  ConfirmSetPasswordDto,
   ConfirmTwoFactorDto,
   ConfirmTwoFactorResponse,
   DeleteAccountDto,
@@ -24,6 +28,8 @@ import type {
   RegisterStartResponse,
   ResendCodeDto,
   SessionInfo,
+  SetPasswordDto,
+  SetPasswordStartResponse,
   TwoFactorRequiredResponse,
   TwoFactorSetupResponse,
   TwoFactorStatus,
@@ -109,6 +115,24 @@ export const authApi = {
   /** Hisobni o'chirish kodini qayta yuborish (60s cooldown) */
   resendDeleteAccountCode: () =>
     http.post<{ expiresInSeconds: number }>('/auth/delete-account/resend').then((r) => r.data),
+  /** Sozlamalar → Profil: emaili yo'q hisobga email qo'shish — 1-bosqich: email HALI saqlanmaydi, kod yuboriladi */
+  addEmail: (dto: AddEmailDto) =>
+    http.post<AddEmailStartResponse>('/auth/email/add', dto).then((r) => r.data),
+  /** Email qo'shish kodini qayta yuborish (60s cooldown) */
+  resendAddEmailCode: () =>
+    http.post<{ expiresInSeconds: number }>('/auth/email/add/resend').then((r) => r.data),
+  /** Email qo'shish — 2-bosqich: to'g'ri kod bilan email shu yerda saqlanadi */
+  confirmAddEmail: (dto: ConfirmAddEmailDto) =>
+    http.post<AuthUser>('/auth/email/add/confirm', dto).then((r) => r.data),
+  /** Sozlamalar → Xavfsizlik: parol yo'q hisobga birinchi marta parol o'rnatish — 1-bosqich */
+  setPassword: (dto: SetPasswordDto) =>
+    http.post<SetPasswordStartResponse>('/auth/password/set', dto).then((r) => r.data),
+  /** Parol o'rnatish kodini qayta yuborish (60s cooldown) */
+  resendSetPasswordCode: () =>
+    http.post<{ expiresInSeconds: number }>('/auth/password/set/resend').then((r) => r.data),
+  /** Parol o'rnatish — 2-bosqich: to'g'ri kod bilan parol shu yerda saqlanadi */
+  confirmSetPassword: (dto: ConfirmSetPasswordDto) =>
+    http.post<{ success: true }>('/auth/password/set/confirm', dto).then((r) => r.data),
   /** Faol qurilmalar (sessiyalar) ro'yxati */
   sessions: () => http.get<SessionInfo[]>('/auth/sessions').then((r) => r.data),
   /** Bitta qurilma sessiyasini yakunlash */

@@ -12,10 +12,12 @@ import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/shared/hooks/useRegion';
 import { SelectPicker } from '@/shared/ui/SelectPicker';
 import {
+  AddEmailDialog,
   ChangePasswordDialog,
   DeleteAccountDialog,
   LoginHistoryDialog,
   SessionsDialog,
+  SetPasswordDialog,
   SharePhoneDialog,
   TwoFactorDisableDialog,
   TwoFactorSetupDialog,
@@ -287,6 +289,8 @@ export function SettingsPage() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [sharePhoneOpen, setSharePhoneOpen] = useState(false);
+  const [addEmailOpen, setAddEmailOpen] = useState(false);
+  const [initialPasswordOpen, setInitialPasswordOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -430,11 +434,33 @@ export function SettingsPage() {
       </label>
       <label className="block">
         <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.email')}</span>
-        <input value={user?.email ?? ''} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        {user?.email ? (
+          <input value={user.email} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAddEmailOpen(true)}
+            className={`${inputCls} text-left text-brand-700 hover:bg-brand-50`}
+          >
+            {t('settings.profile.addEmail')}
+          </button>
+        )}
       </label>
       <label className="block">
         <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.phone')}</span>
-        <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        {user?.phone ? (
+          <input value={user.phone} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        ) : user?.telegramLinked ? (
+          <button
+            type="button"
+            onClick={() => setSharePhoneOpen(true)}
+            className={`${inputCls} text-left text-brand-700 hover:bg-brand-50`}
+          >
+            {t('settings.profile.addPhoneViaTelegram')}
+          </button>
+        ) : (
+          <input value="—" readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        )}
       </label>
     </>
   );
@@ -616,7 +642,11 @@ export function SettingsPage() {
               <div id="xavfsizlik" className="scroll-mt-6">
                 <Card title={t('settings.sections.security')} desc={t('settings.security.desc')}>
                   <div className="space-y-2">
-                    <Row Icon={KeyIcon} label={t('settings.security.changePassword')} onClick={() => setPasswordOpen(true)} right={chevron} />
+                    {user?.hasPassword ? (
+                      <Row Icon={KeyIcon} label={t('settings.security.changePassword')} onClick={() => setPasswordOpen(true)} right={chevron} />
+                    ) : (
+                      <Row Icon={KeyIcon} label={t('settings.security.setPassword')} onClick={() => setInitialPasswordOpen(true)} right={chevron} />
+                    )}
                     <Row
                       Icon={ShieldIcon}
                       label={t('settings.security.twoFactor')}
@@ -796,6 +826,8 @@ export function SettingsPage() {
         onDeleted={onAccountDeleted}
       />
       <SharePhoneDialog open={sharePhoneOpen} onClose={() => setSharePhoneOpen(false)} />
+      <AddEmailDialog open={addEmailOpen} onClose={() => setAddEmailOpen(false)} />
+      <SetPasswordDialog open={initialPasswordOpen} onClose={() => setInitialPasswordOpen(false)} />
     </div>
   );
 }

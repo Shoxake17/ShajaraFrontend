@@ -49,7 +49,9 @@
       "nameTooShort": "Name must be at least 2 characters",
       "imageOnly": "Please select an image file",
       "imageTooLarge": "Image must be under 5 MB",
-      "saveFailed": "Couldn't save. Please try again"
+      "saveFailed": "Couldn't save. Please try again",
+      "addEmail": "Add email",
+      "addPhoneViaTelegram": "Add phone (via Telegram)"
     },
     "billing": {
       "desc": "See your current plan and raise your storage/member limits.",
@@ -58,6 +60,7 @@
     "security": {
       "desc": "Manage your password and settings to keep your account secure.",
       "changePassword": "Change password",
+      "setPassword": "Set password",
       "twoFactor": "Two-factor authentication",
       "activeSessions": "Active devices",
       "loginHistory": "Login history",
@@ -271,6 +274,35 @@
       "codeResent": "New code sent ✓",
       "resendWithCooldown": "Resend ({{seconds}}s)",
       "resend": "Resend code"
+    },
+    "addEmail": {
+      "ariaLabel": "Add email",
+      "title": "Add email",
+      "formDesc": "Enter your real email address — we'll send a 6-digit code there to confirm you own it.",
+      "emailPlaceholder": "Email address",
+      "continue": "Continue",
+      "confirmEmailTitle": "Confirm your email",
+      "confirmDesc": "We sent a 6-digit confirmation code to the email you entered. It will only be saved once you enter this code.",
+      "confirm": "Confirm",
+      "codeResent": "New code sent ✓",
+      "resendWithCooldown": "Resend ({{seconds}}s)",
+      "resend": "Resend code",
+      "successDesc": "Your email has been added successfully. You can now also log in with this email (if a password is set)."
+    },
+    "setPassword": {
+      "ariaLabel": "Set password",
+      "title": "Set password",
+      "formDesc": "The new password must be at least 8 characters, with one uppercase letter and one digit.",
+      "newPasswordPlaceholder": "New password",
+      "confirmNewPasswordPlaceholder": "Confirm new password",
+      "continue": "Continue",
+      "confirmEmailTitle": "Confirm your email",
+      "confirmDesc": "For security, we sent a 6-digit confirmation code to your email. Your password will only be set after this code is entered.",
+      "confirm": "Confirm",
+      "codeResent": "New code sent ✓",
+      "resendWithCooldown": "Resend ({{seconds}}s)",
+      "resend": "Resend code",
+      "successDesc": "Your password has been set successfully. You can now also log in with your phone/email and password."
     },
     "sharePhone": {
       "ariaLabel": "Link phone number via Telegram",
