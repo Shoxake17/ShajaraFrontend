@@ -737,7 +737,12 @@ export function relationInfoFrom(
         } else {
           out.set(X, i18n.t('tree.kinship.sonInLaw'));
         }
-      } else if (c.t === 'SIB' || c.t === 'UNCLE' || c.t === 'COUSIN') {
+      } else if (c.t === 'SIB' || c.t === 'UNCLE' || c.t === 'COUSIN' || c.t === 'NEPHEW') {
+        // Jiyanning (yoki aka-uka/tog'a-amaki/vachchaning) turmush o'rtog'i —
+        // avval bu yerda NEPHEW HISOBGA OLINMAGANDI, shu sabab hech qanday
+        // yorliq o'rnatilmay, buildBoard.ts'dagi zaxira (m.relation'ning
+        // xom qiymati — odatda "TURMUSH") ishlatilib, "Turmush o'rtog'i"
+        // bo'lib chiqib qolardi (bug — endi tuzatildi).
         out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2'));
       } else if (c.t === 'SELF') {
         out.set(X, i18n.t('tree.kinship.spouse', { context: g(X).toLowerCase() }));

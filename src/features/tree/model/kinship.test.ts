@@ -644,6 +644,31 @@ describe('relationLabelsFrom (ANKERGA nisbatan, umumiy doska)', () => {
     expect(labels.get('kelin')).toBe('Kelinoyi');
     expect(labels.get('kuyov')).toBe('Kuyov');
   });
+
+  it("jiyanning xotini -> Kelinoyi, jiyanning eri -> Pochcha (Turmush o'rtog'i EMAS — bug tuzatildi)", () => {
+    const members: M[] = [
+      root,
+      { id: 'aka', relation: 'AKA', gender: 'MALE', isRoot: false },
+      { id: 'jiyan', relation: 'OGIL', gender: 'MALE', isRoot: false }, // akaning o'g'li
+      { id: 'jiyan_xotini', relation: 'TURMUSH', gender: 'FEMALE', isRoot: false },
+      { id: 'opa', relation: 'OPA', gender: 'FEMALE', isRoot: false },
+      { id: 'jiyan_qiz', relation: 'QIZ', gender: 'FEMALE', isRoot: false }, // opaning qizi
+      { id: 'jiyan_qiz_eri', relation: 'TURMUSH', gender: 'MALE', isRoot: false },
+    ];
+    const edges: E[] = [
+      sideEdge('root', 'aka', 'AKA'),
+      sideEdge('aka', 'jiyan', 'OGIL'),
+      sideEdge('jiyan', 'jiyan_xotini', 'TURMUSH'),
+      sideEdge('root', 'opa', 'OPA'),
+      sideEdge('opa', 'jiyan_qiz', 'QIZ'),
+      sideEdge('jiyan_qiz', 'jiyan_qiz_eri', 'TURMUSH'),
+    ];
+    const labels = relationLabelsFrom(members, edges);
+    expect(labels.get('jiyan')).toBe('Jiyan');
+    expect(labels.get('jiyan_xotini')).toBe('Kelinoyi');
+    expect(labels.get('jiyan_qiz')).toBe('Jiyan');
+    expect(labels.get('jiyan_qiz_eri')).toBe('Pochcha');
+  });
 });
 
 describe('closeFamilyIds (yaqin oila)', () => {
