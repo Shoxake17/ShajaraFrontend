@@ -18,7 +18,6 @@ import {
   LoginHistoryDialog,
   SessionsDialog,
   SetPasswordDialog,
-  SharePhoneDialog,
   TwoFactorDisableDialog,
   TwoFactorSetupDialog,
   useAuthStore,
@@ -26,8 +25,6 @@ import {
   type ProfileVisibility,
 } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
-import { useTelegramLink } from '@/features/auth/hooks/useTelegramLink';
-import { TelegramIcon, PhoneIcon } from '@/shared/ui/icons';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { teardownWebPush } from '@/features/push/push.web';
@@ -35,6 +32,7 @@ import { familyApi, uploadPhoto } from '@/features/tree/api/family.api';
 import { uploadErrorMessage } from '@/features/tree/components/PhotoPicker';
 import { useStorageStore, quotaMessage } from '@/features/storage/storage.store';
 import { PricingModal } from '@/features/billing/components/PricingModal';
+import { JoinFamilyDialog } from '@/features/tree/components/JoinFamilyDialog';
 import {
   Card,
   Row,
@@ -236,7 +234,6 @@ export function SettingsPage() {
   const { region } = useRegion();
   const regionFormat = REGION_FORMATS[region];
   const clearSession = useAuthStore((s) => s.logout);
-  const { linkTelegram, loading: telegramLinking, error: telegramLinkError } = useTelegramLink();
   const members = useTreeStore((s) => s.members);
   const access = useTreeStore((s) => s.access);
   const loadBoard = useTreeStore((s) => s.loadBoard);
@@ -288,9 +285,9 @@ export function SettingsPage() {
   const [twoFactorDisableOpen, setTwoFactorDisableOpen] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
-  const [sharePhoneOpen, setSharePhoneOpen] = useState(false);
   const [addEmailOpen, setAddEmailOpen] = useState(false);
   const [initialPasswordOpen, setInitialPasswordOpen] = useState(false);
+  const [joinFamilyOpen, setJoinFamilyOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -448,19 +445,7 @@ export function SettingsPage() {
       </label>
       <label className="block">
         <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.phone')}</span>
-        {user?.phone ? (
-          <input value={user.phone} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
-        ) : user?.telegramLinked ? (
-          <button
-            type="button"
-            onClick={() => setSharePhoneOpen(true)}
-            className={`${inputCls} text-left text-brand-700 hover:bg-brand-50`}
-          >
-            {t('settings.profile.addPhoneViaTelegram')}
-          </button>
-        ) : (
-          <input value="—" readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
-        )}
+        <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
       </label>
     </>
   );
@@ -660,43 +645,7 @@ export function SettingsPage() {
                     />
                     <Row Icon={DevicesIcon} label={t('settings.security.activeSessions')} onClick={() => setSessionsOpen(true)} right={chevron} />
                     <Row Icon={ClockIcon} label={t('settings.security.loginHistory')} onClick={() => setHistoryOpen(true)} right={chevron} />
-                    {/* Telegram bog'lash — shu orqali Telegram Login Widget
-                        bilan kirilganda YANGI hisob EMAS, aynan shu hisobga
-                        kiriladi (fikr-mulohaza: "email va nomer bir xil
-                        bo'lsa bitta account ochilsin"). Telegram profilida
-                        email/telefon berilmagani uchun avtomatik moslashtirish
-                        xavfsiz emas — shu bois foydalanuvchi ANIQ shu yerda,
-                        o'zi kirgan holda tasdiqlab bog'laydi. */}
-                    <Row
-                      Icon={TelegramIcon}
-                      label={t('settings.security.telegram')}
-                      onClick={user?.telegramLinked ? undefined : () => void linkTelegram()}
-                      right={
-                        user?.telegramLinked ? (
-                          <span className="text-xs font-medium text-brand-600">{t('settings.security.telegramLinked')}</span>
-                        ) : telegramLinking ? (
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-200 border-t-brand-700" />
-                        ) : (
-                          chevron
-                        )
-                      }
-                    />
-                    {telegramLinkError && (
-                      <p className="px-1 text-xs text-red-500">{telegramLinkError}</p>
-                    )}
-                    {/* Telegram Login Widget telefon raqamni HECH QACHON
-                        bermaydi — shu bois faqat Telegram orqali bog'langan
-                        VA hali telefon qo'shmagan hisoblarga bot orqali
-                        (kontaktni ulashish) telefon qo'shish imkoniyati
-                        ko'rsatiladi. */}
-                    {user?.telegramLinked && !user?.phone && (
-                      <Row
-                        Icon={PhoneIcon}
-                        label={t('settings.security.sharePhone')}
-                        onClick={() => setSharePhoneOpen(true)}
-                        right={chevron}
-                      />
-                    )}
+                    <Row Icon={UsersIcon2} label={t('settings.security.joinFamily')} onClick={() => setJoinFamilyOpen(true)} right={chevron} />
                   </div>
                 </Card>
               </div>
@@ -825,9 +774,9 @@ export function SettingsPage() {
         onClose={() => setDeleteAccountOpen(false)}
         onDeleted={onAccountDeleted}
       />
-      <SharePhoneDialog open={sharePhoneOpen} onClose={() => setSharePhoneOpen(false)} />
       <AddEmailDialog open={addEmailOpen} onClose={() => setAddEmailOpen(false)} />
       <SetPasswordDialog open={initialPasswordOpen} onClose={() => setInitialPasswordOpen(false)} />
+      <JoinFamilyDialog open={joinFamilyOpen} onClose={() => setJoinFamilyOpen(false)} />
     </div>
   );
 }

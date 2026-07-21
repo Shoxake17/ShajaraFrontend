@@ -11,7 +11,6 @@ export { LoginHistoryDialog } from './components/LoginHistoryDialog';
 export { TwoFactorSetupDialog } from './components/TwoFactorSetupDialog';
 export { TwoFactorDisableDialog } from './components/TwoFactorDisableDialog';
 export { DeleteAccountDialog } from './components/DeleteAccountDialog';
-export { SharePhoneDialog } from './components/SharePhoneDialog';
 export { AddEmailDialog } from './components/AddEmailDialog';
 export { SetPasswordDialog } from './components/SetPasswordDialog';
 export type { AuthUser, ProfileVisibility } from './types';

@@ -37,9 +37,9 @@ const MediaGalleryPage = lazy(() =>
 const MessagesPage = lazy(() =>
   import('@/features/chat/pages/MessagesPage').then((m) => ({ default: m.MessagesPage })),
 );
-const ShajaraAiPage = lazy(() =>
-  import('@/features/ai/pages/ShajaraAiPage').then((m) => ({ default: m.ShajaraAiPage })),
-);
+// const ShajaraAiPage = lazy(() =>
+//   import('@/features/ai/pages/ShajaraAiPage').then((m) => ({ default: m.ShajaraAiPage })),
+// );
 const SettingsPage = lazy(() =>
   import('@/features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
@@ -75,7 +75,7 @@ export const router = createBrowserRouter([
           { path: '/oila', element: withSuspense(<FamilyMembersPage />) },
           { path: '/xabarlar', element: withSuspense(<MessagesPage />) },
           { path: '/media', element: withSuspense(<MediaGalleryPage />) },
-          { path: '/ai', element: withSuspense(<ShajaraAiPage />) },
+          // { path: '/ai', element: withSuspense(<ShajaraAiPage />) },
           { path: '/sozlamalar', element: withSuspense(<SettingsPage />) },
         ],
       },

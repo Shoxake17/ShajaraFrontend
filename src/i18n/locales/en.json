@@ -50,8 +50,7 @@
       "imageOnly": "Please select an image file",
       "imageTooLarge": "Image must be under 5 MB",
       "saveFailed": "Couldn't save. Please try again",
-      "addEmail": "Add email",
-      "addPhoneViaTelegram": "Add phone (via Telegram)"
+      "addEmail": "Add email"
     },
     "billing": {
       "desc": "See your current plan and raise your storage/member limits.",
@@ -64,9 +63,14 @@
       "twoFactor": "Two-factor authentication",
       "activeSessions": "Active devices",
       "loginHistory": "Login history",
-      "telegram": "Link Telegram",
-      "telegramLinked": "Linked ✓",
-      "sharePhone": "Link phone number via Telegram"
+      "joinFamily": "Join a family member"
+    },
+    "joinFamily": {
+      "ariaLabel": "Join a family member",
+      "title": "Join a family member",
+      "desc": "Enter the 12-character invite code shown on another user's profile on their tree board — you'll join that family tree.",
+      "codePlaceholder": "Invite code",
+      "join": "Join"
     },
     "privacy": {
       "desc": "Control who can see your information.",
@@ -303,15 +307,6 @@
       "resendWithCooldown": "Resend ({{seconds}}s)",
       "resend": "Resend code",
       "successDesc": "Your password has been set successfully. You can now also log in with your phone/email and password."
-    },
-    "sharePhone": {
-      "ariaLabel": "Link phone number via Telegram",
-      "title": "Link your phone number",
-      "desc": "Telegram's Login Widget never provides a phone number — so we link it through our bot instead. Tap the button below, Telegram will open, then tap \"Share phone number\".",
-      "openBot": "Open Telegram bot",
-      "waiting": "Waiting…",
-      "successTitle": "Phone number linked",
-      "successDesc": "Your phone number has been saved to your account."
     },
     "sessions": {
       "ariaLabel": "Active devices",

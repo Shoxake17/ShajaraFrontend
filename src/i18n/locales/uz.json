@@ -50,8 +50,7 @@
       "imageOnly": "Faqat rasm faylini tanlang",
       "imageTooLarge": "Rasm 5 MB dan katta bo'lmasin",
       "saveFailed": "Saqlab bo'lmadi. Qaytadan urinib ko'ring",
-      "addEmail": "Email qo'shish",
-      "addPhoneViaTelegram": "Telefon qo'shish (Telegram orqali)"
+      "addEmail": "Email qo'shish"
     },
     "billing": {
       "desc": "Joriy tarifingizni ko'ring va xotira/a'zolar limitini oshiring.",
@@ -64,9 +63,14 @@
       "twoFactor": "Ikki bosqichli autentifikatsiya",
       "activeSessions": "Faol qurilmalar",
       "loginHistory": "Kirish tarixi",
-      "telegram": "Telegram orqali bog'lash",
-      "telegramLinked": "Bog'langan ✓",
-      "sharePhone": "Telefon raqamni Telegram orqali ulash"
+      "joinFamily": "Oila a'zosiga qo'shilish"
+    },
+    "joinFamily": {
+      "ariaLabel": "Oila a'zosiga qo'shilish",
+      "title": "Oila a'zosiga qo'shilish",
+      "desc": "Boshqa foydalanuvchining shajara doskasidagi profilida ko'rsatilgan 12 xonali ulashish kodini kiriting — shu daraxtga a'zo bo'lib qo'shilasiz.",
+      "codePlaceholder": "Ulashish kodi",
+      "join": "Qo'shilish"
     },
     "privacy": {
       "desc": "Ma'lumotlaringiz kimlar uchun ko'rinishini boshqaring.",
@@ -303,15 +307,6 @@
       "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
       "resend": "Kodni qayta yuborish",
       "successDesc": "Parolingiz muvaffaqiyatli o'rnatildi. Endi telefon/email va parol bilan ham kirishingiz mumkin."
-    },
-    "sharePhone": {
-      "ariaLabel": "Telefon raqamni Telegram orqali ulash",
-      "title": "Telefon raqamni ulash",
-      "desc": "Telegram Login Widget telefon raqamingizni bermaydi — shu bois botimiz orqali ulaymiz. Quyidagi tugmani bosing, Telegram ochiladi, \"Telefon raqamni ulashish\" tugmasini bosing.",
-      "openBot": "Telegram botni ochish",
-      "waiting": "Kutilmoqda…",
-      "successTitle": "Telefon raqam ulandi",
-      "successDesc": "Telefon raqamingiz muvaffaqiyatli hisobingizga saqlandi."
     },
     "sessions": {
       "ariaLabel": "Faol qurilmalar",

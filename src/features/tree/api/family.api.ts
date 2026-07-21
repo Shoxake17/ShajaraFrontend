@@ -73,6 +73,11 @@ export const familyApi = {
     http
       .post<{ uploadUrl: string; key: string }>('/family/upload-url', { contentType })
       .then((r) => r.data),
+
+  /** Sozlamalar → "Oila a'zosiga qo'shilish": ulashish kodi orqali BOSHQA
+   * daraxtga VIEWER bo'lib qo'shiladi (faol daraxt shu yangi daraxtga o'tadi) */
+  joinByShareCode: (shareCode: string) =>
+    http.post<{ treeOwnerId: string }>('/family/join', { shareCode }).then((r) => r.data),
 };
 
 /**
