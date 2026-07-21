@@ -34,12 +34,21 @@
     "columns": {
       "user": "Пользователь",
       "members": "Участники",
+      "storage": "Хранилище",
       "plan": "Тариф",
       "slots": "Слоты"
     },
     "addSlot": "Добавить 100 участников",
     "removeSlot": "Убрать 100 участников",
-    "viewTree": "Смотреть древо"
+    "viewTree": "Смотреть древо",
+    "viewerBadge": "Присоединился по коду приглашения",
+    "storageRemaining": "{{size}} свободно",
+    "stats": {
+      "totalUsers": "Всего пользователей",
+      "totalFamilyMembers": "Всего членов семьи",
+      "payingUsers": "Оплативших",
+      "totalRevenue": "Общий доход"
+    }
   },
   "settings": {
     "title": "Настройки",

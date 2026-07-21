@@ -34,12 +34,21 @@
     "columns": {
       "user": "User",
       "members": "Members",
+      "storage": "Storage",
       "plan": "Plan",
       "slots": "Slots"
     },
     "addSlot": "Add 100 members",
     "removeSlot": "Remove 100 members",
-    "viewTree": "View tree"
+    "viewTree": "View tree",
+    "viewerBadge": "Joined via invite code",
+    "storageRemaining": "{{size}} free",
+    "stats": {
+      "totalUsers": "Total users",
+      "totalFamilyMembers": "Total family members",
+      "payingUsers": "Paying users",
+      "totalRevenue": "Total revenue"
+    }
   },
   "settings": {
     "title": "Settings",

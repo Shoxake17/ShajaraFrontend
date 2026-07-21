@@ -1,7 +1,15 @@
 // features/admin/pages/AdminUserTreePage.tsx
-// Admin panel — bitta foydalanuvchining TO'LIQ Shajara doskasini FAQAT
-// KO'RISH rejimida ko'rsatadi (surish/tahrirlash/o'chirish/qo'shish YO'Q) —
+// Admin panel — bitta foydalanuvchining Shajara doskasini FAQAT KO'RISH
+// rejimida ko'rsatadi (surish/tahrirlash/o'chirish/qo'shish YO'Q) —
 // mavjud buildBoard/PersonNode/TreeEdge render tizimini qayta ishlatadi.
+//
+// Ikki rejim bor:
+//  - "owner" (/admin/users/:userId) — daraxt EGASI, TO'LIQ (maxfiylik
+//    cheklovlarisiz) ko'rinish — admin hamma narsani ko'rishi kerak.
+//  - "viewer" (/admin/viewers/:userId) — ulashish kodi bilan qo'shilgan
+//    VIEWER — o'sha odam REAL ko'radigan narsaning AYNAN o'zi (backend
+//    FamilyService.getBoard() shu userId bilan chaqiriladi — maxfiylik
+//    filtrlari, o'ziga nisbatan qarindoshlik yorliqlari BILAN).
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
@@ -18,18 +26,11 @@ import { ProfilePanel } from '@/features/tree/components/ProfilePanel';
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { tree: TreeEdge };
 
-// Admin hech qachon tahrirlay olmaydi — ProfilePanel'ning o'z ichki
-// huquq hisoblashi (createdById === uid) admin'ning soxta uid'iga hech
-// qachon mos kelmasligi tufayli tahrirlash/o'chirish tugmalari
-// KO'RSATILMAYDI (onEdit/onDelete shu bois HECH QACHON chaqirilmaydi).
-const READ_ONLY_ACCESS = {
-  role: 'VIEWER' as const,
-  anchorMemberId: null,
-  treeOwnerId: '__admin-readonly__',
-  userId: '__admin-readonly__',
-};
+interface AdminUserTreePageProps {
+  mode?: 'owner' | 'viewer';
+}
 
-export function AdminUserTreePage() {
+export function AdminUserTreePage({ mode = 'owner' }: AdminUserTreePageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
@@ -43,17 +44,37 @@ export function AdminUserTreePage() {
     if (!userId) return;
     setLoading(true);
     setError(null);
-    adminApi
-      .getUserBoard(userId)
+    const fetcher = mode === 'viewer' ? adminApi.getViewerBoard(userId) : adminApi.getUserBoard(userId);
+    fetcher
       .then(setBoard)
       .catch(() => setError(t('admin.loadFailed')))
       .finally(() => setLoading(false));
-  }, [userId, t]);
+  }, [userId, mode, t]);
+
+  // Admin hech qachon tahrirlay olmaydi — ProfilePanel'ning o'z ichki
+  // huquq hisoblashi (createdById === uid) admin'ning soxta uid'iga hech
+  // qachon mos kelmasligi tufayli tahrirlash/o'chirish tugmalari
+  // KO'RSATILMAYDI. "viewer" rejimida haqiqiy role="VIEWER" ishlatiladi
+  // (share kodi kabi FAQAT OWNER'ga ko'rinadigan qismlar HAM haqiqiy
+  // VIEWER kabi yashirilsin uchun) — "owner" rejimida ham xuddi shunday.
+  const access = useMemo(
+    () => ({
+      role: 'VIEWER' as const,
+      anchorMemberId: mode === 'viewer' ? (board?.access?.anchorMemberId ?? null) : null,
+      treeOwnerId: '__admin-readonly__',
+      userId: '__admin-readonly__',
+    }),
+    [mode, board],
+  );
 
   const { nodes, edges } = useMemo(() => {
     if (!board) return { nodes: [] as PersonNodeType[], edges: [] };
-    return buildBoard(board.members, board.edges);
-  }, [board]);
+    // "viewer" rejimida anker VIEWER'ning O'ZI — qarindoshlik yorliqlari
+    // (Ota/Bobo/Kelin va h.k.) AYNAN o'sha odam ko'radigan bilan bir xil
+    // bo'lishi uchun.
+    const anchorId = mode === 'viewer' ? (board.access?.anchorMemberId ?? undefined) : undefined;
+    return buildBoard(board.members, board.edges, anchorId);
+  }, [board, mode]);
 
   const profileNode = useMemo(() => {
     const node = nodes.find((n) => n.id === profileId);
@@ -79,6 +100,7 @@ export function AdminUserTreePage() {
               {board && (
                 <p className="hidden truncate text-xs text-brand-500 sm:block">
                   {board.owner.email ?? board.owner.phone ?? ''}
+                  {mode === 'viewer' ? ` · ${t('admin.viewerBadge')}` : ''}
                 </p>
               )}
             </div>
@@ -118,7 +140,7 @@ export function AdminUserTreePage() {
 
             <ProfilePanel
               node={profileNode}
-              access={READ_ONLY_ACCESS}
+              access={access}
               onClose={() => setProfileId(null)}
               onEdit={() => undefined}
               onDelete={() => undefined}

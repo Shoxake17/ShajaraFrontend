@@ -34,12 +34,21 @@
     "columns": {
       "user": "Foydalanuvchi",
       "members": "A'zolar",
+      "storage": "Xotira",
       "plan": "Tarif",
       "slots": "Slotlar"
     },
     "addSlot": "100 a'zo qo'shish",
     "removeSlot": "100 a'zo ayirish",
-    "viewTree": "Daraxtni ko'rish"
+    "viewTree": "Daraxtni ko'rish",
+    "viewerBadge": "Ulashish kodi bilan qo'shilgan",
+    "storageRemaining": "{{size}} bo'sh",
+    "stats": {
+      "totalUsers": "Jami foydalanuvchi",
+      "totalFamilyMembers": "Jami oila a'zosi",
+      "payingUsers": "To'lov qilganlar",
+      "totalRevenue": "Jami kirim"
+    }
   },
   "settings": {
     "title": "Sozlamalar",

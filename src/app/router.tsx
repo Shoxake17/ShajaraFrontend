@@ -94,7 +94,8 @@ export const router = createBrowserRouter([
             element: <AdminRoute />,
             children: [
               { path: '/admin', element: withSuspense(<AdminUsersPage />) },
-              { path: '/admin/users/:userId', element: withSuspense(<AdminUserTreePage />) },
+              { path: '/admin/users/:userId', element: withSuspense(<AdminUserTreePage mode="owner" />) },
+              { path: '/admin/viewers/:userId', element: withSuspense(<AdminUserTreePage mode="viewer" />) },
             ],
           },
         ],
