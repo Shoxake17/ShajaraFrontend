@@ -62,7 +62,8 @@
       "activeSessions": "Faol qurilmalar",
       "loginHistory": "Kirish tarixi",
       "telegram": "Telegram orqali bog'lash",
-      "telegramLinked": "Bog'langan ✓"
+      "telegramLinked": "Bog'langan ✓",
+      "sharePhone": "Telefon raqamni Telegram orqali ulash"
     },
     "privacy": {
       "desc": "Ma'lumotlaringiz kimlar uchun ko'rinishini boshqaring.",
@@ -270,6 +271,15 @@
       "codeResent": "Yangi kod yuborildi ✓",
       "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
       "resend": "Kodni qayta yuborish"
+    },
+    "sharePhone": {
+      "ariaLabel": "Telefon raqamni Telegram orqali ulash",
+      "title": "Telefon raqamni ulash",
+      "desc": "Telegram Login Widget telefon raqamingizni bermaydi — shu bois botimiz orqali ulaymiz. Quyidagi tugmani bosing, Telegram ochiladi, \"Telefon raqamni ulashish\" tugmasini bosing.",
+      "openBot": "Telegram botni ochish",
+      "waiting": "Kutilmoqda…",
+      "successTitle": "Telefon raqam ulandi",
+      "successDesc": "Telefon raqamingiz muvaffaqiyatli hisobingizga saqlandi."
     },
     "sessions": {
       "ariaLabel": "Faol qurilmalar",

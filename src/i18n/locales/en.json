@@ -62,7 +62,8 @@
       "activeSessions": "Active devices",
       "loginHistory": "Login history",
       "telegram": "Link Telegram",
-      "telegramLinked": "Linked ✓"
+      "telegramLinked": "Linked ✓",
+      "sharePhone": "Link phone number via Telegram"
     },
     "privacy": {
       "desc": "Control who can see your information.",
@@ -270,6 +271,15 @@
       "codeResent": "New code sent ✓",
       "resendWithCooldown": "Resend ({{seconds}}s)",
       "resend": "Resend code"
+    },
+    "sharePhone": {
+      "ariaLabel": "Link phone number via Telegram",
+      "title": "Link your phone number",
+      "desc": "Telegram's Login Widget never provides a phone number — so we link it through our bot instead. Tap the button below, Telegram will open, then tap \"Share phone number\".",
+      "openBot": "Open Telegram bot",
+      "waiting": "Waiting…",
+      "successTitle": "Phone number linked",
+      "successDesc": "Your phone number has been saved to your account."
     },
     "sessions": {
       "ariaLabel": "Active devices",

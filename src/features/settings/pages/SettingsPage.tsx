@@ -16,6 +16,7 @@ import {
   DeleteAccountDialog,
   LoginHistoryDialog,
   SessionsDialog,
+  SharePhoneDialog,
   TwoFactorDisableDialog,
   TwoFactorSetupDialog,
   useAuthStore,
@@ -24,7 +25,7 @@ import {
 } from '@/features/auth';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useTelegramLink } from '@/features/auth/hooks/useTelegramLink';
-import { TelegramIcon } from '@/shared/ui/icons';
+import { TelegramIcon, PhoneIcon } from '@/shared/ui/icons';
 import { useTreeStore } from '@/features/tree/model/tree.store';
 import { useChatStore } from '@/features/chat/model/chat.store';
 import { teardownWebPush } from '@/features/push/push.web';
@@ -285,6 +286,7 @@ export function SettingsPage() {
   const [twoFactorDisableOpen, setTwoFactorDisableOpen] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [sharePhoneOpen, setSharePhoneOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -652,6 +654,19 @@ export function SettingsPage() {
                     {telegramLinkError && (
                       <p className="px-1 text-xs text-red-500">{telegramLinkError}</p>
                     )}
+                    {/* Telegram Login Widget telefon raqamni HECH QACHON
+                        bermaydi — shu bois faqat Telegram orqali bog'langan
+                        VA hali telefon qo'shmagan hisoblarga bot orqali
+                        (kontaktni ulashish) telefon qo'shish imkoniyati
+                        ko'rsatiladi. */}
+                    {user?.telegramLinked && !user?.phone && (
+                      <Row
+                        Icon={PhoneIcon}
+                        label={t('settings.security.sharePhone')}
+                        onClick={() => setSharePhoneOpen(true)}
+                        right={chevron}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>
@@ -780,6 +795,7 @@ export function SettingsPage() {
         onClose={() => setDeleteAccountOpen(false)}
         onDeleted={onAccountDeleted}
       />
+      <SharePhoneDialog open={sharePhoneOpen} onClose={() => setSharePhoneOpen(false)} />
     </div>
   );
 }
