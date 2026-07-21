@@ -97,11 +97,19 @@ const ADMIN_NAV_ITEM: NavItemDef = {
   end: false,
 };
 
-/** Tarjima qilingan navigatsiya ro'yxati — Sidebar/BottomNav shu hook orqali oladi */
+const MESSAGES_ITEM = NAV_ITEMS.find((i) => i.to === '/xabarlar')!;
+const SETTINGS_ITEM = NAV_ITEMS.find((i) => i.to === '/sozlamalar')!;
+
+/** Tarjima qilingan navigatsiya ro'yxati — Sidebar/BottomNav shu hook orqali
+ * oladi. Admin hisobiga FAQAT Dashboard (Admin panel) + Xabarlar +
+ * Sozlamalar ko'rinadi — Doska/Oila a'zolarim/Media Galereya ichki
+ * boshqaruvchi hisobga tegishli emas (haqiqiy ruxsat baribir server
+ * tomonda va marshrut himoyasida — router.tsx'dagi AdminOnlyRoute/
+ * NotForAdminRoute — tekshiriladi, bu yerdagi filtr faqat UI ko'rinishi). */
 export function useNavItems(): NavItem[] {
   const { t } = useTranslation();
   const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false);
-  const items = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS;
+  const items = isAdmin ? [ADMIN_NAV_ITEM, MESSAGES_ITEM, SETTINGS_ITEM] : NAV_ITEMS;
   return items.map(({ to, labelKey, shortLabelKey, end, Icon, img }) => ({
     to,
     label: t(labelKey),

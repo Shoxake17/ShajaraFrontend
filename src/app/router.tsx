@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { AdminRoute } from '@/app/AdminRoute';
+import { NonAdminRoute } from '@/app/NonAdminRoute';
 import { AppLayout } from '@/app/AppLayout';
 
 // Code splitting: har sahifa alohida chunk — birinchi yuklash tezroq
@@ -78,10 +79,15 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/doska', element: withSuspense(<TreeBoardPage />) },
-          { path: '/oila', element: withSuspense(<FamilyMembersPage />) },
+          {
+            element: <NonAdminRoute />,
+            children: [
+              { path: '/doska', element: withSuspense(<TreeBoardPage />) },
+              { path: '/oila', element: withSuspense(<FamilyMembersPage />) },
+              { path: '/media', element: withSuspense(<MediaGalleryPage />) },
+            ],
+          },
           { path: '/xabarlar', element: withSuspense(<MessagesPage />) },
-          { path: '/media', element: withSuspense(<MediaGalleryPage />) },
           // { path: '/ai', element: withSuspense(<ShajaraAiPage />) },
           { path: '/sozlamalar', element: withSuspense(<SettingsPage />) },
           {
