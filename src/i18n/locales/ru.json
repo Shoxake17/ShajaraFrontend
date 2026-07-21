@@ -46,8 +46,11 @@
     "stats": {
       "totalUsers": "Всего пользователей",
       "totalFamilyMembers": "Всего членов семьи",
-      "payingUsers": "Оплативших",
-      "totalRevenue": "Общий доход"
+      "paidPlanUsers": "Перешли на платный тариф",
+      "payingUsers": "Совершили покупку",
+      "totalRevenue": "Общий доход",
+      "storageOverview": "Хранилище — по тарифам",
+      "usersCount": "{{count}} пользователей"
     }
   },
   "settings": {

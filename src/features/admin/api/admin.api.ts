@@ -3,12 +3,21 @@ import { http } from '@/shared/api/http';
 import type { Plan } from '@/features/billing/api/billing.api';
 import type { BoardAccess, FamilyEdgeDto, FamilyMemberDto } from '@/features/tree/types';
 
+// VIEWER ham oddiy User — o'ziga tegishli tarif/qo'shimcha slot/storage bor
+// (boshqa birovning daraxtiga kirish huquqidan MUSTAQIL), shu bois maydonlari
+// AdminUserSummary bilan bir xil (faqat ICHKI `viewers`ga ega bo'lolmaydi).
 export interface AdminViewerSummary {
   id: string;
   fullName: string;
   email: string | null;
   phone: string | null;
   createdAt: string;
+  plan: Plan;
+  planExpiresAt: string | null;
+  extraSlots: number;
+  memberCount: number;
+  storageUsedBytes: number;
+  storageLimitBytes: number;
 }
 
 export interface AdminUserSummary {
@@ -35,11 +44,28 @@ export interface AdminUsersResponse {
   users: AdminUserSummary[];
 }
 
+/** Bitta tarif guruhi bo'yicha (FREE/PRO/PREMIUM) yig'indi statistika */
+export interface AdminPlanStat {
+  plan: Plan;
+  usersCount: number;
+  storageUsedBytes: number;
+  storageLimitBytes: number;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalFamilyMembers: number;
   payingUsersCount: number;
   totalRevenueUsd: number;
+  /** Hozir PRO yoki PREMIUM tarifda turgan foydalanuvchilar soni (User.plan
+   * bo'yicha — haqiqiy xarid tarixidan MUSTAQIL, admin qo'lda bergan
+   * tariflarni ham hisobga oladi) */
+  paidPlanUsersCount: number;
+  /** Tarif bo'yicha taqsimot — FREE bitta guruhda, PRO/PREMIUM har biri
+   * ALOHIDA guruhda (storage limiti tarifga qat'iy bog'liq) */
+  planStats: AdminPlanStat[];
+  totalStorageUsedBytes: number;
+  totalStorageLimitBytes: number;
 }
 
 export interface AdminUserBoard {

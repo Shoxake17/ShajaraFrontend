@@ -46,8 +46,11 @@
     "stats": {
       "totalUsers": "Total users",
       "totalFamilyMembers": "Total family members",
-      "payingUsers": "Paying users",
-      "totalRevenue": "Total revenue"
+      "paidPlanUsers": "On a paid plan",
+      "payingUsers": "Made a purchase",
+      "totalRevenue": "Total revenue",
+      "storageOverview": "Storage — by plan",
+      "usersCount": "{{count}} users"
     }
   },
   "settings": {

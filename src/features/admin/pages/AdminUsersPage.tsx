@@ -10,11 +10,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { AppLayoutContext } from '@/app/AppLayout';
-import { adminApi, type AdminStats, type AdminUserSummary } from '@/features/admin/api/admin.api';
+import { adminApi, type AdminStats, type AdminUserSummary, type AdminViewerSummary } from '@/features/admin/api/admin.api';
 import type { Plan } from '@/features/billing/api/billing.api';
 import { formatBytes } from '@/features/storage/storage.store';
 import { SelectPicker } from '@/shared/ui/SelectPicker';
+
+/** ROOT (AdminUserSummary) va VIEWER (AdminViewerSummary) — ikkalasi ham
+ * o'ziga tegishli tarif/slot/storage'ga ega, shu bois bir xil jadval
+ * katakchalarida (renderStorageCell/renderPlanCell/renderSlotsCell)
+ * qayta ishlatiladi. */
+type QuotaEntry = Pick<
+  AdminUserSummary | AdminViewerSummary,
+  'id' | 'plan' | 'extraSlots' | 'storageUsedBytes' | 'storageLimitBytes'
+>;
 
 const PLAN_OPTIONS: { value: Plan; label: string }[] = [
   { value: 'FREE', label: 'FREE' },
@@ -48,6 +58,18 @@ function StatCard({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-neutral-500">{label}</p>
       <p className="mt-1 font-serif text-2xl font-semibold text-brand-900">{value}</p>
     </div>
+  );
+}
+
+function renderStorageCell(t: TFunction, entry: Pick<QuotaEntry, 'storageUsedBytes' | 'storageLimitBytes'>) {
+  const remaining = Math.max(0, entry.storageLimitBytes - entry.storageUsedBytes);
+  return (
+    <td className="px-4 py-3 text-xs text-brand-700">
+      <p>
+        {formatBytes(entry.storageUsedBytes)} / {formatBytes(entry.storageLimitBytes)}
+      </p>
+      <p className="text-neutral-500">{t('admin.storageRemaining', { size: formatBytes(remaining) })}</p>
+    </td>
   );
 }
 
@@ -96,11 +118,25 @@ export function AdminUsersPage() {
     void load(1, search);
   };
 
+  // VIEWER ham o'ziga tegishli tarif/slot'ga ega — shu bois userId ROOT
+  // qatorlardan biriga YOKI shu qatorning ICHIDAGI viewers'dan biriga tegishli
+  // bo'lishi mumkin, ikkalasini ham yangilaymiz.
   const onPlanChange = async (userId: string, plan: Plan) => {
     setBusyUserId(userId);
     try {
       const updated = await adminApi.setPlan(userId, plan);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: updated.plan, planExpiresAt: updated.planExpiresAt } : u)));
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, plan: updated.plan, planExpiresAt: updated.planExpiresAt }
+            : {
+                ...u,
+                viewers: u.viewers.map((v) =>
+                  v.id === userId ? { ...v, plan: updated.plan, planExpiresAt: updated.planExpiresAt } : v,
+                ),
+              },
+        ),
+      );
     } catch {
       setError(t('admin.actionFailed'));
     } finally {
@@ -112,7 +148,13 @@ export function AdminUsersPage() {
     setBusyUserId(userId);
     try {
       const updated = await adminApi.adjustSlots(userId, delta);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, extraSlots: updated.extraSlots } : u)));
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, extraSlots: updated.extraSlots }
+            : { ...u, viewers: u.viewers.map((v) => (v.id === userId ? { ...v, extraSlots: updated.extraSlots } : v)) },
+        ),
+      );
     } catch {
       setError(t('admin.actionFailed'));
     } finally {
@@ -136,6 +178,46 @@ export function AdminUsersPage() {
     return `${from}–${to} / ${total}`;
   }, [page, total]);
 
+  // ROOT va VIEWER — ikkalasi ham tarif/slot boshqaruviga ega, shu bois bitta
+  // qatorda qayta ishlatiladi (onPlanChange/onSlotDelta ikkala turdagi
+  // id'ni ham ROOT sifatida yoki egasining `viewers` ichidan qidirib topadi).
+  const renderPlanCell = (entry: Pick<QuotaEntry, 'id' | 'plan'>) => (
+    <td className="px-4 py-3">
+      <SelectPicker
+        value={entry.plan}
+        options={PLAN_OPTIONS}
+        onChange={(v) => void onPlanChange(entry.id, v as Plan)}
+        label={entry.plan}
+      />
+    </td>
+  );
+
+  const renderSlotsCell = (entry: Pick<QuotaEntry, 'id' | 'extraSlots'>) => (
+    <td className="px-4 py-3">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={busyUserId === entry.id || entry.extraSlots <= 0}
+          onClick={() => void onSlotDelta(entry.id, -1)}
+          aria-label={t('admin.removeSlot')}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40"
+        >
+          −
+        </button>
+        <span className="w-10 text-center font-medium text-brand-900">{entry.extraSlots}</span>
+        <button
+          type="button"
+          disabled={busyUserId === entry.id}
+          onClick={() => void onSlotDelta(entry.id, 1)}
+          aria-label={t('admin.addSlot')}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40"
+        >
+          +
+        </button>
+      </div>
+    </td>
+  );
+
   return (
     <div className="h-full overflow-y-auto bg-brand-50">
       {topBarActionsEl &&
@@ -149,11 +231,40 @@ export function AdminUsersPage() {
       <div className="px-3 pb-6 pt-3 sm:px-4">
         {/* Umumiy statistika */}
         {stats && (
-          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
             <StatCard label={t('admin.stats.totalUsers')} value={String(stats.totalUsers)} />
             <StatCard label={t('admin.stats.totalFamilyMembers')} value={String(stats.totalFamilyMembers)} />
+            <StatCard label={t('admin.stats.paidPlanUsers')} value={String(stats.paidPlanUsersCount)} />
             <StatCard label={t('admin.stats.payingUsers')} value={String(stats.payingUsersCount)} />
             <StatCard label={t('admin.stats.totalRevenue')} value={`$${stats.totalRevenueUsd.toFixed(2)}`} />
+          </div>
+        )}
+
+        {/* Tarif bo'yicha taqsimot — FREE bitta guruhda, PRO/PREMIUM alohida */}
+        {stats && (
+          <div className="mb-4 rounded-2xl border border-brand-100 bg-white p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-brand-900">{t('admin.stats.storageOverview')}</p>
+              <p className="text-xs text-neutral-500">
+                {formatBytes(stats.totalStorageUsedBytes)} / {formatBytes(stats.totalStorageLimitBytes)} ·{' '}
+                {t('admin.storageRemaining', {
+                  size: formatBytes(Math.max(0, stats.totalStorageLimitBytes - stats.totalStorageUsedBytes)),
+                })}
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {stats.planStats.map((p) => (
+                <div key={p.plan} className="rounded-xl border border-brand-50 bg-brand-50/40 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-brand-700">{p.plan}</span>
+                    <span className="text-xs text-neutral-500">{t('admin.stats.usersCount', { count: p.usersCount })}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-brand-700">
+                    {formatBytes(p.storageUsedBytes)} / {formatBytes(p.storageLimitBytes)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -198,7 +309,6 @@ export function AdminUsersPage() {
                   {users.map((u) => {
                     const hasViewers = u.viewers.length > 0;
                     const isOpen = expanded.has(u.id);
-                    const storageRemaining = Math.max(0, u.storageLimitBytes - u.storageUsedBytes);
                     return (
                       <>
                         <tr key={u.id} className="border-b border-brand-50 last:border-0">
@@ -216,41 +326,9 @@ export function AdminUsersPage() {
                             </button>
                           </td>
                           <td className="px-4 py-3 text-brand-900">{u.memberCount}</td>
-                          <td className="px-4 py-3 text-xs text-brand-700">
-                            <p>{formatBytes(u.storageUsedBytes)} / {formatBytes(u.storageLimitBytes)}</p>
-                            <p className="text-neutral-500">{t('admin.storageRemaining', { size: formatBytes(storageRemaining) })}</p>
-                          </td>
-                          <td className="px-4 py-3">
-                            <SelectPicker
-                              value={u.plan}
-                              options={PLAN_OPTIONS}
-                              onChange={(v) => void onPlanChange(u.id, v as Plan)}
-                              label={u.plan}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                disabled={busyUserId === u.id || u.extraSlots <= 0}
-                                onClick={() => void onSlotDelta(u.id, -1)}
-                                aria-label={t('admin.removeSlot')}
-                                className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40"
-                              >
-                                −
-                              </button>
-                              <span className="w-10 text-center font-medium text-brand-900">{u.extraSlots}</span>
-                              <button
-                                type="button"
-                                disabled={busyUserId === u.id}
-                                onClick={() => void onSlotDelta(u.id, 1)}
-                                aria-label={t('admin.addSlot')}
-                                className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-40"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </td>
+                          {renderStorageCell(t, u)}
+                          {renderPlanCell(u)}
+                          {renderSlotsCell(u)}
                           <td className="px-4 py-3 text-right">
                             <button
                               type="button"
@@ -264,15 +342,17 @@ export function AdminUsersPage() {
                         {isOpen &&
                           u.viewers.map((v) => (
                             <tr key={v.id} className="border-b border-brand-50 bg-brand-50/40 last:border-0">
-                              <td className="py-2.5 pl-11 pr-4">
+                              <td className="px-4 py-3 pl-11">
                                 <p className="text-sm font-medium text-brand-800">{v.fullName}</p>
                                 <p className="text-xs text-neutral-500">
                                   {v.email ?? v.phone ?? '—'} · {t('admin.viewerBadge')}
                                 </p>
                               </td>
-                              <td className="px-4 py-2.5" colSpan={3} />
-                              <td className="px-4 py-2.5" />
-                              <td className="px-4 py-2.5 text-right">
+                              <td className="px-4 py-3 text-brand-900">{v.memberCount}</td>
+                              {renderStorageCell(t, v)}
+                              {renderPlanCell(v)}
+                              {renderSlotsCell(v)}
+                              <td className="px-4 py-3 text-right">
                                 <button
                                   type="button"
                                   onClick={() => navigate(`/admin/viewers/${v.id}`)}

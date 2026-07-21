@@ -46,8 +46,11 @@
     "stats": {
       "totalUsers": "Jami foydalanuvchi",
       "totalFamilyMembers": "Jami oila a'zosi",
-      "payingUsers": "To'lov qilganlar",
-      "totalRevenue": "Jami kirim"
+      "paidPlanUsers": "Pullik tarifga o'tganlar",
+      "payingUsers": "Xarid qilganlar",
+      "totalRevenue": "Jami kirim",
+      "storageOverview": "Xotira — tarif bo'yicha",
+      "usersCount": "{{count}} foydalanuvchi"
     }
   },
   "settings": {
