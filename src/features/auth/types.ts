@@ -8,7 +8,8 @@ export interface AuthUser {
   fullName: string;
   /** Google orqali ochilgan akkauntlarda telefon bo'lmasligi mumkin */
   phone: string | null;
-  email: string;
+  /** Telegram orqali ochilgan (email/telefon berilmaydigan) hisoblarda bo'sh (null) bo'lishi mumkin */
+  email: string | null;
   /** Sozlamalar → Maxfiylik → "Profil ko'rinishi" — Shajara doskasidagi o'z ROOT kartasini kimlar ko'rishi */
   profileVisibility: ProfileVisibility;
   /** Sozlamalar → Maxfiylik → "Kimlar sizni topa olishi mumkin" — qidiruv (MemberSearch) orqali topilish */

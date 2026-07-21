@@ -44,6 +44,18 @@ describe('DeleteAccountDialog (ikki bosqichli: forma -> kod, qaytarib bo\'lmaydi
     expect(mockApi.confirmDeleteAccount).not.toHaveBeenCalled();
   });
 
+  it("emaili yo'q (sof Telegram) hisobda expiresInSeconds:0 kelsa, kod bosqichisiz DARHOL onDeleted chaqiriladi", async () => {
+    mockApi.deleteAccount.mockResolvedValue({ expiresInSeconds: 0 });
+    const onDeleted = vi.fn();
+    render(<DeleteAccountDialog open onClose={() => {}} onDeleted={onDeleted} />);
+
+    await submitForm();
+
+    await waitFor(() => expect(onDeleted).toHaveBeenCalled());
+    expect(mockApi.confirmDeleteAccount).not.toHaveBeenCalled();
+    expect(screen.queryByText('Emailni tasdiqlang')).not.toBeInTheDocument();
+  });
+
   it('parol bo\'sh qoldirilsa ham forma yuboriladi (Google/Telegram hisoblar uchun)', async () => {
     mockApi.deleteAccount.mockResolvedValue({ expiresInSeconds: 600 });
     render(<DeleteAccountDialog open onClose={() => {}} onDeleted={() => {}} />);

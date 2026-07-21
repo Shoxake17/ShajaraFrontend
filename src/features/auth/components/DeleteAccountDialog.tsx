@@ -85,7 +85,14 @@ export function DeleteAccountDialog({ open, onClose, onDeleted }: DeleteAccountD
   const submit = handleSubmit(async (values) => {
     setServerError(null);
     try {
-      await authApi.deleteAccount({ password: values.password || undefined });
+      const result = await authApi.deleteAccount({ password: values.password || undefined });
+      // Emaili yo'q (sof Telegram) hisobda tasdiqlash kodi yuborib
+      // bo'lmaydi — backend hisobni SHU YERDA allaqachon o'chirgan
+      // (expiresInSeconds: 0), kod bosqichi umuman kerak emas.
+      if (result.expiresInSeconds === 0) {
+        onDeleted();
+        return;
+      }
       setStep('code');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       resetCode();
