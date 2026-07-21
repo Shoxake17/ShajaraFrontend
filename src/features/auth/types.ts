@@ -21,6 +21,10 @@ export interface AuthUser {
   /** Sozlamalar → Xavfsizlik → "Telegram orqali bog'lash" holati (xom
    * Telegram ID emas — faqat bog'langan/bog'lanmaganligi) */
   telegramLinked: boolean;
+  /** Telegram Login Widget orqali kirgan hisoblarda O'ZINING Telegram ID'si
+   * (o'ziga ko'rsatish uchun — telefon raqami o'rnida, bunday hisoblarda
+   * telefon bo'lmaydi). Boshqa hollarda null. */
+  telegramId: string | null;
   /** Xom hash EMAS — faqat parol bor/yo'qligi (Google/Telegram orqali
    * ochilgan hisoblarda parol bo'lmasligi mumkin) — Sozlamalar → Xavfsizlik
    * "Parolni o'zgartirish" yoki "Parol o'rnatish" qatorlaridan qaysi
@@ -93,6 +97,9 @@ export interface ConfirmDeleteAccountDto {
 
 export interface AddEmailDto {
   email: string;
+  /** Parolsiz (masalan Telegram-only) hisobda MAJBURIY — email bilan BIRGA,
+   * bitta OTP tasdig'ida o'rnatiladi */
+  password?: string;
 }
 
 /** POST /auth/email/add javobi — email HALI saqlanmagan, faqat kod yuborilgan */

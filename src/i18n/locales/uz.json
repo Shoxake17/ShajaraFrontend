@@ -45,6 +45,7 @@
       "lastName": "Familiya",
       "email": "Email",
       "phone": "Telefon raqami",
+      "telegramId": "Telegram ID",
       "unknown": "Noma'lum",
       "nameTooShort": "Ism kamida 2 ta belgidan iborat bo'lsin",
       "imageOnly": "Faqat rasm faylini tanlang",
@@ -283,6 +284,7 @@
       "ariaLabel": "Email qo'shish",
       "title": "Email qo'shish",
       "formDesc": "Haqiqiy email manzilingizni kiriting — egaligini tasdiqlash uchun shu manzilga 6 xonali kod yuboramiz.",
+      "formDescWithPassword": "Hisobingizda hali parol yo'q — email manzil va parol o'rnating. Egaligini tasdiqlash uchun emailga 6 xonali kod yuboramiz, tasdiqlangach ikkalasi ham saqlanadi va shu email+parol bilan kira olasiz.",
       "emailPlaceholder": "Email manzil",
       "continue": "Davom etish",
       "confirmEmailTitle": "Emailni tasdiqlang",
@@ -291,7 +293,8 @@
       "codeResent": "Yangi kod yuborildi ✓",
       "resendWithCooldown": "Qayta yuborish ({{seconds}}s)",
       "resend": "Kodni qayta yuborish",
-      "successDesc": "Emailingiz muvaffaqiyatli qo'shildi. Endi shu email orqali ham kirishingiz mumkin (parol o'rnatilgan bo'lsa)."
+      "successDesc": "Emailingiz muvaffaqiyatli qo'shildi. Endi shu email orqali ham kirishingiz mumkin (parol o'rnatilgan bo'lsa).",
+      "successDescWithPassword": "Email va parolingiz muvaffaqiyatli saqlandi. Endi shu email va parol bilan kirishingiz mumkin."
     },
     "setPassword": {
       "ariaLabel": "Parol o'rnatish",

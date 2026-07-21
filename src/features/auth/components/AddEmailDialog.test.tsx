@@ -55,6 +55,7 @@ describe('AddEmailDialog (ikki bosqichli: forma -> kod)', () => {
       dataVisibility: 'PUBLIC',
       messageVisibility: 'PUBLIC',
       telegramLinked: true,
+      telegramId: '12345',
       hasPassword: false,
     });
     render(<AddEmailDialog open onClose={() => {}} />);
@@ -87,5 +88,52 @@ describe('AddEmailDialog (ikki bosqichli: forma -> kod)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }));
 
     await waitFor(() => expect(mockApi.addEmail).not.toHaveBeenCalled());
+  });
+
+  describe("hisobda hali PAROL yo'q (Telegram-only) — email+parol BIRGA so'raladi", () => {
+    beforeEach(() => {
+      useAuthStore.setState({
+        user: {
+          id: 'u1',
+          fullName: 'Test',
+          phone: null,
+          email: null,
+          profileVisibility: 'PUBLIC',
+          searchVisibility: 'PUBLIC',
+          dataVisibility: 'PUBLIC',
+          messageVisibility: 'PUBLIC',
+          telegramLinked: true,
+          telegramId: '12345',
+          hasPassword: false,
+        },
+        accessToken: 'at',
+        initialized: true,
+      });
+    });
+
+    it("parol maydonlari ko'rsatiladi va to'g'ri to'ldirilsa email+parol BIRGA yuboriladi", async () => {
+      mockApi.addEmail.mockResolvedValue({ expiresInSeconds: 600 });
+      render(<AddEmailDialog open onClose={() => {}} />);
+
+      fireEvent.input(screen.getByPlaceholderText('Email manzil'), { target: { value: 'yangi@mail.com' } });
+      fireEvent.input(screen.getByPlaceholderText('Yangi parol'), { target: { value: 'YangiParol1' } });
+      fireEvent.input(screen.getByPlaceholderText('Yangi parolni tasdiqlang'), { target: { value: 'YangiParol1' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }));
+
+      await waitFor(() =>
+        expect(mockApi.addEmail).toHaveBeenCalledWith({ email: 'yangi@mail.com', password: 'YangiParol1' }),
+      );
+    });
+
+    it("parollar mos kelmasa xato ko'rsatiladi, so'rov yuborilmaydi", async () => {
+      render(<AddEmailDialog open onClose={() => {}} />);
+
+      fireEvent.input(screen.getByPlaceholderText('Email manzil'), { target: { value: 'yangi@mail.com' } });
+      fireEvent.input(screen.getByPlaceholderText('Yangi parol'), { target: { value: 'YangiParol1' } });
+      fireEvent.input(screen.getByPlaceholderText('Yangi parolni tasdiqlang'), { target: { value: 'Boshqacha2' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }));
+
+      await waitFor(() => expect(mockApi.addEmail).not.toHaveBeenCalled());
+    });
   });
 });

@@ -75,7 +75,7 @@ const NAV_ITEMS: NavItemDef[] = [
   { to: '/oila', labelKey: 'nav.family', shortLabelKey: 'nav.familyShort', Icon: UsersIcon, end: false },
   { to: '/xabarlar', labelKey: 'nav.messages', shortLabelKey: 'nav.messagesShort', Icon: MessagesIcon, end: false },
   { to: '/media', labelKey: 'nav.media', shortLabelKey: 'nav.mediaShort', Icon: GalleryIcon, end: false },
-  { to: '/ai', labelKey: 'nav.ai', shortLabelKey: 'nav.aiShort', Icon: AiIcon, end: false },
+  // { to: '/ai', labelKey: 'nav.ai', shortLabelKey: 'nav.aiShort', Icon: AiIcon, end: false },
   { to: '/sozlamalar', labelKey: 'nav.settings', shortLabelKey: 'nav.settingsShort', Icon: SettingsIcon, end: false },
 ];
 

@@ -141,11 +141,23 @@ export function getDisableTwoFactorSchema() {
   });
 }
 
-/** Sozlamalar → Profil: emaili yo'q hisobga email qo'shish */
-export function getAddEmailSchema() {
-  return z.object({
-    email: z.string().trim().email(i18n.t('auth.validation.emailInvalid')),
-  });
+/**
+ * Sozlamalar → Profil: emaili yo'q hisobga email qo'shish. `requirePassword`
+ * — hisobda hali PAROL ham yo'q bo'lsa (masalan Telegram-only) true: shu
+ * holda parol maydonlari ham majburiy va email bilan BIRGA, bitta OTP
+ * tasdig'ida o'rnatiladi (SetPasswordDialog'ni alohida ochish shart emas).
+ */
+export function getAddEmailSchema(requirePassword: boolean) {
+  return z
+    .object({
+      email: z.string().trim().email(i18n.t('auth.validation.emailInvalid')),
+      newPassword: requirePassword ? newPasswordSchema() : z.string().optional().default(''),
+      confirmPassword: z.string().optional().default(''),
+    })
+    .refine((d) => !requirePassword || d.newPassword === d.confirmPassword, {
+      path: ['confirmPassword'],
+      message: i18n.t('auth.validation.passwordsMismatch'),
+    });
 }
 
 /** Sozlamalar → Xavfsizlik: parol yo'q hisobga birinchi marta parol o'rnatish */

@@ -45,6 +45,7 @@
       "lastName": "Last name",
       "email": "Email",
       "phone": "Phone number",
+      "telegramId": "Telegram ID",
       "unknown": "Unknown",
       "nameTooShort": "Name must be at least 2 characters",
       "imageOnly": "Please select an image file",
@@ -283,6 +284,7 @@
       "ariaLabel": "Add email",
       "title": "Add email",
       "formDesc": "Enter your real email address — we'll send a 6-digit code there to confirm you own it.",
+      "formDescWithPassword": "Your account doesn't have a password yet — set an email and password. We'll send a 6-digit code to confirm ownership; once confirmed, both are saved and you can log in with this email+password.",
       "emailPlaceholder": "Email address",
       "continue": "Continue",
       "confirmEmailTitle": "Confirm your email",
@@ -291,7 +293,8 @@
       "codeResent": "New code sent ✓",
       "resendWithCooldown": "Resend ({{seconds}}s)",
       "resend": "Resend code",
-      "successDesc": "Your email has been added successfully. You can now also log in with this email (if a password is set)."
+      "successDesc": "Your email has been added successfully. You can now also log in with this email (if a password is set).",
+      "successDescWithPassword": "Your email and password have been saved successfully. You can now log in with this email and password."
     },
     "setPassword": {
       "ariaLabel": "Set password",

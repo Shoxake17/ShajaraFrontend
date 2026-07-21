@@ -26,6 +26,7 @@ const meResponse = (hasPassword: boolean) => ({
   dataVisibility: 'PUBLIC' as const,
   messageVisibility: 'PUBLIC' as const,
   telegramLinked: true,
+  telegramId: '12345',
   hasPassword,
 });
 

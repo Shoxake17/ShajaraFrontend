@@ -230,6 +230,7 @@ export function SettingsPage() {
   const { topBarActionsEl } = useOutletContext<AppLayoutContext>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   // Sana/Vaqt formati — Mintaqa tanloviga qarab AVTOMATIK (qo'lda sozlanmaydi)
   const { region } = useRegion();
   const regionFormat = REGION_FORMATS[region];
@@ -388,6 +389,12 @@ export function SettingsPage() {
         ...(photoSizeBytes !== undefined ? { photoUrl: photoUrl ?? undefined, photoSizeBytes } : {}),
       });
       await loadBoard();
+      // Backend endi User.fullName'ni HAM sinxron yangilaydi (o'z ROOT/anker
+      // kartasi bo'lsa) — lekin bu javob faqat FamilyMember qaytaradi, shu
+      // bois auth store'dagi `user.fullName`ni ham shu yerda DARHOL
+      // yangilaymiz: aks holda UI hali eski ismni ko'rsatardi va (agar
+      // sahifa shu his bilan qayta yuklansa) staleness taassurot qoldirardi.
+      if (user) setUser({ ...user, fullName: name });
       void useStorageStore.getState().loadUsage();
       setSaved(true);
       setEditingProfile(false);
@@ -443,10 +450,17 @@ export function SettingsPage() {
           </button>
         )}
       </label>
-      <label className="block">
-        <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.phone')}</span>
-        <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
-      </label>
+      {user?.telegramLinked && !user?.phone ? (
+        <label className="block">
+          <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.telegramId')}</span>
+          <input value={user.telegramId ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        </label>
+      ) : (
+        <label className="block">
+          <span className="mb-1 block text-xs text-neutral-500">{t('settings.profile.phone')}</span>
+          <input value={user?.phone ?? '—'} readOnly className={`${inputCls} bg-neutral-50 text-neutral-500`} />
+        </label>
+      )}
     </>
   );
 
@@ -630,7 +644,14 @@ export function SettingsPage() {
                     {user?.hasPassword ? (
                       <Row Icon={KeyIcon} label={t('settings.security.changePassword')} onClick={() => setPasswordOpen(true)} right={chevron} />
                     ) : (
-                      <Row Icon={KeyIcon} label={t('settings.security.setPassword')} onClick={() => setInitialPasswordOpen(true)} right={chevron} />
+                      // Emaili YO'Q (masalan Telegram-only) holatda parol
+                      // endi "Email qo'shish" oynasida email bilan BIRGA
+                      // o'rnatiladi — shu bois bu qator faqat emaili BOR
+                      // (masalan Google orqali ochilgan, parolsiz) hisobda
+                      // ko'rsatiladi.
+                      user?.email && (
+                        <Row Icon={KeyIcon} label={t('settings.security.setPassword')} onClick={() => setInitialPasswordOpen(true)} right={chevron} />
+                      )
                     )}
                     <Row
                       Icon={ShieldIcon}

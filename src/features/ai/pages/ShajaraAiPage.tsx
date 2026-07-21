@@ -1,9 +1,4 @@
 // features/ai/pages/ShajaraAiPage.tsx
-// "Shajara AI" — sun'iy intellekt yordamchisi (tez orada). Chat-ilova
-// andozasi: xabarlar bloki DOIM ko'rinadi (bo'sh bo'lsa ham — bordered
-// "kutish" holati), FAQAT shu qism ichida scroll bo'ladi; kiritish
-// qatori esa doim pastda QOTIB turadi, hech qachon scroll bilan
-// birga ko'rinmasdan qolib ketmaydi.
 import { useEffect, useRef, useState, type FormEvent, type SVGProps } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';

@@ -1,9 +1,13 @@
 // features/auth/components/AddEmailDialog.tsx
 // Sozlamalar → Profil: emaili yo'q hisobga (masalan Telegram-only) HAQIQIY
 // email qo'shish. IKKI BOSQICH (ChangePasswordDialog bilan bir xil naqsh):
-//  1) email kiritiladi — HALI saqlanmaydi, o'sha manzilga 6 xonali
-//     tasdiqlash kodi yuboriladi (egaligini isbotlash uchun);
-//  2) to'g'ri kod kiritilgach email SHU YERDA saqlanadi.
+//  1) email (va agar hisobda hali PAROL ham yo'q bo'lsa — parol/tasdiqlash
+//     ham) kiritiladi — HALI saqlanmaydi, emailga 6 xonali tasdiqlash kodi
+//     yuboriladi (egaligini isbotlash uchun);
+//  2) to'g'ri kod kiritilgach email (va parol, agar berilgan bo'lsa) SHU
+//     YERDA, BIRGA saqlanadi — shu tufayli foydalanuvchi darhol o'sha
+//     email+parol bilan kira oladi (alohida "Parol o'rnatish" bosqichi
+//     kerak emas).
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +16,7 @@ import { TextField } from '@/shared/ui/TextField';
 import { Button } from '@/shared/ui/Button';
 import { Alert } from '@/shared/ui/Alert';
 import { SegmentedCodeInput } from '@/shared/ui/SegmentedCodeInput';
-import { ArrowLeftIcon, MailIcon } from '@/shared/ui/icons';
+import { ArrowLeftIcon, LockIcon, MailIcon } from '@/shared/ui/icons';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/model/auth.store';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
@@ -33,13 +37,20 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
   const { t } = useTranslation();
   const setUser = useAuthStore((s) => s.setUser);
+  const hasPasswordNow = useAuthStore((s) => s.user?.hasPassword ?? true);
+  // Oyna OCHILGAN paytdagi holatni "muzlatib" saqlaydi — `confirm()` ichida
+  // `setUser(user)` chaqirilgach store'dagi `hasPassword` DARHOL yangilanadi
+  // (endi true bo'ladi), agar shu yerda TO'G'RIDAN-TO'G'RI store'dan o'qisak
+  // muvaffaqiyat xabari (parol so'ralganmi/yo'qmi) noto'g'ri bosqichni
+  // ko'rsatib qolardi.
+  const [requirePassword, setRequirePassword] = useState(!hasPasswordNow);
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resent, setResent] = useState(false);
 
-  const form = useForm<AddEmailForm>({ resolver: zodResolver(getAddEmailSchema()) });
+  const form = useForm<AddEmailForm>({ resolver: zodResolver(getAddEmailSchema(requirePassword)) });
   const codeForm = useForm<VerifyCodeForm>({ resolver: zodResolver(getVerifyCodeSchema()) });
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = form;
   const {
@@ -56,7 +67,13 @@ export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
       setServerError(null);
       setSuccess(false);
       setResendCooldown(0);
+      setRequirePassword(!hasPasswordNow);
     }
+    // hasPasswordNow qasddan dependency'ga qo'shilmagan — faqat oyna
+    // OCHILGANDA (open o'zgarganda) qayta hisoblanishi kerak, oynaning
+    // o'zi ochiq turgan paytda (masalan tasdiqlash bosqichida store
+    // yangilansa ham) emas.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset, resetCode]);
 
   useEffect(() => {
@@ -79,7 +96,10 @@ export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
   const submit = handleSubmit(async (values) => {
     setServerError(null);
     try {
-      await authApi.addEmail({ email: values.email });
+      await authApi.addEmail({
+        email: values.email,
+        ...(requirePassword ? { password: values.newPassword } : {}),
+      });
       setStep('code');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       resetCode();
@@ -140,7 +160,9 @@ export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
             <h3 className="font-serif text-lg font-semibold text-brand-900">
               {t('auth.addEmail.title')}
             </h3>
-            <p className="mt-3 text-sm text-brand-700">{t('auth.addEmail.successDesc')}</p>
+            <p className="mt-3 text-sm text-brand-700">
+              {requirePassword ? t('auth.addEmail.successDescWithPassword') : t('auth.addEmail.successDesc')}
+            </p>
             <Button type="button" onClick={onClose} className="mt-5 !py-3 !text-sm">
               {t('common.close')}
             </Button>
@@ -150,7 +172,9 @@ export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
             <h3 className="font-serif text-lg font-semibold text-brand-900">
               {t('auth.addEmail.title')}
             </h3>
-            <p className="mt-1 text-xs text-brand-500">{t('auth.addEmail.formDesc')}</p>
+            <p className="mt-1 text-xs text-brand-500">
+              {requirePassword ? t('auth.addEmail.formDescWithPassword') : t('auth.addEmail.formDesc')}
+            </p>
 
             <form onSubmit={submit} noValidate className="mt-4 space-y-2.5">
               <TextField
@@ -161,6 +185,27 @@ export function AddEmailDialog({ open, onClose }: AddEmailDialogProps) {
                 error={errors.email?.message}
                 {...register('email')}
               />
+
+              {requirePassword && (
+                <>
+                  <TextField
+                    icon={<LockIcon />}
+                    isPassword
+                    autoComplete="new-password"
+                    placeholder={t('auth.setPassword.newPasswordPlaceholder')}
+                    error={errors.newPassword?.message}
+                    {...register('newPassword')}
+                  />
+                  <TextField
+                    icon={<LockIcon />}
+                    isPassword
+                    autoComplete="new-password"
+                    placeholder={t('auth.setPassword.confirmNewPasswordPlaceholder')}
+                    error={errors.confirmPassword?.message}
+                    {...register('confirmPassword')}
+                  />
+                </>
+              )}
 
               {serverError && <Alert>{serverError}</Alert>}
 
