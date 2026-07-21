@@ -280,7 +280,12 @@ function label(kin: Kin): string {
     case 'SIB_SPOUSE':
       return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2');
     case 'CHILD_SPOUSE':
-      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.daughterInLaw' : 'tree.kinship.sonInLaw');
+      // Bu (eski, anker-zanjiri) hisoblash tizimida yosh solishtirish uchun
+      // ma'lumot yo'q — shu bois ANIQ bo'lmagan holatdagi standart qiymat
+      // ("Kelinoyi", boshqa joylardagi yosh-noma'lum standarti bilan bir xil)
+      // qaytariladi. Amaliyotda bu funksiya ISHLATILMAYDI (faqat testda) —
+      // haqiqiy hisoblash relationInfoFrom/closeFamilyLabels'da, yosh solishtirib.
+      return i18n.t(kin.gender === 'FEMALE' ? 'tree.kinship.daughterInLawOlder' : 'tree.kinship.sonInLaw');
     case 'OTHER':
       return relationLabel(kin.raw);
   }
@@ -721,7 +726,17 @@ export function relationInfoFrom(
         // cat'da ANC bo'lardi): bobo xotini -> O'gay buvi, ota xotini -> O'gay ona
         out.set(X, stepAncestorLabel(ancLabel(c.gen, g(X)), g(X)));
       } else if (c.t === 'DESC') {
-        out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.daughterInLaw' : 'tree.kinship.sonInLaw')); // o'g'il xotini / qiz eri
+        // o'g'il xotini (Kelin/Kelinoyi — ANKERdan yosh KICHIK bo'lsa Kelin,
+        // KATTA (yoki noma'lum) bo'lsa hurmat yuzasidan Kelinoyi, xuddi
+        // aka/uka-opa/singil kabi yoshga qarab) / qiz eri (doim Kuyov)
+        if (g(X) === 'FEMALE') {
+          const y = yr(X);
+          const ay = yr(A);
+          const youngerThanAnchor = ay != null && y != null ? y > ay : false;
+          out.set(X, i18n.t(youngerThanAnchor ? 'tree.kinship.daughterInLawYounger' : 'tree.kinship.daughterInLawOlder'));
+        } else {
+          out.set(X, i18n.t('tree.kinship.sonInLaw'));
+        }
       } else if (c.t === 'SIB' || c.t === 'UNCLE' || c.t === 'COUSIN') {
         out.set(X, i18n.t(g(X) === 'FEMALE' ? 'tree.kinship.sisterInLaw2' : 'tree.kinship.brotherInLaw2'));
       } else if (c.t === 'SELF') {
@@ -898,9 +913,19 @@ export function closeFamilyLabels(
   for (const s of spousesOf(root)) set(s, i18n.t('tree.kinship.spouse', { context: (g(s) ?? 'MALE').toLowerCase() }));
   for (const c of coupleChildrenOf(root)) {
     set(c, relationLabel(g(c) === 'FEMALE' ? 'QIZ' : 'OGIL'));
-    // kelin (o'g'ilning xotini) / kuyov (qizning eri) — jinsi bo'yicha
-    for (const sp of spousesOf(c))
-      set(sp, g(sp) === 'FEMALE' ? i18n.t('tree.kinship.bride') : relationLabel('KUYOV'));
+    // kelin (o'g'ilning xotini, ANKERdan kichik bo'lsa Kelin, aniq KATTA
+    // bo'lsa hurmat yuzasidan Kelinoyi; yil noma'lum bo'lsa — standart Kelin)
+    // / kuyov (qizning eri) — jinsi bo'yicha
+    for (const sp of spousesOf(c)) {
+      if (g(sp) === 'FEMALE') {
+        const y = yr(sp);
+        const ry = yr(root);
+        const olderThanRoot = ry != null && y != null && y <= ry;
+        set(sp, i18n.t(olderThanRoot ? 'tree.kinship.daughterInLawOlder' : 'tree.kinship.daughterInLawYounger'));
+      } else {
+        set(sp, relationLabel('KUYOV'));
+      }
+    }
     for (const gc of coupleChildrenOf(c))
       set(gc, i18n.t('tree.kinship.grandchildClose', { context: (g(gc) ?? 'MALE').toLowerCase() })); // nevaralar (2-xotin ham)
   }

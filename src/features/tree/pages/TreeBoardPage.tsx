@@ -149,7 +149,6 @@ function TreeBoard() {
   const access = useTreeStore((s) => s.access);
   const layoutEdit = useTreeStore((s) => s.layoutEdit);
   const setLayoutEdit = useTreeStore((s) => s.setLayoutEdit);
-  const isOwner = access?.role === 'OWNER';
 
   const [addOpen, setAddOpen] = useState(false);
   const [addAnchorId, setAddAnchorId] = useState<string | null>(null);
@@ -465,33 +464,32 @@ function TreeBoard() {
               >
                 <SearchIcon />
               </button>
-              {/* Joylashuvni to'g'irlash rejimi — FAQAT OWNER; viewer'ga ko'rinmaydi.
+              {/* Joylashuvni to'g'irlash rejimi — OWNER VA VIEWER, ikkalasi ham
+                  (VIEWER ham root/admin kabi kartalarni saralay oladi).
                   Yoqiq: kartalarni surish mumkin, surilgani QULFLANADI (Tartiblash surmaydi).
                   O'chiq: kartalar qimirlamaydi. Mobilda (< sm) joy tejash uchun
                   yashiringan — Tartiblash bilan birga kattaroq ekranda chiqadi. */}
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => setLayoutEdit(!layoutEdit)}
-                  title={
-                    layoutEdit
-                      ? t('tree.board.singleDragOffTitle')
-                      : t('tree.board.singleDragOnTitle')
-                  }
-                  aria-pressed={layoutEdit}
-                  className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors sm:flex ${
-                    layoutEdit
-                      ? 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800'
-                      : 'border-brand-100 bg-brand-50 text-brand-800 hover:bg-brand-100'
-                  }`}
-                >
-                  {/* Surish (move) ikonkasi */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                    <path d="M12 2v20M2 12h20" strokeLinecap="round" />
-                    <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setLayoutEdit(!layoutEdit)}
+                title={
+                  layoutEdit
+                    ? t('tree.board.singleDragOffTitle')
+                    : t('tree.board.singleDragOnTitle')
+                }
+                aria-pressed={layoutEdit}
+                className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors sm:flex ${
+                  layoutEdit
+                    ? 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800'
+                    : 'border-brand-100 bg-brand-50 text-brand-800 hover:bg-brand-100'
+                }`}
+              >
+                {/* Surish (move) ikonkasi */}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <path d="M12 2v20M2 12h20" strokeLinecap="round" />
+                  <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
               {/* Saralash/Tartiblash (auto-arrange) — Applayout.png'da "≡"
                   ikonkasiga mos, joyidan qimirlamadi (gender+qidiruv bilan
                   bir qatorda, qo'shish tugmasidan oldin). */}
@@ -597,7 +595,7 @@ function TreeBoard() {
           edges={displayedEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          nodesDraggable={isOwner}
+          nodesDraggable
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={(_, node: PersonNodeType) => setProfileId(node.id)}

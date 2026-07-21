@@ -296,12 +296,17 @@ export function SettingsPage() {
     authApi.twoFactorStatus().then((s) => setTwoFactorEnabled(s.enabled)).catch(() => setTwoFactorEnabled(false));
   }, []);
 
-  // Boshlang'ich qiymatlar (ism user'dan, rasm o'z a'zolik yozuvidan)
+  // Boshlang'ich qiymatlar — O'ZINING a'zolik kartasidagi (myMember) ism-
+  // familiya, `user.fullName` EMAS: VIEWER uchun ular boshqacha bo'lishi
+  // mumkin (masalan kimdir uni kartaga qo'shganda boshqacha ism yozgan
+  // bo'lsa), Sozlamalar esa doim shu ODAMNING O'Z kartasini tahrirlashi
+  // kerak — boshqasiniki (yoki eskirgan hisob nomi) emas. `user?.fullName`
+  // faqat myMember hali yuklanmagan (masalan birinchi render) holatga zaxira.
   useEffect(() => {
-    const parts = (user?.fullName ?? '').trim().split(/\s+/);
+    const parts = (myMember?.fullName ?? user?.fullName ?? '').trim().split(/\s+/);
     setIsm(parts[0] ?? '');
     setFamiliya(parts.slice(1).join(' '));
-  }, [user?.fullName]);
+  }, [myMember?.fullName, user?.fullName]);
   useEffect(() => {
     setPhotoUrl(myMember?.photoUrl ?? null);
     setPreviewUrl(myMember?.photoUrl ?? null);
@@ -409,7 +414,7 @@ export function SettingsPage() {
   // Tahrirlashni bekor qilish — saqlanmagan o'zgarishlarni SERVERDAGI
   // (myMember/user) qiymatlarga qaytaradi va ko'rish rejimiga chiqadi.
   const cancelEdit = () => {
-    const parts = (user?.fullName ?? '').trim().split(/\s+/);
+    const parts = (myMember?.fullName ?? user?.fullName ?? '').trim().split(/\s+/);
     setIsm(parts[0] ?? '');
     setFamiliya(parts.slice(1).join(' '));
     setPhotoUrl(myMember?.photoUrl ?? null);

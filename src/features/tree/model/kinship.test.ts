@@ -220,7 +220,7 @@ describe('computeRelationLabels (ildizga nisbatan)', () => {
     ];
     const labels = computeRelationLabels(members, edges);
     expect(labels.get('pochcha')).toBe('Pochcha'); // opa eri (erkak) -> Pochcha
-    expect(labels.get('kelin')).toBe('Kelinoyi'); // o'g'il xotini (ayol) -> Kelinoyi
+    expect(labels.get('kelin')).toBe('Kelinoyi'); // o'g'il xotini (ayol) -> Kelinoyi (yosh solishtira olmaydigan eski hisoblash)
     expect(labels.get('kuyov')).toBe('Kuyov'); // qiz eri (erkak) -> Kuyov
   });
 

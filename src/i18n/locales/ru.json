@@ -428,7 +428,8 @@
       "brotherInLaw": "Шурин/деверь",
       "sisterInLaw2": "Невестка",
       "brotherInLaw2": "Зять",
-      "daughterInLaw": "Невестка",
+      "daughterInLawYounger": "Невестка",
+      "daughterInLawOlder": "Невестка",
       "sonInLaw": "Зять",
       "uncleP": "Дядя (по отцу)",
       "auntP": "Тётя (по отцу)",
@@ -464,7 +465,6 @@
       "ancestor7F": "Прапрапрапрапрабабушка",
       "ancestorFallbackM": "дедушка",
       "ancestorFallbackF": "бабушка",
-      "bride": "Невестка",
       "grandchildClose": "Внук/внучка",
       "grandchildClose_male": "Внук",
       "grandchildClose_female": "Внучка",
@@ -695,7 +695,6 @@
       "newsText": "Получайте новости и полезные статьи первыми.",
       "emailPlaceholder": "Ваш email",
       "subscribe": "Подписаться",
-      "copyright": "© 2024 Shajara. Все права защищены.",
       "langUz": "UZ O‘zbekcha",
       "langRu": "RU Русский"
     }
