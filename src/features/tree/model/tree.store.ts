@@ -23,7 +23,11 @@ interface AddInput {
   relation: RelationKey;
   gender: Gender;
   birthYear?: number;
+  birthMonth?: number;
+  birthDay?: number;
   deathYear?: number;
+  deathMonth?: number;
+  deathDay?: number;
   photoUrl?: string;
   photoSizeBytes?: number;
   spouseOrder?: number;
@@ -33,7 +37,11 @@ interface EditInput {
   fullName: string;
   gender: Gender;
   birthYear: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   /** FAQAT yangi rasm tanlangan bo'lsa berilgan (R2 kalit) — aks holda
       yuborilmaydi, chunki eski qiymat ko'rish uchun IMZOLANGAN havola. */
   photoUrl?: string | null;
@@ -257,7 +265,11 @@ export const useTreeStore = create<TreeState>()((set, get) => {
         relation: input.relation,
         gender: input.gender,
         birthYear: input.birthYear,
+        birthMonth: input.birthMonth,
+        birthDay: input.birthDay,
         deathYear: input.deathYear,
+        deathMonth: input.deathMonth,
+        deathDay: input.deathDay,
         photoUrl: input.photoUrl,
         photoSizeBytes: input.photoSizeBytes,
         spouseOrder: input.spouseOrder,
@@ -331,6 +343,10 @@ export const useTreeStore = create<TreeState>()((set, get) => {
         gender: patch.gender,
         birthYear: patch.birthYear,
         deathYear: patch.deathYear,
+        ...(patch.birthMonth !== undefined ? { birthMonth: patch.birthMonth } : {}),
+        ...(patch.birthDay !== undefined ? { birthDay: patch.birthDay } : {}),
+        ...(patch.deathMonth !== undefined ? { deathMonth: patch.deathMonth } : {}),
+        ...(patch.deathDay !== undefined ? { deathDay: patch.deathDay } : {}),
         ...(patch.photoUrl !== undefined ? { photoUrl: patch.photoUrl } : {}),
         ...(patch.photoSizeBytes !== undefined ? { photoSizeBytes: patch.photoSizeBytes } : {}),
         ...(patch.relation ? { relation: patch.relation } : {}),

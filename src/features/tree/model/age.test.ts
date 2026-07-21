@@ -33,4 +33,20 @@ describe('describeLife', () => {
   it('nomuvofiq yillar (vafot < tug\'ilgan) — yosh ko\'rsatilmaydi', () => {
     expect(describeLife(2010, 1990, 2026).age).toBeNull();
   });
+
+  it("oy/kun berilsa — to'liq sana (Profil panelida)", () => {
+    const r = describeLife(1950, 2010, 2026, { birthMonth: 5, birthDay: 20, deathMonth: 6, deathDay: 15 });
+    expect(r.years).toBe('20-May, 1950 – 15-Iyun, 2010');
+    expect(r.age).toBe('60 yoshda vafot etgan');
+  });
+
+  it("faqat tug'ilgan oy/kun ma'lum (vafot etmagan) — faqat tug'ilgan sana to'liq", () => {
+    const r = describeLife(1990, null, 2026, { birthMonth: 3, birthDay: 8 });
+    expect(r.years).toBe('8-Mart, 1990 –');
+  });
+
+  it("oy/kun berilmasa — faqat yil (kartadagi kabi)", () => {
+    const r = describeLife(1950, 2010, 2026);
+    expect(r.years).toBe('1950 – 2010');
+  });
 });

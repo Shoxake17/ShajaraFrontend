@@ -1,6 +1,6 @@
 import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EyeIcon, EyeOffIcon } from '@/shared/ui/icons';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   icon: ReactNode;
@@ -36,7 +36,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               onClick={() => setVisible((v) => !v)}
               className="-m-2 shrink-0 p-2 text-neutral-500 transition-colors hover:text-brand-700"
             >
-              {visible ? <EyeIcon /> : <EyeOffIcon />}
+              {visible ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           )}
         </div>

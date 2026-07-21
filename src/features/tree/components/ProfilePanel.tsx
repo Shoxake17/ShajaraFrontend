@@ -136,7 +136,11 @@ interface DetailProps {
   relation: string;
   generation: number | null;
   birthYear: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   photoUrl: string | null;
   onEdit: () => void;
   onDelete?: () => void;
@@ -154,7 +158,11 @@ function Detail({
   gender,
   relation,
   birthYear,
+  birthMonth,
+  birthDay,
   deathYear,
+  deathMonth,
+  deathDay,
   photoUrl,
   onEdit,
   onDelete,
@@ -168,7 +176,7 @@ function Detail({
   const { t } = useTranslation();
   const { theme } = useTheme();
   const female = gender === 'FEMALE';
-  const { years, age } = describeLife(birthYear, deathYear);
+  const { years, age } = describeLife(birthYear, deathYear, undefined, { birthMonth, birthDay, deathMonth, deathDay });
 
   if (hidden) return <HiddenDetail relation={relation} />;
 
@@ -253,7 +261,11 @@ function MobileDetail({
   relation,
   generation,
   birthYear,
+  birthMonth,
+  birthDay,
   deathYear,
+  deathMonth,
+  deathDay,
   photoUrl,
   onEdit,
   onDelete,
@@ -267,7 +279,7 @@ function MobileDetail({
   const { t } = useTranslation();
   const { theme } = useTheme();
   const female = gender === 'FEMALE';
-  const { years, age } = describeLife(birthYear, deathYear);
+  const { years, age } = describeLife(birthYear, deathYear, undefined, { birthMonth, birthDay, deathMonth, deathDay });
 
   if (hidden) return <HiddenDetail relation={relation} mobile />;
 
@@ -375,7 +387,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
       relation={node.relation}
       generation={node.generation}
       birthYear={node.birthYear}
+      birthMonth={node.birthMonth}
+      birthDay={node.birthDay}
       deathYear={node.deathYear}
+      deathMonth={node.deathMonth}
+      deathDay={node.deathDay}
       photoUrl={node.photoUrl}
       canDelete={canDeleteM(node.createdById, node.isRoot)}
       canEdit={canEditM(node.createdById)}
@@ -388,7 +404,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
           name: node.name,
           gender: node.gender,
           birthYear: node.birthYear,
+          birthMonth: node.birthMonth,
+          birthDay: node.birthDay,
           deathYear: node.deathYear,
+          deathMonth: node.deathMonth,
+          deathDay: node.deathDay,
           photoUrl: node.photoUrl,
           relation: node.rawRelation,
           spouseOrder: node.spouseOrder,
@@ -409,7 +429,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
         relation={sp.relation}
         generation={sp.generation}
         birthYear={sp.birthYear}
+        birthMonth={sp.birthMonth}
+        birthDay={sp.birthDay}
         deathYear={sp.deathYear}
+        deathMonth={sp.deathMonth}
+        deathDay={sp.deathDay}
         photoUrl={sp.photoUrl}
         canDelete={canDeleteM(sp.createdById, false)}
         canEdit={canEditM(sp.createdById)}
@@ -422,7 +446,11 @@ export function ProfilePanel({ node, onClose, onEdit, onDelete, onAddRelative, a
             name: sp.name,
             gender: sp.gender,
             birthYear: sp.birthYear,
+            birthMonth: sp.birthMonth,
+            birthDay: sp.birthDay,
             deathYear: sp.deathYear,
+            deathMonth: sp.deathMonth,
+            deathDay: sp.deathDay,
             photoUrl: sp.photoUrl,
             relation: sp.rawRelation,
             spouseOrder: sp.spouseOrder,

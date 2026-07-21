@@ -37,20 +37,6 @@ export const LockIcon = (p: IconProps) => (
   </svg>
 );
 
-export const EyeIcon = (p: IconProps) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" {...base} {...p}>
-    <path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z" />
-    <circle cx="12" cy="12" r="2.5" />
-  </svg>
-);
-
-export const EyeOffIcon = (p: IconProps) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" {...base} {...p}>
-    <path d="M3 12s3.5-6 9-6c1.6 0 3 .5 4.2 1.2M21 12s-3.5 6-9 6c-1.6 0-3-.5-4.2-1.2" />
-    <path d="m4 4 16 16" />
-  </svg>
-);
-
 export const ArrowLeftIcon = (p: IconProps) => (
   <svg viewBox="0 0 24 24" width="22" height="22" {...base} strokeWidth={2} {...p}>
     <path d="M19 12H5m6-6-6 6 6 6" />

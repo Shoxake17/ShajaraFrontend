@@ -13,6 +13,7 @@ import { mediaApi, type MediaDto, type MediaType } from '../api/media.api';
 import { MediaUploadDialog } from '../components/MediaUploadDialog';
 import { MediaEditDialog, type EditableMedia } from '../components/MediaEditDialog';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
+import type { Gender } from '@/features/tree/model/relations';
 
 interface Item {
   key: string;
@@ -22,6 +23,9 @@ interface Item {
   title: string;
   subtitle: string;
   year: number | null;
+  /** Oila a'zosi rasmi bo'lsa uning jinsi (erkak/ayol ikonkasi uchun);
+   * to'g'ridan-to'g'ri yuklangan media (odam bilan bog'liq emas) uchun null */
+  gender: Gender | null;
 }
 
 const svg = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
@@ -30,6 +34,8 @@ const VideoI = () => (<svg viewBox="0 0 24 24" width="13" height="13" {...svg}><
 const DocI = () => (<svg viewBox="0 0 24 24" width="13" height="13" {...svg}><path d="M7 3.5h6l4 4v13H7Z" /><path d="M13 3.5v4h4" /></svg>);
 const CalI = () => (<svg viewBox="0 0 24 24" width="15" height="15" {...svg}><rect x="4.5" y="5.5" width="15" height="14" rx="2" /><path d="M4.5 9.5h15M8.5 3.5v3M15.5 3.5v3" /></svg>);
 const TagI = () => (<svg viewBox="0 0 24 24" width="15" height="15" {...svg}><path d="M4 8v-4h4l12 12-4 4L4 8Z" /><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none" /></svg>);
+const MaleI = () => (<svg viewBox="0 0 24 24" width="14" height="14" {...svg}><circle cx="10" cy="14" r="6" /><path d="M14.5 9.5 20 4M20 4h-5M20 4v5" /></svg>);
+const FemaleI = () => (<svg viewBox="0 0 24 24" width="14" height="14" {...svg}><circle cx="12" cy="9" r="6" /><path d="M12 15v7M9 19h6" /></svg>);
 const PlayI = () => (<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5Z" /></svg>);
 const GalleryI = () => (<svg viewBox="0 0 24 24" width="22" height="22" {...svg}><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="8.5" cy="9.5" r="1.6" /><path d="m4.5 17 4.5-4 3 2.5 3.5-3 4 4.5" /></svg>);
 const UploadI = () => (<svg viewBox="0 0 24 24" width="18" height="18" {...svg}><path d="M12 15V5m0 0 3.5 3.5M12 5 8.5 8.5" /><path d="M5 15v3.5h14V15" /></svg>);
@@ -213,13 +219,14 @@ export function MediaGalleryPage() {
       title: m.title,
       subtitle: t(`media.typeLabels.${m.type}`),
       year: m.year,
+      gender: null,
     }));
     for (const n of nodes) {
       if (n.data.photoUrl)
-        out.push({ key: `m:${n.id}`, type: 'IMAGE', url: n.data.photoUrl, title: n.data.name, subtitle: n.data.relation, year: n.data.birthYear });
+        out.push({ key: `m:${n.id}`, type: 'IMAGE', url: n.data.photoUrl, title: n.data.name, subtitle: n.data.relation, year: n.data.birthYear, gender: n.data.gender });
       for (const sp of n.data.spouses) {
         if (sp.photoUrl)
-          out.push({ key: `m:${sp.id}`, type: 'IMAGE', url: sp.photoUrl, title: sp.name, subtitle: sp.relation, year: sp.birthYear });
+          out.push({ key: `m:${sp.id}`, type: 'IMAGE', url: sp.photoUrl, title: sp.name, subtitle: sp.relation, year: sp.birthYear, gender: sp.gender });
       }
     }
     return out;
@@ -277,14 +284,8 @@ export function MediaGalleryPage() {
           topBarActionsEl,
         )}
 
-      {/* max-w chegarasi olib tashlandi (Shajara AI sahifasidagi bilan bir
-          xil) — Sidebar/ekran chetidan faqat ozgina padding qoladi, kontent
-          qolgan joyni to'liq egallaydi. pt-3 — Sidebar'ning mt-3 bilan
-          TEPASI TEKIS (bir xil balandlikda boshlanadi). */}
+      
       <div className="px-3 pb-6 pt-3 sm:px-4">
-        {/* Filtrlar — barcha qurilmalarda (mobil ham) bitta qatorda 3 tagacha
-            sig'adigan panjara; tanlagichlar RelationPicker (Qarindosh
-            qo'shish blogi) bilan bir xil Apple uslubida. */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <FilterPicker
             label={t('media.filterType')}
@@ -348,11 +349,27 @@ export function MediaGalleryPage() {
                 </button>
                 <div className="flex items-start justify-between gap-2 p-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-brand-900">{it.title}</p>
-                    <div className="mt-1.5 flex items-center gap-3 text-xs text-neutral-500">
-                      <span className="flex items-center gap-1"><CalI />{it.year ? t('media.yearSuffix', { year: it.year }) : '—'}</span>
-                      <span className="flex items-center gap-1"><TagI />{it.subtitle}</span>
-                    </div>
+                    {it.gender ? (
+                      // Oila a'zosi rasmi — Sana TEPADA, uni PASTIDA kim
+                      // ekani (ism + jinsi bo'yicha erkak/ayol ikonkasi).
+                      <>
+                        <span className="flex items-center gap-1 text-xs text-neutral-500">
+                          <CalI />{it.year ? t('media.yearSuffix', { year: it.year }) : '—'}
+                        </span>
+                        <p className="mt-1.5 flex items-center gap-1.5 truncate text-sm font-semibold text-brand-900">
+                          {it.gender === 'FEMALE' ? <FemaleI /> : <MaleI />}
+                          {it.title}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="truncate text-sm font-semibold text-brand-900">{it.title}</p>
+                        <div className="mt-1.5 flex items-center gap-3 text-xs text-neutral-500">
+                          <span className="flex items-center gap-1"><CalI />{it.year ? t('media.yearSuffix', { year: it.year }) : '—'}</span>
+                          <span className="flex items-center gap-1"><TagI />{it.subtitle}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                   {it.mediaId && (
                     <CardMenu

@@ -20,7 +20,12 @@ export interface SpouseData {
   /** Ota tomon / ona tomon (faqat aniq tomonli qon-qarindoshda); aks holda null */
   side: Side | null;
   birthYear: number | null;
+  /** Faqat Profil panelida to'liq sana uchun — kartada ko'rsatilmaydi (faqat yil) */
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   photoUrl: string | null;
   /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu kartaning PROFIL PANELI shu VIEWER'dan yashirilgan */
   profileHidden?: boolean;
@@ -50,7 +55,12 @@ export interface PersonData extends Record<string, unknown> {
   /** Xom rishta (qanday qo'shilgani) — tahrir dialogida tanlangan tur */
   rawRelation: RelationKey;
   birthYear: number | null;
+  /** Faqat Profil panelida to'liq sana uchun — kartada ko'rsatilmaydi (faqat yil) */
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   photoUrl: string | null;
   isRoot: boolean;
   /** true — "Profil ko'rinishi" sozlamasiga ko'ra bu kartaning PROFIL PANELI shu VIEWER'dan yashirilgan */
@@ -255,7 +265,11 @@ export function buildBoard(
         generation: generations.get(s.id) ?? null,
         side: sides.get(s.id) ?? null,
         birthYear: s.birthYear,
+        birthMonth: s.birthMonth,
+        birthDay: s.birthDay,
         deathYear: s.deathYear,
+        deathMonth: s.deathMonth,
+        deathDay: s.deathDay,
         photoUrl: s.photoUrl,
         profileHidden: s.profileHidden,
         searchHidden: s.searchHidden,
@@ -279,7 +293,11 @@ export function buildBoard(
         side: sides.get(m.id) ?? null,
         rawRelation: (m.relation as RelationKey) ?? 'OTA',
         birthYear: m.birthYear,
+        birthMonth: m.birthMonth,
+        birthDay: m.birthDay,
         deathYear: m.deathYear,
+        deathMonth: m.deathMonth,
+        deathDay: m.deathDay,
         photoUrl: m.photoUrl,
         isRoot: m.isRoot,
         profileHidden: m.profileHidden,

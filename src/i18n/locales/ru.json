@@ -381,6 +381,24 @@
     "birthYearPlaceholder": "Год рождения",
     "deathYearPlaceholder": "Год смерти",
     "yearOrderError": "Год смерти должен быть позже года рождения",
+    "monthPlaceholder": "Месяц",
+    "dayPlaceholder": "День",
+    "birthMonthLabel": "Месяц рождения",
+    "birthDayLabel": "День рождения",
+    "months": {
+      "1": "Январь",
+      "2": "Февраль",
+      "3": "Март",
+      "4": "Апрель",
+      "5": "Май",
+      "6": "Июнь",
+      "7": "Июль",
+      "8": "Август",
+      "9": "Сентябрь",
+      "10": "Октябрь",
+      "11": "Ноябрь",
+      "12": "Декабрь"
+    },
     "relationPickerLabel": "Тип родства",
     "relationGroups": {
       "parents": "Родители и предки",
@@ -495,7 +513,8 @@
     },
     "age": {
       "aliveYears": "{{n}} лет",
-      "diedAtAge": "Умер(ла) в {{n}} лет"
+      "diedAtAge": "Умер(ла) в {{n}} лет",
+      "fullDate": "{{day}} {{month}} {{year}}"
     },
     "generationBadge": "{{gen}}-е поколение",
     "profileHidden": "Скрытый профиль",

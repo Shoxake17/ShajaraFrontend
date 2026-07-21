@@ -16,7 +16,11 @@ export interface NewPerson {
   relation: RelationKey;
   gender: Gender;
   birthYear?: number;
+  birthMonth?: number;
+  birthDay?: number;
   deathYear?: number;
+  deathMonth?: number;
+  deathDay?: number;
   photoUrl?: string;
   photoSizeBytes?: number;
   /** Nechanchi turmush o'rtog'i (qo'lda: 2, 3, ...) */
@@ -46,6 +50,10 @@ export function AddPersonDialog({
   const [gender, setGender] = useState<Gender>('MALE');
   const [birthYear, setBirthYear] = useState('');
   const [deathYear, setDeathYear] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [deathMonth, setDeathMonth] = useState('');
+  const [deathDay, setDeathDay] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoSizeBytes, setPhotoSizeBytes] = useState(0);
   const [spouseOrder, setSpouseOrder] = useState('');
@@ -69,6 +77,10 @@ export function AddPersonDialog({
     setRelation('OTA');
     setBirthYear('');
     setDeathYear('');
+    setBirthMonth('');
+    setBirthDay('');
+    setDeathMonth('');
+    setDeathDay('');
     setPhotoUrl(null);
     setPhotoSizeBytes(0);
     setSpouseOrder('');
@@ -96,7 +108,11 @@ export function AddPersonDialog({
         relation,
         gender,
         birthYear: birthYear ? Number(birthYear) : undefined,
+        birthMonth: birthMonth ? Number(birthMonth) : undefined,
+        birthDay: birthDay ? Number(birthDay) : undefined,
         deathYear: deathYear ? Number(deathYear) : undefined,
+        deathMonth: deathMonth ? Number(deathMonth) : undefined,
+        deathDay: deathDay ? Number(deathDay) : undefined,
         photoUrl: photoUrl ?? undefined,
         photoSizeBytes: photoUrl ? photoSizeBytes : undefined,
         spouseOrder:
@@ -165,6 +181,14 @@ export function AddPersonDialog({
             deathYear={deathYear}
             onBirth={setBirthYear}
             onDeath={setDeathYear}
+            birthMonth={birthMonth}
+            birthDay={birthDay}
+            deathMonth={deathMonth}
+            deathDay={deathDay}
+            onBirthMonth={setBirthMonth}
+            onBirthDay={setBirthDay}
+            onDeathMonth={setDeathMonth}
+            onDeathDay={setDeathDay}
           />
 
           {relation === 'TURMUSH' && (

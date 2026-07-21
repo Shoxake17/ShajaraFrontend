@@ -381,6 +381,24 @@
     "birthYearPlaceholder": "Tug'ilgan yil",
     "deathYearPlaceholder": "Vafot yili",
     "yearOrderError": "Vafot yili tug'ilgan yilidan keyin bo'lishi kerak",
+    "monthPlaceholder": "Oy",
+    "dayPlaceholder": "Kun",
+    "birthMonthLabel": "Tug'ilgan oy",
+    "birthDayLabel": "Tug'ilgan kun",
+    "months": {
+      "1": "Yanvar",
+      "2": "Fevral",
+      "3": "Mart",
+      "4": "Aprel",
+      "5": "May",
+      "6": "Iyun",
+      "7": "Iyul",
+      "8": "Avgust",
+      "9": "Sentabr",
+      "10": "Oktabr",
+      "11": "Noyabr",
+      "12": "Dekabr"
+    },
     "relationPickerLabel": "Qarindoshlik turi",
     "relationGroups": {
       "parents": "Ota-ona va ajdodlar",
@@ -476,7 +494,8 @@
     },
     "age": {
       "aliveYears": "{{n}} yosh",
-      "diedAtAge": "{{n}} yoshda vafot etgan"
+      "diedAtAge": "{{n}} yoshda vafot etgan",
+      "fullDate": "{{day}}-{{month}}, {{year}}"
     },
     "generationBadge": "{{gen}}-avlod",
     "profileHidden": "Yashirin profil",

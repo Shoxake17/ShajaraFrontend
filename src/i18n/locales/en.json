@@ -381,6 +381,24 @@
     "birthYearPlaceholder": "Birth year",
     "deathYearPlaceholder": "Year of death",
     "yearOrderError": "The year of death must be after the birth year",
+    "monthPlaceholder": "Month",
+    "dayPlaceholder": "Day",
+    "birthMonthLabel": "Birth month",
+    "birthDayLabel": "Birth day",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
     "relationPickerLabel": "Relation",
     "relationGroups": {
       "parents": "Parents & ancestors",
@@ -487,7 +505,8 @@
     },
     "age": {
       "aliveYears": "{{n}} years old",
-      "diedAtAge": "died at age {{n}}"
+      "diedAtAge": "died at age {{n}}",
+      "fullDate": "{{month}} {{day}}, {{year}}"
     },
     "generationBadge": "gen. {{gen}}",
     "profileHidden": "Hidden profile",

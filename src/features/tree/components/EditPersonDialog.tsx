@@ -15,7 +15,11 @@ export interface EditedPerson {
   fullName: string;
   gender: Gender;
   birthYear: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   /** FAQAT yangi rasm tanlangan bo'lsa berilgan (R2 kalit) — aks holda
       yuborilmaydi, chunki eski qiymat ko'rish uchun IMZOLANGAN havola. */
   photoUrl?: string | null;
@@ -33,7 +37,11 @@ export interface EditablePerson {
   name: string;
   gender: Gender;
   birthYear: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   photoUrl: string | null;
   /** Xom rishta — berilsa va root bo'lmasa, "kimligi" ni tahrirlash mumkin */
   relation?: RelationKey;
@@ -56,6 +64,10 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
   const [gender, setGender] = useState<Gender>('MALE');
   const [birthYear, setBirthYear] = useState('');
   const [deathYear, setDeathYear] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [deathMonth, setDeathMonth] = useState('');
+  const [deathDay, setDeathDay] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoSizeBytes, setPhotoSizeBytes] = useState<number | undefined>(undefined);
   const [spouseOrder, setSpouseOrder] = useState('');
@@ -70,6 +82,10 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
       setGender(person.gender);
       setBirthYear(person.birthYear ? String(person.birthYear) : '');
       setDeathYear(person.deathYear ? String(person.deathYear) : '');
+      setBirthMonth(person.birthMonth ? String(person.birthMonth) : '');
+      setBirthDay(person.birthDay ? String(person.birthDay) : '');
+      setDeathMonth(person.deathMonth ? String(person.deathMonth) : '');
+      setDeathDay(person.deathDay ? String(person.deathDay) : '');
       setPhotoUrl(person.photoUrl);
       setPhotoSizeBytes(undefined); // faqat yangi rasm tanlanса o'rnatiladi
       setSpouseOrder(person.spouseOrder != null ? String(person.spouseOrder) : '');
@@ -103,6 +119,10 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
         gender,
         birthYear: birthYear ? Number(birthYear) : null,
         deathYear: deathYear ? Number(deathYear) : null,
+        birthMonth: birthMonth ? Number(birthMonth) : null,
+        birthDay: birthDay ? Number(birthDay) : null,
+        deathMonth: deathMonth ? Number(deathMonth) : null,
+        deathDay: deathDay ? Number(deathDay) : null,
         // photoUrl FAQAT yangi rasm tanlangandagina yuboriladi (shu vaqtda
         // photoSizeBytes ham o'rnatiladi) — aks holda `photoUrl` hali
         // ko'rish uchun IMZOLANGAN havola bo'lib qoladi va backend uni
@@ -170,6 +190,14 @@ export function EditPersonDialog({ person, onClose, onSave }: EditPersonDialogPr
             deathYear={deathYear}
             onBirth={setBirthYear}
             onDeath={setDeathYear}
+            birthMonth={birthMonth}
+            birthDay={birthDay}
+            deathMonth={deathMonth}
+            deathDay={deathDay}
+            onBirthMonth={setBirthMonth}
+            onBirthDay={setBirthDay}
+            onDeathMonth={setDeathMonth}
+            onDeathDay={setDeathDay}
           />
 
           {relation === 'TURMUSH' && (

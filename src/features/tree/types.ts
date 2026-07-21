@@ -8,7 +8,14 @@ export interface FamilyMemberDto {
   gender: Gender;
   relation: string;
   birthYear: number | null;
+  /** Ixtiyoriy — faqat yil ma'lum bo'lsa null/yo'q. Kartada KO'RSATILMAYDI
+   * (faqat yil), Profil panelida to'liq sana uchun. Optional — eski/test
+   * ma'lumotlarda umuman bo'lmasligi mumkin. */
+  birthMonth?: number | null;
+  birthDay?: number | null;
   deathYear: number | null;
+  deathMonth?: number | null;
+  deathDay?: number | null;
   photoUrl: string | null;
   photoSizeBytes: number | null;
   isRoot: boolean;
@@ -67,7 +74,11 @@ export interface CreateMemberPayload {
   relation: RelationKey;
   gender: Gender;
   birthYear?: number;
+  birthMonth?: number;
+  birthDay?: number;
   deathYear?: number;
+  deathMonth?: number;
+  deathDay?: number;
   photoUrl?: string;
   photoSizeBytes?: number;
   /** Nechanchi turmush o'rtog'i (qo'lda: 2, 3, ...). */
