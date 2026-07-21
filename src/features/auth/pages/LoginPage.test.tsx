@@ -112,7 +112,7 @@ describe('LoginPage — ikki bosqichli autentifikatsiya (2FA)', () => {
   it("to'g'ri kod kiritilgach sessiya ochiladi va bosh sahifaga o'tadi", async () => {
     mockApi.login.mockResolvedValue({ twoFactorRequired: true, ticket: 'ticket-abc' });
     mockApi.verifyTwoFactorLogin.mockResolvedValue({
-      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true },
+      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true, isAdmin: false },
       accessToken: 'at-2fa-1',
     });
     renderPage();
@@ -161,7 +161,7 @@ describe('LoginPage — ikki bosqichli autentifikatsiya (2FA)', () => {
 
   it("2FA yoqilmagan hisobda oddiy login DARHOL sessiya ochadi (o'zgarishsiz)", async () => {
     mockApi.login.mockResolvedValue({
-      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true },
+      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true, isAdmin: false },
       accessToken: 'at-normal-1',
     });
     renderPage();
@@ -175,7 +175,7 @@ describe('LoginPage — ikki bosqichli autentifikatsiya (2FA)', () => {
   it("'Zaxira koddan foydalanish' bosilsa segmentli input o'rniga oddiy zaxira kod maydoni ko'rinadi", async () => {
     mockApi.login.mockResolvedValue({ twoFactorRequired: true, ticket: 'ticket-abc' });
     mockApi.verifyTwoFactorLogin.mockResolvedValue({
-      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true },
+      user: { id: 'u1', fullName: 'Test User', phone: null, email: 'test@example.com', profileVisibility: 'PUBLIC', searchVisibility: 'PUBLIC', dataVisibility: 'PUBLIC', messageVisibility: 'PUBLIC', telegramLinked: false, telegramId: null, hasPassword: true, isAdmin: false },
       accessToken: 'at-recovery-1',
     });
     renderPage();

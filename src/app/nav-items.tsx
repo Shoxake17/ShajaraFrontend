@@ -3,6 +3,7 @@
 // ham shu yerdan oladi, ikonkalar ikki marta yozilmasin uchun.
 import type { ReactElement, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/features/auth';
 
 export type IconProps = SVGProps<SVGSVGElement>;
 const base = {
@@ -45,6 +46,12 @@ export const SettingsIcon = (p: IconProps) => (
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
+export const AdminIcon = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
+    <path d="M12 3 4.5 6v6c0 4.5 3 7.5 7.5 9 4.5-1.5 7.5-4.5 7.5-9V6L12 3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
 export const LogoutIcon = (p: IconProps) => (
   <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
     <path d="M14 4.5H6.5A2 2 0 0 0 4.5 6.5v11a2 2 0 0 0 2 2H14" />
@@ -79,10 +86,23 @@ const NAV_ITEMS: NavItemDef[] = [
   { to: '/sozlamalar', labelKey: 'nav.settings', shortLabelKey: 'nav.settingsShort', Icon: SettingsIcon, end: false },
 ];
 
+/** Faqat admin hisobiga (isAdmin=true) ko'rinadigan qo'shimcha band —
+ * haqiqiy ruxsat baribir server tomonda (AdminGuard) tekshiriladi, bu
+ * yerdagi shart faqat UI ko'rinishi uchun. */
+const ADMIN_NAV_ITEM: NavItemDef = {
+  to: '/admin',
+  labelKey: 'nav.admin',
+  shortLabelKey: 'nav.adminShort',
+  Icon: AdminIcon,
+  end: false,
+};
+
 /** Tarjima qilingan navigatsiya ro'yxati — Sidebar/BottomNav shu hook orqali oladi */
 export function useNavItems(): NavItem[] {
   const { t } = useTranslation();
-  return NAV_ITEMS.map(({ to, labelKey, shortLabelKey, end, Icon, img }) => ({
+  const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false);
+  const items = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS;
+  return items.map(({ to, labelKey, shortLabelKey, end, Icon, img }) => ({
     to,
     label: t(labelKey),
     shortLabel: t(shortLabelKey),

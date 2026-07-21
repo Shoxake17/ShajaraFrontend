@@ -25,6 +25,22 @@
     "storageQuotaExceeded": "Xotira to'lgan. Joy bo'shatib qayta urinib ko'ring.",
     "soon": "Tez orada"
   },
+  "admin": {
+    "title": "Admin panel",
+    "loadFailed": "Yuklab bo'lmadi. Qaytadan urinib ko'ring",
+    "actionFailed": "Amalni bajarib bo'lmadi. Qaytadan urinib ko'ring",
+    "searchPlaceholder": "Ism, email yoki telefon bo'yicha qidirish",
+    "noUsers": "Foydalanuvchi topilmadi",
+    "columns": {
+      "user": "Foydalanuvchi",
+      "members": "A'zolar",
+      "plan": "Tarif",
+      "slots": "Slotlar"
+    },
+    "addSlot": "100 a'zo qo'shish",
+    "removeSlot": "100 a'zo ayirish",
+    "viewTree": "Daraxtni ko'rish"
+  },
   "settings": {
     "title": "Sozlamalar",
     "sections": {
@@ -149,6 +165,8 @@
     "aiShort": "AI",
     "settings": "Sozlamalar",
     "settingsShort": "Sozlama",
+    "admin": "Admin panel",
+    "adminShort": "Admin",
     "memory": "Xotira",
     "memoryUsed": "{{used}} / {{limit}} foydalanilgan",
     "ariaLabel": "Asosiy navigatsiya"

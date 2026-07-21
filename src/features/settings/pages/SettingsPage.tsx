@@ -231,6 +231,11 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  // Admin hisobi (turaxonovshoxrux14@gmail.com) — ichki boshqaruvchi hisob,
+  // shu sabab obuna/maxfiylik/yordam/tizim (va ulashish kodi/hisobni
+  // o'chirish qatorlari) unga tegishli emas, ko'rsatilmaydi.
+  const isAdmin = user?.isAdmin ?? false;
+  const HIDDEN_FOR_ADMIN = new Set(['obuna', 'maxfiylik', 'yordam', 'tizim']);
   // Sana/Vaqt formati — Mintaqa tanloviga qarab AVTOMATIK (qo'lda sozlanmaydi)
   const { region } = useRegion();
   const regionFormat = REGION_FORMATS[region];
@@ -493,7 +498,7 @@ export function SettingsPage() {
         <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[230px_1fr]">
           {/* Ichki menyu — joyidan qimirlamaydi, faqat o'ng tomon scroll bo'ladi */}
           <nav className="hidden rounded-2xl border border-brand-100 bg-white p-2 lg:block lg:h-full lg:overflow-y-auto">
-            {SECTIONS.map(({ id, labelKey, Icon }) => (
+            {SECTIONS.filter(({ id }) => !isAdmin || !HIDDEN_FOR_ADMIN.has(id)).map(({ id, labelKey, Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -635,13 +640,15 @@ export function SettingsPage() {
                 </Card>
               </div>
 
-              <div id="obuna" className="scroll-mt-6">
-                <Card title={t('settings.sections.billing')} desc={t('settings.billing.desc')}>
-                  <div className="space-y-2">
-                    <Row Icon={AwardIcon} label={t('settings.billing.plan')} onClick={() => setPricingOpen(true)} right={chevron} />
-                  </div>
-                </Card>
-              </div>
+              {!isAdmin && (
+                <div id="obuna" className="scroll-mt-6">
+                  <Card title={t('settings.sections.billing')} desc={t('settings.billing.desc')}>
+                    <div className="space-y-2">
+                      <Row Icon={AwardIcon} label={t('settings.billing.plan')} onClick={() => setPricingOpen(true)} right={chevron} />
+                    </div>
+                  </Card>
+                </div>
+              )}
 
               <div id="xavfsizlik" className="scroll-mt-6">
                 <Card title={t('settings.sections.security')} desc={t('settings.security.desc')}>
@@ -671,12 +678,15 @@ export function SettingsPage() {
                     />
                     <Row Icon={DevicesIcon} label={t('settings.security.activeSessions')} onClick={() => setSessionsOpen(true)} right={chevron} />
                     <Row Icon={ClockIcon} label={t('settings.security.loginHistory')} onClick={() => setHistoryOpen(true)} right={chevron} />
-                    <Row Icon={UsersIcon2} label={t('settings.security.joinFamily')} onClick={() => setJoinFamilyOpen(true)} right={chevron} />
+                    {!isAdmin && (
+                      <Row Icon={UsersIcon2} label={t('settings.security.joinFamily')} onClick={() => setJoinFamilyOpen(true)} right={chevron} />
+                    )}
                   </div>
                 </Card>
               </div>
 
-            <div id="maxfiylik" className="scroll-mt-6">
+            {!isAdmin && (
+              <div id="maxfiylik" className="scroll-mt-6">
                 <Card title={t('settings.sections.privacy')} desc={t('settings.privacy.desc')}>
                   <div className="space-y-2">
                     <Row Icon={EyeIcon2} label={t('settings.privacy.profileVisibility')} right={<ProfileVisibilitySwitch />} />
@@ -686,6 +696,7 @@ export function SettingsPage() {
                   </div>
                 </Card>
               </div>
+            )}
 
               <div id="bildirishnoma" className="scroll-mt-6">
                 <Card title={t('settings.sections.notifications')} desc={t('settings.notifications.desc')}>
@@ -730,39 +741,45 @@ export function SettingsPage() {
                     <Row Icon={DownloadIcon} label={t('settings.export.download')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={FileIcon} label={t('settings.export.export')} right={<><SoonBadge />{chevron}</>} />
                     <Row Icon={LayersIcon} label={t('settings.export.googleDrive')} right={<><SoonBadge />{chevron}</>} />
-                    <Row
-                      Icon={TrashIcon}
-                      label={t('settings.export.deleteAccount')}
-                      danger
-                      onClick={() => setDeleteAccountOpen(true)}
-                      right={chevron}
-                    />
+                    {!isAdmin && (
+                      <Row
+                        Icon={TrashIcon}
+                        label={t('settings.export.deleteAccount')}
+                        danger
+                        onClick={() => setDeleteAccountOpen(true)}
+                        right={chevron}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>
 
-              <div id="yordam" className="scroll-mt-6">
-                <Card title={t('settings.sections.help')} desc={t('settings.help.desc')}>
-                  <div className="space-y-2">
-                    <Row Icon={HelpIcon} label={t('settings.help.helpCenter')} right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={ChatIcon} label={t('settings.help.contact')} right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={InfoIcon} label={t('settings.help.faq')} right={<><SoonBadge />{chevron}</>} />
-                    <Row Icon={AlertIcon} label={t('settings.help.reportBug')} right={<><SoonBadge />{chevron}</>} />
-                  </div>
-                </Card>
-              </div>
-
-            <div id="tizim" className="scroll-mt-6">
-              <Card title={t('settings.sections.system')} desc={t('settings.system.desc')}>
-                <div className="space-y-1">
-                  <Row Icon={LayersIcon} label={t('settings.system.version')} right={<span>1.0.0</span>} />
-                  <Row Icon={RefreshIcon} label={t('settings.system.checkUpdates')} right={<SoonBadge />} />
-                  <Row Icon={FileIcon} label={t('settings.system.terms')} right={<SoonBadge />} />
-                  <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} right={<SoonBadge />} />
-                  <Row Icon={AwardIcon} label={t('settings.system.licenses')} right={<SoonBadge />} />
+              {!isAdmin && (
+                <div id="yordam" className="scroll-mt-6">
+                  <Card title={t('settings.sections.help')} desc={t('settings.help.desc')}>
+                    <div className="space-y-2">
+                      <Row Icon={HelpIcon} label={t('settings.help.helpCenter')} right={<><SoonBadge />{chevron}</>} />
+                      <Row Icon={ChatIcon} label={t('settings.help.contact')} right={<><SoonBadge />{chevron}</>} />
+                      <Row Icon={InfoIcon} label={t('settings.help.faq')} right={<><SoonBadge />{chevron}</>} />
+                      <Row Icon={AlertIcon} label={t('settings.help.reportBug')} right={<><SoonBadge />{chevron}</>} />
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
+              )}
+
+            {!isAdmin && (
+              <div id="tizim" className="scroll-mt-6">
+                <Card title={t('settings.sections.system')} desc={t('settings.system.desc')}>
+                  <div className="space-y-1">
+                    <Row Icon={LayersIcon} label={t('settings.system.version')} right={<span>1.0.0</span>} />
+                    <Row Icon={RefreshIcon} label={t('settings.system.checkUpdates')} right={<SoonBadge />} />
+                    <Row Icon={FileIcon} label={t('settings.system.terms')} right={<SoonBadge />} />
+                    <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} right={<SoonBadge />} />
+                    <Row Icon={AwardIcon} label={t('settings.system.licenses')} right={<SoonBadge />} />
+                  </div>
+                </Card>
+              </div>
+            )}
 
             {/* Hisobdan chiqish — mobil/tabletda (Sidebar yashiringan holatda)
                 yagona chiqish yo'li. Desktopда (lg+) Sidebar'ning O'ZIDA bir

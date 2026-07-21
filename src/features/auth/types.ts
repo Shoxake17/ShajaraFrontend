@@ -30,6 +30,11 @@ export interface AuthUser {
    * "Parolni o'zgartirish" yoki "Parol o'rnatish" qatorlaridan qaysi
    * birini ko'rsatishni shu bilan hal qiladi. */
   hasPassword: boolean;
+  /** Faqat admin panelga ruxsat etilgan (bitta belgilangan) hisob uchun
+   * true — "Admin" navigatsiya bandini ko'rsatish/Sozlamalar bo'limlarini
+   * moslashtirish uchun. Haqiqiy ruxsat baribir server tomonda (har
+   * so'rovda) tekshiriladi — bu faqat UI bayrog'i. */
+  isAdmin: boolean;
 }
 
 export interface RegisterDto {

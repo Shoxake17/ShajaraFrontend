@@ -57,6 +57,7 @@ describe('AddEmailDialog (ikki bosqichli: forma -> kod)', () => {
       telegramLinked: true,
       telegramId: '12345',
       hasPassword: false,
+      isAdmin: false,
     });
     render(<AddEmailDialog open onClose={() => {}} />);
 
@@ -105,6 +106,7 @@ describe('AddEmailDialog (ikki bosqichli: forma -> kod)', () => {
           telegramLinked: true,
           telegramId: '12345',
           hasPassword: false,
+          isAdmin: false,
         },
         accessToken: 'at',
         initialized: true,

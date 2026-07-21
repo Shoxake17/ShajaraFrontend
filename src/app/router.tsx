@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { AdminRoute } from '@/app/AdminRoute';
 import { AppLayout } from '@/app/AppLayout';
 
 // Code splitting: har sahifa alohida chunk — birinchi yuklash tezroq
@@ -43,6 +44,12 @@ const MessagesPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('@/features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
+const AdminUsersPage = lazy(() =>
+  import('@/features/admin/pages/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
+);
+const AdminUserTreePage = lazy(() =>
+  import('@/features/admin/pages/AdminUserTreePage').then((m) => ({ default: m.AdminUserTreePage })),
+);
 
 function withSuspense(page: React.ReactNode) {
   return (
@@ -77,6 +84,13 @@ export const router = createBrowserRouter([
           { path: '/media', element: withSuspense(<MediaGalleryPage />) },
           // { path: '/ai', element: withSuspense(<ShajaraAiPage />) },
           { path: '/sozlamalar', element: withSuspense(<SettingsPage />) },
+          {
+            element: <AdminRoute />,
+            children: [
+              { path: '/admin', element: withSuspense(<AdminUsersPage />) },
+              { path: '/admin/users/:userId', element: withSuspense(<AdminUserTreePage />) },
+            ],
+          },
         ],
       },
     ],

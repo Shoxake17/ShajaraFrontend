@@ -28,6 +28,7 @@ const meResponse = (hasPassword: boolean) => ({
   telegramLinked: true,
   telegramId: '12345',
   hasPassword,
+  isAdmin: false,
 });
 
 function fillCode(code: string) {
