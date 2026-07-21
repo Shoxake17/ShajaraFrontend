@@ -120,23 +120,17 @@ export function AdminUsersPage() {
 
   // VIEWER ham o'ziga tegishli tarif/slot'ga ega — shu bois userId ROOT
   // qatorlardan biriga YOKI shu qatorning ICHIDAGI viewers'dan biriga tegishli
-  // bo'lishi mumkin, ikkalasini ham yangilaymiz.
+  // bo'lishi mumkin. MUHIM: tarif o'zgarganda faqat `plan` maydonini mahalliy
+  // patch qilish YETARLI EMAS — xotira raqamlari (storageUsedBytes/
+  // storageLimitBytes) backend'da FREE VIEWER uchun ROOT'nikini, PULLIK
+  // VIEWER uchun esa o'zinikini ko'rsatadi (admin.service.ts), ya'ni tarifga
+  // BOG'LIQ — shu bois har doim SERVERDAN QAYTA SO'RALADI (bitta haqiqiy
+  // manba, eskirgan holat bo'lmasin).
   const onPlanChange = async (userId: string, plan: Plan) => {
     setBusyUserId(userId);
     try {
-      const updated = await adminApi.setPlan(userId, plan);
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === userId
-            ? { ...u, plan: updated.plan, planExpiresAt: updated.planExpiresAt }
-            : {
-                ...u,
-                viewers: u.viewers.map((v) =>
-                  v.id === userId ? { ...v, plan: updated.plan, planExpiresAt: updated.planExpiresAt } : v,
-                ),
-              },
-        ),
-      );
+      await adminApi.setPlan(userId, plan);
+      await Promise.all([load(page, search), adminApi.getStats().then(setStats)]);
     } catch {
       setError(t('admin.actionFailed'));
     } finally {
@@ -147,14 +141,8 @@ export function AdminUsersPage() {
   const onSlotDelta = async (userId: string, delta: number) => {
     setBusyUserId(userId);
     try {
-      const updated = await adminApi.adjustSlots(userId, delta);
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === userId
-            ? { ...u, extraSlots: updated.extraSlots }
-            : { ...u, viewers: u.viewers.map((v) => (v.id === userId ? { ...v, extraSlots: updated.extraSlots } : v)) },
-        ),
-      );
+      await adminApi.adjustSlots(userId, delta);
+      await load(page, search);
     } catch {
       setError(t('admin.actionFailed'));
     } finally {
