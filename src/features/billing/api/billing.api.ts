@@ -26,8 +26,6 @@ export interface BillingStatus {
   storageLimitBytes: number;
   memberCount: number;
   maxMembers: number;
-  /** Faqat daraxt EGASI xarid qila oladi (VIEWER'da xarid tugmalari o'chirilishi kerak) */
-  canPurchase: boolean;
   plans: PlanDef[];
   slotProduct: SlotProduct;
 }

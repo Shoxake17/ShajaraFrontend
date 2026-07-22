@@ -97,7 +97,10 @@ export function PricingModal({ open, onClose }: Props) {
   const usagePercent = status
     ? Math.min(100, Math.round((status.storageUsedBytes / status.storageLimitBytes) * 100))
     : 0;
-  const canBuy = !!status?.canPurchase && isNative;
+  // Xarid HAR DOIM foydalanuvchining O'Z hisobiga tegishli — VIEWER ham
+  // (ulashish kodi bilan boshqa daraxtga qo'shilgan bo'lsa ham) o'zining
+  // mustaqil tarifini sotib olishi mumkin (backend: billing.controller.ts).
+  const canBuy = isNative;
   const canBuySlot = canBuy && status?.plan !== 'FREE';
 
   // Portal — document.body'ga to'g'ridan-to'g'ri chiqadi. Sidebar kabi
@@ -252,10 +255,7 @@ export function PricingModal({ open, onClose }: Props) {
               </div>
             )}
 
-            {!status.canPurchase && <p className="mt-4 text-center text-xs text-brand-500">{t('billing.viewerReadOnly')}</p>}
-            {status.canPurchase && !isNative && (
-              <p className="mt-4 text-center text-xs text-brand-500">{t('billing.webOnlyView')}</p>
-            )}
+            {!isNative && <p className="mt-4 text-center text-xs text-brand-500">{t('billing.webOnlyView')}</p>}
             <p className="mt-3 text-center text-[11px] text-brand-400">{t('billing.footerNote')}</p>
           </>
         )}
