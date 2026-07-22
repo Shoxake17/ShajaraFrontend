@@ -758,7 +758,8 @@ function TreeBoard() {
           }
           [data-theme='dark'] .hover\:bg-white:hover,
           [data-theme='dark'] .hover\:bg-brand-50:hover,
-          [data-theme='dark'] .hover\:bg-brand-100:hover {
+          [data-theme='dark'] .hover\:bg-brand-100:hover,
+          [data-theme='dark'] .hover\:bg-neutral-50:hover {
             background-color: rgb(255 255 255 / 0.07) !important;
           }
           [data-theme='dark'] .border-brand-100,

@@ -99,7 +99,10 @@ function Person({
         <img
           src={photoUrl}
           alt={name}
-          className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+          // object-top — markazdan EMAS, TEPADAN kesiladi: aks holda
+          // baland (portret) rasmlarda BOSH tepasi doiradan tashqarida
+          // qolib ketardi ("boshi ko'rinmasdan qolyapti" — fikr-mulohaza).
+          className="h-16 w-16 shrink-0 rounded-full object-cover object-top ring-2 ring-white shadow-sm"
           draggable={false}
         />
       ) : (

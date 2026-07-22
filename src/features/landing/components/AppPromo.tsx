@@ -11,10 +11,14 @@ const AndroidApkIcon = () => (
     <path d="M5 15v3.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V15" />
   </svg>
 );
-const DesktopIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4.5" width="18" height="12" rx="2" />
-    <path d="M8 20.5h8M12 16.5v4" />
+// Windows'ning rasmiy 4-panelli "bayroq" logotipi (Windows 11 uslubi,
+// Microsoft brend ko'k rangida) — umumiy monitor belgisi EMAS.
+const WindowsIcon = () => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="#0078D4">
+    <path d="M3 5.6 10.8 4.5v6.9H3Z" />
+    <path d="M11.8 4.3 21 3v8.3h-9.2Z" />
+    <path d="M3 12.4h7.8v6.9L3 18.2Z" />
+    <path d="M11.8 12.4H21V21l-9.2-1.3Z" />
   </svg>
 );
 
@@ -63,7 +67,7 @@ export function AppPromo() {
               className="appPromo__storeBtn appPromo__storeBtn--disabled"
               aria-disabled="true"
             >
-              <DesktopIcon />
+              <WindowsIcon />
               <span>
                 <span className="appPromo__storeLabel">{t('landing.appPromo.desktopLabel')}</span>
                 <span className="appPromo__storeName">{t('landing.appPromo.comingSoonSuffix')}</span>

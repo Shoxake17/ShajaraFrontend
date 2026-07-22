@@ -184,7 +184,7 @@ function Detail({
     <div className={`rounded-2xl border p-4 ${female ? 'border-pink-200 bg-pink-50/50' : 'border-brand-100 bg-brand-50/50'}`}>
       <div className="flex flex-col items-center text-center">
         {photoUrl ? (
-          <img src={photoUrl} alt={name} className="h-20 w-20 rounded-full object-cover" />
+          <img src={photoUrl} alt={name} className="h-20 w-20 rounded-full object-cover object-top" />
         ) : (
           <span
             className={`flex h-20 w-20 items-center justify-center rounded-full font-serif text-xl font-semibold ${avatarThemeFor(female, theme)}`}
@@ -287,7 +287,7 @@ function MobileDetail({
     <div className="py-4 first:pt-0">
       <div className="flex items-start gap-3">
         {photoUrl ? (
-          <img src={photoUrl} alt={name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+          <img src={photoUrl} alt={name} className="h-14 w-14 shrink-0 rounded-full object-cover object-top" />
         ) : (
           <span
             className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-serif text-base font-semibold ${avatarThemeFor(female, theme)}`}

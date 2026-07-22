@@ -60,14 +60,25 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
 
+  // Oxirgi qatorlardagi kartalarda tugma ekranning pastki chetiga yaqin
+  // bo'lsa, pastga ochilgan ro'yxat ekran tashqarisiga chiqib ko'rinmasdan
+  // qolardi — shu bois pastda yetarli joy bo'lmasa, AVTOMATIK tugmaning
+  // USTIDA ochiladi (SelectPicker.tsx'dagi bilan bir xil naqsh).
   useLayoutEffect(() => {
     if (!open) return;
+    const PANEL_HEIGHT = 96; // 2 ta band, taxminiy balandlik
     const update = () => {
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+      const margin = 4;
+      const spaceBelow = window.innerHeight - rect.bottom - margin;
+      const openBelow = spaceBelow >= PANEL_HEIGHT || spaceBelow >= rect.top - margin;
+      setPos({
+        right: window.innerWidth - rect.right,
+        ...(openBelow ? { top: rect.bottom + margin } : { bottom: window.innerHeight - rect.top + margin }),
+      });
     };
     update();
     window.addEventListener('resize', update);
@@ -106,7 +117,7 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
         createPortal(
           <div
             ref={panelRef}
-            style={{ position: 'fixed', top: pos.top, right: pos.right }}
+            style={{ position: 'fixed', top: pos.top, bottom: pos.bottom, right: pos.right }}
             className="z-50 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
           >
             <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-brand-800 transition-colors hover:bg-brand-50">

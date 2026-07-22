@@ -43,14 +43,30 @@ export function SelectPicker({ value, options, onChange, label, className = '', 
   // ichki `position: absolute` ro'yxat DOM tartibida KEYINGI qator ortida
   // qolib, tanlashga xalaqit berardi ("pastdagi blok ochilib xalaqit
   // beryapti" — fikr-mulohaza). Portal bu muammoni butunlay bartaraf etadi.
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  //
+  // MUHIM: tugma ekranning pastki chetiga yaqin bo'lsa (masalan Oy/Kun
+  // tanlagichlari dialog pastida), pastga ochilgan ro'yxat ekran tashqarisiga
+  // chiqib, ko'rinmasdan qolardi ("chekasiga chiqib ko'rinmasdan qolyapti" —
+  // fikr-mulohaza). Shu bois pastda YETARLI joy bo'lmasa, ro'yxat AVTOMATIK
+  // yuqoriga ochiladi (tugmaning USTIDA), va har ikkala holatda ham
+  // balandligi mavjud bo'shliqqa moslab cheklanadi (scroll bilan).
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number; maxHeight: number } | null>(null);
 
   useLayoutEffect(() => {
     if (!open) return;
     const update = () => {
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+      const margin = 6;
+      const spaceBelow = window.innerHeight - rect.bottom - margin;
+      const spaceAbove = rect.top - margin;
+      const openBelow = spaceBelow >= 160 || spaceBelow >= spaceAbove;
+      const maxHeight = Math.max(120, Math.min(288, openBelow ? spaceBelow : spaceAbove));
+      setPos({
+        right: window.innerWidth - rect.right,
+        maxHeight,
+        ...(openBelow ? { top: rect.bottom + margin } : { bottom: window.innerHeight - rect.top + margin }),
+      });
     };
     update();
     window.addEventListener('resize', update);
@@ -106,8 +122,8 @@ export function SelectPicker({ value, options, onChange, label, className = '', 
             ref={panelRef}
             role="listbox"
             aria-label={label}
-            style={{ position: 'fixed', top: pos.top, right: pos.right }}
-            className="no-scrollbar z-50 max-h-72 w-max min-w-[10rem] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
+            style={{ position: 'fixed', top: pos.top, bottom: pos.bottom, right: pos.right, maxHeight: pos.maxHeight }}
+            className="no-scrollbar z-50 w-max min-w-[10rem] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl"
           >
             {options.map((o) => {
               const selected = o.value === value;
