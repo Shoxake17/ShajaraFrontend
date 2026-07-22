@@ -178,8 +178,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/downloads/AJDO.apk public/downloads/latest.json
-          git diff --cached --quiet && echo "O'zgarish yo'q" || git commit -m "chore: AJDO.apk avtomatik yangilash"
-          git push
+          if git diff --cached --quiet; then
+            echo "O'zgarish yo'q"
+            exit 0
+          fi
+          git commit -m "chore: AJDO.apk avtomatik yangilash"
+          # MUHIM: build-desktop job'i (windows-latest) HAM shu SHU push
+          # hodisasidan kelib chiqib, PARALLEL ravishda main'ga o'z bot-
+          # commit'ini push qilishi mumkin — kim birinchi push qilsa
+          # o'shanikiga ega bo'ladi, ikkinchisi "fetch first" (non-fast-
+          # forward) bilan RAD ETILARDI. Fayllar boshqa-boshqa bo'lgani
+          # uchun (AJDO.apk vs desktop/AJDO-Setup.exe) rebase HECH QACHON
+          # ziddiyatga tushmaydi — shu bois oddiy fetch+rebase+qayta urinish
+          # yetarli.
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rad etildi (ehtimol parallel build-desktop bot-commit) — fetch+rebase bilan qayta urinilmoqda ($i)..."
+            git fetch origin main
+            git rebase origin/main
+            sleep $((RANDOM % 5 + 2))
+          done
+          echo "Push barcha urinishlardan keyin ham muvaffaqiyatsiz bo'ldi" >&2
+          exit 1
 
   # 6. Windows desktop (.exe) ilovasini avtomatik qurish va e'lon qilish —
   # build-apk bilan AYNAN bir xil mustaqil/xavfsiz naqsh: Android o'rniga
@@ -231,9 +253,29 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/downloads/desktop/
           git diff --cached --quiet
-          if ($LASTEXITCODE -ne 0) {
-            git commit -m "chore: AJDO-Setup.exe avtomatik yangilash"
-            git push
-          } else {
+          if ($LASTEXITCODE -eq 0) {
             Write-Output "O'zgarish yo'q"
+            exit 0
+          }
+          git commit -m "chore: AJDO-Setup.exe avtomatik yangilash"
+          # MUHIM: build-apk job'i (ubuntu-latest) HAM shu SHU push
+          # hodisasidan kelib chiqib, PARALLEL ravishda main'ga o'z bot-
+          # commit'ini push qilishi mumkin — kim birinchi push qilsa
+          # o'shanikiga ega bo'ladi, ikkinchisi "fetch first" (non-fast-
+          # forward) bilan RAD ETILARDI. Fayllar boshqa-boshqa bo'lgani
+          # uchun (desktop/AJDO-Setup.exe vs AJDO.apk) rebase HECH QACHON
+          # ziddiyatga tushmaydi — shu bois oddiy fetch+rebase+qayta urinish
+          # yetarli.
+          $pushed = $false
+          for ($i = 1; $i -le 5; $i++) {
+            git push
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+            Write-Output "Push rad etildi (ehtimol parallel build-apk bot-commit) — fetch+rebase bilan qayta urinilmoqda ($i)..."
+            git fetch origin main
+            git rebase origin/main
+            Start-Sleep -Seconds (Get-Random -Minimum 2 -Maximum 7)
+          }
+          if (-not $pushed) {
+            Write-Error "Push barcha urinishlardan keyin ham muvaffaqiyatsiz bo'ldi"
+            exit 1
           }
