@@ -2,7 +2,7 @@
 // "Media galereya" — yuklangan media (rasm/video/hujjat) + doskadagi a'zo
 // rasmlari. Yuklash, o'chirish, filtr (tur/yil), kattalashtirib ko'rish.
 // Xavfsiz: R2'ga to'g'ridan-to'g'ri yuklash, server tur/hajm/egalikni tekshiradi.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -45,22 +45,55 @@ const DotsI = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="curre
 const ChevronI = ({ className }: { className?: string }) => (<svg viewBox="0 0 24 24" width="14" height="14" {...svg} className={className}><path d="m6 9 6 6 6-6" /></svg>);
 const CheckI = () => (<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>);
 
-/** Karta ustidagi ⋮ menyu — Tahrirlash / O'chirish */
+/**
+ * Karta ustidagi ⋮ menyu — Tahrirlash / O'chirish.
+ * MUHIM: ro'yxat PORTAL orqali document.body'ga chiqariladi (oddiy ichki
+ * position:absolute EMAS) — SelectPicker.tsx'dagi bilan AYNAN bir xil sabab:
+ * Dark/Light ko'rinish rejimida har bir karta bg-white orqali backdrop-filter
+ * oladi (index.css — shisha effekti), bu esa HAR BIR kartani alohida
+ * stacking context'ga aylantiradi; natijada oddiy ichki absolute ro'yxat
+ * DOM tartibida KEYINGI kartalar (rasmlar) ORTIDA qolib, ko'rinmay qolardi
+ * ("rasm ni orqasiga o'tib ko'rinmasdan berkilib qolyapti" — fikr-mulohaza).
+ */
 function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (triggerRef.current?.contains(t)) return;
+      if (panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [open]);
+
   return (
-    <div ref={ref} className="relative shrink-0">
+    <div className="relative shrink-0">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label={t('media.actions')}
@@ -68,16 +101,23 @@ function CardMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => vo
       >
         <DotsI />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full z-10 mt-1 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-card">
-          <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-brand-800 transition-colors hover:bg-brand-50">
-            <EditI /> {t('common.edit')}
-          </button>
-          <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
-            <TrashI /> {t('common.delete')}
-          </button>
-        </div>
-      )}
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            ref={panelRef}
+            style={{ position: 'fixed', top: pos.top, right: pos.right }}
+            className="z-50 w-36 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-card"
+          >
+            <button type="button" onClick={() => { setOpen(false); onEdit(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-brand-800 transition-colors hover:bg-brand-50">
+              <EditI /> {t('common.edit')}
+            </button>
+            <button type="button" onClick={() => { setOpen(false); onDelete(); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
+              <TrashI /> {t('common.delete')}
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

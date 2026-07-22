@@ -1,6 +1,7 @@
 // features/tree/components/YearInputs.tsx
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { SelectPicker } from '@/shared/ui/SelectPicker';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -25,10 +26,15 @@ interface YearInputsProps {
 
 const cls =
   'w-full rounded-field border border-neutral-200 bg-white px-4 py-3.5 text-[15px] text-brand-900 outline-none focus:border-brand-600';
-const smallCls =
-  'w-full rounded-field border border-neutral-200 bg-white px-2 py-2.5 text-[13px] text-brand-700 outline-none focus:border-brand-600';
 
-/** Oy/kun tanlash (ixtiyoriy) — bitta ustun (tug'ilgan YOKI vafot) uchun */
+/**
+ * Oy/kun tanlash (ixtiyoriy) — bitta ustun (tug'ilgan YOKI vafot) uchun.
+ * MUHIM: native <select> EMAS — Capacitor/Android WebView'da ochilgan
+ * ro'yxat OS'ning o'z (tizim) ko'rinishida chiqadi va CSS bilan
+ * boshqarilmaydi, shu bois Soft/Light/Dark ko'rinish rejimlariga hech
+ * qachon mos kelmasdi. SelectPicker (portal-asosli, to'liq stil
+ * boshqariladigan) barcha 3 rejimda ham izchil, shaffof/soft ko'rinadi.
+ */
 function MonthDaySelect({
   month,
   day,
@@ -41,24 +47,30 @@ function MonthDaySelect({
   onDay: (v: string) => void;
 }) {
   const { t } = useTranslation();
+  const monthOptions = [
+    { value: '', label: t('tree.monthPlaceholder') },
+    ...MONTHS.map((m) => ({ value: String(m), label: t(`tree.months.${m}`) })),
+  ];
+  const dayOptions = [
+    { value: '', label: t('tree.dayPlaceholder') },
+    ...DAYS.map((d) => ({ value: String(d), label: String(d) })),
+  ];
   return (
     <div className="flex gap-1.5">
-      <select value={month} onChange={(e) => onMonth(e.target.value)} className={smallCls} aria-label={t('tree.birthMonthLabel')}>
-        <option value="">{t('tree.monthPlaceholder')}</option>
-        {MONTHS.map((m) => (
-          <option key={m} value={m}>
-            {t(`tree.months.${m}`)}
-          </option>
-        ))}
-      </select>
-      <select value={day} onChange={(e) => onDay(e.target.value)} className={smallCls} aria-label={t('tree.birthDayLabel')}>
-        <option value="">{t('tree.dayPlaceholder')}</option>
-        {DAYS.map((d) => (
-          <option key={d} value={d}>
-            {d}
-          </option>
-        ))}
-      </select>
+      <SelectPicker
+        value={month}
+        options={monthOptions}
+        onChange={onMonth}
+        label={t('tree.birthMonthLabel')}
+        className="flex-1"
+      />
+      <SelectPicker
+        value={day}
+        options={dayOptions}
+        onChange={onDay}
+        label={t('tree.birthDayLabel')}
+        className="flex-1"
+      />
     </div>
   );
 }

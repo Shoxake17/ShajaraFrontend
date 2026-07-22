@@ -78,8 +78,15 @@ export function PhotoPicker({ value, female, onChange, onError }: PhotoPickerPro
           }}
         />
         <span
+          // MUHIM: bg-brand-50/bg-pink-50 (opacity-suffiksisiz) — Dark/Light
+          // ko'rinish rejimlarida sahifa FONI sifatida umumiy shisha
+          // effektiga (deyarli shaffof, rangsiz) o'zgartiriladi (index.css) —
+          // shu bois erkak/ayol rangini (yashil/pushti) BUTUNLAY yo'qotib
+          // qo'yardi. bg-brand-100/bg-pink-100 esa bu override'lar
+          // TA'SIRIDAN TASHQARIDA — barcha rejimda (Soft/Light/Dark) O'ZINING
+          // yashil/pushti rangida qat'iy ko'rinadi.
           className={`flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-colors ${
-            female ? 'border-pink-300 bg-pink-50' : 'border-brand-300 bg-brand-50'
+            female ? 'border-pink-300 bg-pink-100' : 'border-brand-300 bg-brand-100'
           }`}
         >
           {uploading ? (

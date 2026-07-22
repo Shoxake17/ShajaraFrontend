@@ -74,9 +74,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
         .emitWithAck('message:send', { recipientId: otherUserId, ...dto })) as {
         ok?: boolean;
         error?: string;
+        status?: number;
         message?: ChatMessage;
       };
-      if (res?.error || !res?.message) throw new Error(res?.error ?? 'Xabar yuborilmadi');
+      if (res?.error || !res?.message) {
+        // MUHIM: quotaMessage() (storage.store.ts) faqat Axios'ning
+        // `err.response.status` shaklini biladi — WebSocket xatosi bunday
+        // maydonga ega EMAS (backend chat.gateway.ts'dan kelgan oddiy
+        // `{error, status}`), shu bois SHU YERDA xuddi Axios xatosidek
+        // qayta shakllantiramiz — aks holda 413 (xotira to'lgan) ham
+        // umumiy "Xabar yuborilmadi" bo'lib ko'rinib qolardi.
+        const err = new Error(res?.error ?? 'Xabar yuborilmadi') as Error & {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (res?.status) err.response = { status: res.status, data: { message: res.error } };
+        throw err;
+      }
       message = res.message;
     } else {
       message = await chatApi.sendMessage(otherUserId, dto);
