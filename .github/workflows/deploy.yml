@@ -157,6 +157,14 @@ jobs:
 
       - name: Yangi APK'ni repo'ga commit qilish
         run: |
+          # MUHIM: AJDO.apk Git LFS orqali kuzatiladi (.gitattributes) —
+          # GitHub'ning ODDIY git obyekti uchun 100 MB qattiq chegarasi bor
+          # ("File ... exceeds GitHub's file size limit" xatosi shu
+          # sababdan chiqqan edi, APK 100+ MB'ga yetganda). `git lfs
+          # install` runner'ning O'ZIDA (checkout keyin) filtrni faollashtiradi
+          # — aks holda `git add` APK'ni LFS'siz, ODDIY (katta) obyekt
+          # sifatida qo'shib qo'yishi mumkin edi.
+          git lfs install
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/downloads/AJDO.apk public/downloads/latest.json
