@@ -119,6 +119,14 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # MUHIM: ubuntu-latest runner'da Android SDK O'RNATILGAN bo'lsa ham,
+      # `sdkmanager` PATH'da YO'Q (avvalgi urinishda "command not found",
+      # exit 127 bilan tasdiqlandi) — shu bois SDK'ni to'g'ri
+      # sozlaydigan/PATH'ga qo'shadigan RASMIY action ishlatiladi (o'zi
+      # sdkmanager'ni topib, cmdline-tools'ni o'rnatib beradi).
+      - name: Android SDK'ni sozlash
+        uses: android-actions/setup-android@v3
+
       - name: Android SDK platformasi/build-tools (android/variables.gradle bilan mos)
         run: |
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
