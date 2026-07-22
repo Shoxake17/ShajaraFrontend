@@ -53,6 +53,11 @@
       "usersCount": "{{count}} users"
     }
   },
+  "update": {
+    "available": "New version available: v{{version}}",
+    "later": "Later",
+    "action": "Update"
+  },
   "settings": {
     "title": "Settings",
     "sections": {
@@ -719,6 +724,9 @@
       "appStoreLabel": "App Store",
       "googlePlayLabel": "Google Play",
       "downloadSuffix": "download",
+      "apkLabel": "APK file",
+      "desktopLabel": "For desktop",
+      "comingSoonSuffix": "coming soon",
       "logoAlt": "Shajara app logo"
     },
     "footer": {

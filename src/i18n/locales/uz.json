@@ -53,6 +53,11 @@
       "usersCount": "{{count}} foydalanuvchi"
     }
   },
+  "update": {
+    "available": "Yangi versiya mavjud: v{{version}}",
+    "later": "Keyinroq",
+    "action": "Yangilash"
+  },
   "settings": {
     "title": "Sozlamalar",
     "sections": {
@@ -708,6 +713,9 @@
       "appStoreLabel": "App Store‘dan",
       "googlePlayLabel": "Google Play‘dan",
       "downloadSuffix": "yuklab oling",
+      "apkLabel": "APK fayl",
+      "desktopLabel": "Kompyuter uchun",
+      "comingSoonSuffix": "tez orada",
       "logoAlt": "Shajara ilovasi logotipi"
     },
     "footer": {

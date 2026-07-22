@@ -7,7 +7,7 @@
     "postinstall": "patch-package",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:capacitor": "tsc -b && vite build --mode capacitor",
+    "build:capacitor": "node scripts/sync-version.mjs && tsc -b && vite build --mode capacitor",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",

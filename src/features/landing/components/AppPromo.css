@@ -79,6 +79,18 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Desktop tugmasi — hozircha faqat KO'RSATISH uchun, funksional emas
+   (desktop versiyasi hali mavjud emas) — vizual jihatdan xiraroq va
+   qo'l ko'rsatgichi "yasama emasligi"ni bildirsin. */
+.appPromo__storeBtn--disabled {
+  cursor: default;
+  opacity: 0.55;
+  font: inherit;
+}
+.appPromo__storeBtn--disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .appPromo__storeLabel {
   display: block;
   font-size: 0.6875rem;

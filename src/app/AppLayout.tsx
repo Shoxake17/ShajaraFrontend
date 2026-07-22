@@ -13,6 +13,7 @@ import { MinimizedCallBar } from '@/features/chat/components/MinimizedCallBar';
 import { IncomingCallBanner } from '@/features/chat/components/IncomingCallBanner';
 import { initWebPush } from '@/features/push/push.web';
 import { initNativePush } from '@/features/push/push.native';
+import { UpdateCheck } from '@/features/update/UpdateCheck';
 
 /**
  * Har sahifa (Outlet) shu orqali o'zining yuqori panel amallarini (qidiruv,
@@ -116,6 +117,7 @@ export function AppLayout() {
       <CallOverlay />
       <MinimizedCallBar />
       <IncomingCallBanner />
+      <UpdateCheck />
     </div>
   );
 }

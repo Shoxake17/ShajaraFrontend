@@ -53,6 +53,11 @@
       "usersCount": "{{count}} пользователей"
     }
   },
+  "update": {
+    "available": "Доступна новая версия: v{{version}}",
+    "later": "Позже",
+    "action": "Обновить"
+  },
   "settings": {
     "title": "Настройки",
     "sections": {
@@ -727,6 +732,9 @@
       "appStoreLabel": "App Store",
       "googlePlayLabel": "Google Play",
       "downloadSuffix": "скачать",
+      "apkLabel": "APK файл",
+      "desktopLabel": "Для компьютера",
+      "comingSoonSuffix": "скоро",
       "logoAlt": "Логотип приложения Shajara"
     },
     "footer": {
