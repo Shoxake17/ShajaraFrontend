@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:capacitor": "node scripts/sync-version.mjs && tsc -b && vite build --mode capacitor",
+    "build:desktop": "tsc -b && vite build --mode electron && node scripts/copy-dist-to-electron.mjs && npm --prefix electron run dist",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",

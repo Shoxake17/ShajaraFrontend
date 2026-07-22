@@ -6,10 +6,17 @@ yarn-error.log
 
 # Build natijalari (serverda Docker o'zi build qiladi, shuning uchun git'ga kerak emas)
 dist/
-build/
+/build/
 .next/
 .nuxt/
 out/
+
+# Electron (desktop) — o'zining alohida bog'liqliklari/build natijalari
+# (electron/build/icon.png esa KERAK — electron-builder'ning manba resurs
+# papkasi, shu bois yuqoridagi /build/ ATAYLAB faqat ILDIZ darajasiga
+# cheklangan, electron/build/ga tegmaydi).
+electron/dist/
+electron/dist-electron/
 
 # Muhit o'zgaruvchilari (Eng muhim xavfsizlik qoidasi!)
 .env

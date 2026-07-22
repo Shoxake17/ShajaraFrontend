@@ -170,3 +170,58 @@ jobs:
           git add public/downloads/AJDO.apk public/downloads/latest.json
           git diff --cached --quiet && echo "O'zgarish yo'q" || git commit -m "chore: AJDO.apk avtomatik yangilash"
           git push
+
+  # 6. Windows desktop (.exe) ilovasini avtomatik qurish va e'lon qilish —
+  # build-apk bilan AYNAN bir xil mustaqil/xavfsiz naqsh: Android o'rniga
+  # Electron/electron-builder, ubuntu-latest o'rniga windows-latest
+  # (Windows nishonli .exe qurish uchun native muhit kerak). Bu job ham
+  # asosiy veb deploy'dan MUSTAQIL — muvaffaqiyatsiz bo'lsa ham uni
+  # to'xtatmaydi.
+  build-desktop:
+    name: Build Windows Desktop App
+    runs-on: windows-latest
+    if: github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node o'rnatish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Bog'liqliklarni o'rnatish (asosiy)
+        run: npm ci
+
+      - name: Bog'liqliklarni o'rnatish (electron)
+        run: npm --prefix electron ci
+
+      - name: Desktop ilovasini qurish (veb bundle --mode electron + electron-builder)
+        run: npm run build:desktop
+
+      - name: Yuklab olish papkasini tayyorlash
+        run: |
+          New-Item -ItemType Directory -Force -Path public/downloads/desktop | Out-Null
+          Copy-Item electron/dist-electron/AJDO-Setup.exe public/downloads/desktop/AJDO-Setup.exe -Force
+          Copy-Item electron/dist-electron/latest.yml public/downloads/desktop/latest.yml -Force
+          if (Test-Path electron/dist-electron/AJDO-Setup.exe.blockmap) {
+            Copy-Item electron/dist-electron/AJDO-Setup.exe.blockmap public/downloads/desktop/AJDO-Setup.exe.blockmap -Force
+          }
+
+      - name: Yangi .exe'ni repo'ga commit qilish
+        run: |
+          # AJDO-Setup.exe HAM Git LFS orqali (.gitattributes) — Electron
+          # ilovalari Chromium+Node bundlagani uchun APK'dan ham kattaroq
+          # (150+ MB) bo'lishi mumkin.
+          git lfs install
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/downloads/desktop/
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "chore: AJDO-Setup.exe avtomatik yangilash"
+            git push
+          } else {
+            Write-Output "O'zgarish yo'q"
+          }

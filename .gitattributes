@@ -5,3 +5,7 @@
 # limit" xatosi shu sababdan). Git LFS orqali saqlash bu chegarani olib
 # tashlaydi (LFS fayllari alohida, katta hajmli saqlash uchun mo'ljallangan).
 public/downloads/*.apk filter=lfs diff=lfs merge=lfs -text
+# AJDO-Setup.exe (Electron — Chromium+Node bundlangani uchun odatda
+# APK'dan HAM kattaroq, 150+ MB) — xuddi shu sabab bilan LFS orqali.
+public/downloads/desktop/*.exe filter=lfs diff=lfs merge=lfs -text
+public/downloads/desktop/*.blockmap filter=lfs diff=lfs merge=lfs -text

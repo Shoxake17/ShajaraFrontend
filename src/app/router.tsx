@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
+import { isElectron } from '@/shared/lib/electron';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { AdminRoute } from '@/app/AdminRoute';
 import { NonAdminRoute } from '@/app/NonAdminRoute';
@@ -66,10 +67,11 @@ function withSuspense(page: React.ReactNode) {
   );
 }
 
-// Nativ ilova (Capacitor bilan o'ralgan Android/iOS) ochilganda "/" da
-// public/page.png maketiga mos kirish sahifasi ko'rinadi; veb-brauzerda
-// esa odatdagi marketing LandingPage'i o'zgarishsiz qoladi.
-const RootPage = Capacitor.isNativePlatform() ? MobileWelcomePage : LandingPage;
+// Nativ ilova (Capacitor bilan o'ralgan Android/iOS) YOKI Electron
+// (Windows desktop) ochilganda "/" da MobileWelcomePage (Kirish/Ro'yxatdan
+// o'tish tanlovi) ko'rinadi; veb-brauzerda esa odatdagi marketing
+// LandingPage'i o'zgarishsiz qoladi.
+const RootPage = Capacitor.isNativePlatform() || isElectron() ? MobileWelcomePage : LandingPage;
 
 export const router = createBrowserRouter([
   { path: '/', element: withSuspense(<RootPage />) },

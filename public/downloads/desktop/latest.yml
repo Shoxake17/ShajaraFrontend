@@ -1,0 +1,8 @@
+version: 1.1.0
+files:
+  - url: AJDO-Setup.exe
+    sha512: PxFXo8icNwHDOwtwdgFBNZqns9uZDT+624NeSR16tNf7AG+wilXjA6vsNYa8hMCH2S6tZ3MzW3iti2t9W41hZQ==
+    size: 137549214
+path: AJDO-Setup.exe
+sha512: PxFXo8icNwHDOwtwdgFBNZqns9uZDT+624NeSR16tNf7AG+wilXjA6vsNYa8hMCH2S6tZ3MzW3iti2t9W41hZQ==
+releaseDate: '2026-07-22T19:43:45.443Z'

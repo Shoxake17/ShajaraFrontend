@@ -1,0 +1,48 @@
+{
+  "name": "ajdo-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "description": "AJDO Shajara — Windows desktop ilovasi (Electron)",
+  "author": "AJDO",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "dist": "electron-builder --win --publish=never"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^32.2.5",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "uz.ajdo.shajara.desktop",
+    "productName": "AJDO",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "dist/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png",
+      "artifactName": "AJDO-Setup.exe"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://ajdo.uz/downloads/desktop/"
+      }
+    ]
+  }
+}

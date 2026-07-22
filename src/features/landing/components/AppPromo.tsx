@@ -5,10 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { AppleIcon, PlayStoreIcon } from '@/shared/ui/icons';
 import './AppPromo.css';
 
+// Android "bugdroid" maskoti siluetini rasmiy brend yashil rangida
+// (#3DDC84) — umumiy yuklab olish strelkasi EMAS.
 const AndroidApkIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3v11m0 0-4-4m4 4 4-4" />
-    <path d="M5 15v3.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V15" />
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="#3DDC84">
+    <path d="M7.4 4.9 6.1 2.9a.55.55 0 0 1 .92-.6l1.38 2.15a7 7 0 0 1 6.4 0L16.18 2.3a.55.55 0 0 1 .92.6l-1.3 2a7 7 0 0 1 2.87 4.9H4.53A7 7 0 0 1 7.4 4.9Z" />
+    <rect x="4.4" y="10.9" width="15.2" height="7.6" rx="1.4" />
+    <rect x="2.4" y="11.6" width="1.7" height="5.4" rx="0.85" />
+    <rect x="19.9" y="11.6" width="1.7" height="5.4" rx="0.85" />
+    <rect x="8.3" y="19.5" width="1.8" height="3" rx="0.9" />
+    <rect x="13.9" y="19.5" width="1.8" height="3" rx="0.9" />
   </svg>
 );
 // Windows'ning rasmiy 4-panelli "bayroq" logotipi (Windows 11 uslubi,
@@ -59,20 +65,19 @@ export function AppPromo() {
                 <span className="appPromo__storeName">{t('landing.appPromo.downloadSuffix')}</span>
               </span>
             </a>
-            {/* Desktop versiyasi HALI MAVJUD EMAS — tugma ko'rinadi, lekin
-                hech narsa yuklamaydi (onClick — preventDefault). */}
-            <button
-              type="button"
-              onClick={(e) => e.preventDefault()}
-              className="appPromo__storeBtn appPromo__storeBtn--disabled"
-              aria-disabled="true"
-            >
+            {/* AJDO-Setup.exe — AJDO.apk bilan bir xil naqsh: nginx statik
+                fayl sifatida xizmat qiladi (public/downloads/desktop/,
+                GitHub Actions har push'da avtomatik yangilaydi —
+                deploy.yml#build-desktop). O'rnatilgach, Electron'ning o'zi
+                (electron-updater) keyingi yangilanishlarni AVTOMATIK
+                tekshiradi va bitta tugma bilan yangilaydi. */}
+            <a href="/downloads/desktop/AJDO-Setup.exe" download="AJDO-Setup.exe" className="appPromo__storeBtn">
               <WindowsIcon />
               <span>
                 <span className="appPromo__storeLabel">{t('landing.appPromo.desktopLabel')}</span>
-                <span className="appPromo__storeName">{t('landing.appPromo.comingSoonSuffix')}</span>
+                <span className="appPromo__storeName">{t('landing.appPromo.downloadSuffix')}</span>
               </span>
-            </button>
+            </a>
           </div>
         </div>
 
