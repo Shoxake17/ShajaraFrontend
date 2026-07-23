@@ -36,7 +36,7 @@ app.whenReady().then(() => {
   createWindow();
 
   // Ishga tushganda serverdagi eng so'nggi versiyani tekshiradi
-  // (deploy.yml#build-desktop CI'da har push'da public/downloads/desktop/
+  // (deploy.yml#build-desktop CI'da har push'da downloads/desktop/
   // ostiga yuklab qo'yiladi). Yangisi topilsa, yuklab olib, foydalanuvchiga
   // NATIV OS dialogida "Qayta ishga tushirib o'rnatish"ni taklif qiladi —
   // electron-updater'ning STANDART xatti-harakati, qo'shimcha UI kod shart

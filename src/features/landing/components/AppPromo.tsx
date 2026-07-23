@@ -54,10 +54,11 @@ export function AppPromo() {
               </span>
             </a>
             {/* AJDO.apk — nginx orqali statik fayl sifatida xizmat qiladi
-                (public/downloads/, GitHub Actions har push'da avtomatik
-                yangilaydi — deploy.yml#build-apk). `download` atributi
-                brauzerga faylni ochish EMAS, TO'G'RIDAN-TO'G'RI YUKLASHNI
-                buyuradi. */}
+                (downloads/, ILDIZ darajasida — public/ ICHIDA EMAS, aks
+                holda Android build'iga o'zi bilan birga nusxalanib
+                qolardi. GitHub Actions har push'da avtomatik yangilaydi —
+                deploy.yml#build-apk). `download` atributi brauzerga
+                faylni ochish EMAS, TO'G'RIDAN-TO'G'RI YUKLASHNI buyuradi. */}
             <a href="/downloads/AJDO.apk" download="AJDO.apk" className="appPromo__storeBtn">
               <AndroidApkIcon />
               <span>
@@ -66,11 +67,12 @@ export function AppPromo() {
               </span>
             </a>
             {/* AJDO-Setup.exe — AJDO.apk bilan bir xil naqsh: nginx statik
-                fayl sifatida xizmat qiladi (public/downloads/desktop/,
-                GitHub Actions har push'da avtomatik yangilaydi —
-                deploy.yml#build-desktop). O'rnatilgach, Electron'ning o'zi
-                (electron-updater) keyingi yangilanishlarni AVTOMATIK
-                tekshiradi va bitta tugma bilan yangilaydi. */}
+                fayl sifatida xizmat qiladi (downloads/desktop/, ILDIZ
+                darajasida). GitHub Actions har push'da avtomatik
+                yangilaydi — deploy.yml#build-desktop. O'rnatilgach,
+                Electron'ning o'zi (electron-updater) keyingi
+                yangilanishlarni AVTOMATIK tekshiradi va bitta tugma bilan
+                yangilaydi. */}
             <a href="/downloads/desktop/AJDO-Setup.exe" download="AJDO-Setup.exe" className="appPromo__storeBtn">
               <WindowsIcon />
               <span>

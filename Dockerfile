@@ -30,6 +30,16 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Build qilingan fayllarni Nginx papkasiga o'tkazish
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# APK/Desktop yuklab olish fayllari — ATAYLAB public/ ICHIDA EMAS
+# (downloads/, ILDIZ darajasida) va shu bois yuqoridagi dist/'ga
+# ARALASHMAYDI — aks holda `npx cap sync android` bu fayllarni Android
+# ilovaning O'ZINING ICHIGA (assets) nusxalab, Gradle'ning
+# compressDebugAssets bosqichini "Java heap space" xatosi bilan
+# yiqitgan edi (200+ MB keraksiz binary). nginx.conf'dagi
+# `try_files $uri ...` mavjud statik faylni to'g'ridan-to'g'ri xizmat
+# qiladi — qo'shimcha sozlama shart emas.
+COPY --from=build /app/downloads /usr/share/nginx/html/downloads
+
 # Xavfsizlik va sozlamalar
 EXPOSE 80
 

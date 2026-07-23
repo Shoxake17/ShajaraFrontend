@@ -4,8 +4,16 @@
 # chegarasidan oshib ketishi mumkin ("File ... exceeds GitHub's file size
 # limit" xatosi shu sababdan). Git LFS orqali saqlash bu chegarani olib
 # tashlaydi (LFS fayllari alohida, katta hajmli saqlash uchun mo'ljallangan).
-public/downloads/*.apk filter=lfs diff=lfs merge=lfs -text
+#
+# MUHIM: bu fayllar public/ ICHIDA EMAS (downloads/, ILDIZ darajasida) —
+# aks holda `vite build`/`npx cap sync android` ularni HAR safar dist/
+# orqali Android/Electron ilovaning O'ZINING ICHIGA (assets) nusxalab
+# qo'yardi — 200+ MB keraksiz binary Gradle'ning compressDebugAssets
+# bosqichida "Java heap space" (xotira tugashi) xatosiga sabab bo'lgan
+# edi. downloads/ Dockerfile'da ALOHIDA (dist/'dan mustaqil) nginx
+# image'iga COPY qilinadi.
+downloads/*.apk filter=lfs diff=lfs merge=lfs -text
 # AJDO-Setup.exe (Electron — Chromium+Node bundlangani uchun odatda
 # APK'dan HAM kattaroq, 150+ MB) — xuddi shu sabab bilan LFS orqali.
-public/downloads/desktop/*.exe filter=lfs diff=lfs merge=lfs -text
-public/downloads/desktop/*.blockmap filter=lfs diff=lfs merge=lfs -text
+downloads/desktop/*.exe filter=lfs diff=lfs merge=lfs -text
+downloads/desktop/*.blockmap filter=lfs diff=lfs merge=lfs -text

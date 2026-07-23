@@ -95,7 +95,7 @@ jobs:
   # bog'liq emas): agar APK qurilishida xato chiqsa, bu asosiy veb
   # deploy'ni HECH QACHON to'xtatmaydi/bloklamaydi.
   #
-  # Natija public/downloads/AJDO.apk + latest.json'ga yoziladi va SHU
+  # Natija downloads/AJDO.apk + latest.json'ga yoziladi va SHU
   # REPO'ga qayta commit qilinadi (github-actions[bot] nomidan) — shunda
   # ODDIY frontend Docker build (Dockerfile'dagi `npm run build`, public/
   # papkasini avtomatik dist/'ga ko'chiradi) o'zgarishsiz qolib, keyingi
@@ -159,11 +159,15 @@ jobs:
 
       - name: Yuklab olish papkasi/manifestini tayyorlash
         run: |
-          mkdir -p public/downloads
-          cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/AJDO.apk
+          # MUHIM: public/ ICHIDA EMAS — aks holda cap sync android bu
+          # fayllarni Android ilovaning O'ZINING ICHIGA nusxalab,
+          # Gradle'ning compressDebugAssets bosqichini "Java heap space"
+          # xatosi bilan yiqitardi (200+ MB keraksiz binary).
+          mkdir -p downloads
+          cp android/app/build/outputs/apk/debug/app-debug.apk downloads/AJDO.apk
           VERSION_CODE=$(grep -oP 'versionCode\s+\K\d+' android/app/build.gradle)
           VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' android/app/build.gradle)
-          printf '{"versionCode": %s, "versionName": "%s"}\n' "$VERSION_CODE" "$VERSION_NAME" > public/downloads/latest.json
+          printf '{"versionCode": %s, "versionName": "%s"}\n' "$VERSION_CODE" "$VERSION_NAME" > downloads/latest.json
 
       - name: Yangi APK'ni repo'ga commit qilish
         run: |
@@ -177,7 +181,7 @@ jobs:
           git lfs install
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/downloads/AJDO.apk public/downloads/latest.json
+          git add downloads/AJDO.apk downloads/latest.json
           if git diff --cached --quiet; then
             echo "O'zgarish yo'q"
             exit 0
@@ -243,11 +247,13 @@ jobs:
 
       - name: Yuklab olish papkasini tayyorlash
         run: |
-          New-Item -ItemType Directory -Force -Path public/downloads/desktop | Out-Null
-          Copy-Item electron/dist-electron/AJDO-Setup.exe public/downloads/desktop/AJDO-Setup.exe -Force
-          Copy-Item electron/dist-electron/latest.yml public/downloads/desktop/latest.yml -Force
+          # MUHIM: public/ ICHIDA EMAS — Android job'idagi bilan bir xil
+          # sabab (assets bloati/OOM oldini olish uchun).
+          New-Item -ItemType Directory -Force -Path downloads/desktop | Out-Null
+          Copy-Item electron/dist-electron/AJDO-Setup.exe downloads/desktop/AJDO-Setup.exe -Force
+          Copy-Item electron/dist-electron/latest.yml downloads/desktop/latest.yml -Force
           if (Test-Path electron/dist-electron/AJDO-Setup.exe.blockmap) {
-            Copy-Item electron/dist-electron/AJDO-Setup.exe.blockmap public/downloads/desktop/AJDO-Setup.exe.blockmap -Force
+            Copy-Item electron/dist-electron/AJDO-Setup.exe.blockmap downloads/desktop/AJDO-Setup.exe.blockmap -Force
           }
 
       - name: Yangi .exe'ni repo'ga commit qilish
@@ -258,7 +264,7 @@ jobs:
           git lfs install
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/downloads/desktop/
+          git add downloads/desktop/
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) {
             Write-Output "O'zgarish yo'q"
