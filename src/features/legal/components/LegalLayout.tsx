@@ -69,8 +69,6 @@ export function LegalLayout({ doc }: { doc: LegalDoc }) {
             </section>
           ))}
         </div>
-
-        <p className="mt-12 border-t border-neutral-200 pt-6 text-sm text-neutral-500">{doc.footer}</p>
       </main>
     </div>
   );

@@ -97,8 +97,18 @@ const ADMIN_NAV_ITEM: NavItemDef = {
   end: false,
 };
 
-const MESSAGES_ITEM = NAV_ITEMS.find((i) => i.to === '/xabarlar')!;
 const SETTINGS_ITEM = NAV_ITEMS.find((i) => i.to === '/sozlamalar')!;
+
+/** Admin uchun "Xabarlar" o'rniga — Sozlamalar → "Yordam Markazi"/"Xato
+ * haqida xabar berish" orqali kelgan qo'llab-quvvatlash so'rovlari (oila
+ * daraxtiga bog'liq EMAS, shu bois oddiy /xabarlar EMAS, alohida sahifa). */
+const ADMIN_SUPPORT_ITEM: NavItemDef = {
+  to: '/admin/qollab-quvvatlash',
+  labelKey: 'nav.support',
+  shortLabelKey: 'nav.supportShort',
+  Icon: MessagesIcon,
+  end: false,
+};
 
 /** Tarjima qilingan navigatsiya ro'yxati — Sidebar/BottomNav shu hook orqali
  * oladi. Admin hisobiga FAQAT Dashboard (Admin panel) + Xabarlar +
@@ -109,7 +119,7 @@ const SETTINGS_ITEM = NAV_ITEMS.find((i) => i.to === '/sozlamalar')!;
 export function useNavItems(): NavItem[] {
   const { t } = useTranslation();
   const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false);
-  const items = isAdmin ? [ADMIN_NAV_ITEM, MESSAGES_ITEM, SETTINGS_ITEM] : NAV_ITEMS;
+  const items = isAdmin ? [ADMIN_NAV_ITEM, ADMIN_SUPPORT_ITEM, SETTINGS_ITEM] : NAV_ITEMS;
   return items.map(({ to, labelKey, shortLabelKey, end, Icon, img }) => ({
     to,
     label: t(labelKey),

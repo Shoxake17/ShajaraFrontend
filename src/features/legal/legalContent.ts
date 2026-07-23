@@ -17,7 +17,6 @@ export interface LegalDoc {
   updatedLabel: string;
   intro: string[];
   sections: LegalSection[];
-  footer: string;
 }
 
 const SUPPORT_EMAIL = 'support@ajdo.uz';
@@ -85,12 +84,6 @@ const termsUz: LegalDoc = {
       ],
     },
     {
-      heading: 'Uchinchi tomon xizmatlari',
-      paragraphs: [
-        'Xizmat quyidagi uchinchi tomon xizmatlaridan foydalanadi: Google (kirish/OAuth va Google Play Billing), Telegram (kirish va bot orqali bildirishnoma), Cloudflare (fayl saqlash), LiveKit (audio/video qo\'ng\'iroqlar), Firebase (push-bildirishnomalar) va email yuborish xizmati. Ushbu xizmatlarning har biri o\'zining maxfiylik siyosati va foydalanish shartlariga ega bo\'lib, ularga ham rioya qilishingiz kerak bo\'lishi mumkin.',
-      ],
-    },
-    {
       heading: 'Xizmatni to\'xtatish va hisobni o\'chirish',
       paragraphs: [
         'Siz istalgan vaqtda Sozlamalar bo\'limi orqali hisobingizni o\'chirishingiz mumkin. Hisobni o\'chirish shaxsiy hisob ma\'lumotlaringizni (ism, aloqa ma\'lumotlari, parol) o\'chiradi, LEKIN siz qo\'shgan oila daraxti a\'zolari, edge\'lar va media fayllar — agar ularni boshqa oila a\'zolari (VIEWER\'lar) ham ko\'rib turgan bo\'lsa — umumiy daraxt yaxlitligini saqlash uchun O\'CHIRILMAYDI.',
@@ -123,7 +116,6 @@ const termsUz: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). Barcha huquqlar himoyalangan.',
 };
 
 const termsRu: LegalDoc = {
@@ -184,12 +176,6 @@ const termsRu: LegalDoc = {
       ],
     },
     {
-      heading: 'Сторонние сервисы',
-      paragraphs: [
-        'Сервис использует следующие сторонние сервисы: Google (вход/OAuth и Google Play Billing), Telegram (вход и уведомления через бота), Cloudflare (хранение файлов), LiveKit (аудио/видеозвонки), Firebase (push-уведомления) и сервис отправки email. У каждого из этих сервисов есть собственная политика конфиденциальности и условия использования, которые также могут на вас распространяться.',
-      ],
-    },
-    {
       heading: 'Прекращение сервиса и удаление аккаунта',
       paragraphs: [
         'Вы можете удалить свой аккаунт в любое время через раздел "Настройки". Удаление аккаунта удаляет ваши личные данные (имя, контактные данные, пароль), НО добавленные вами члены семейного древа, связи и медиафайлы — если их также видят другие члены семьи (VIEWER) — НЕ УДАЛЯЮТСЯ, чтобы сохранить целостность общего древа.',
@@ -222,7 +208,6 @@ const termsRu: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). Все права защищены.',
 };
 
 const termsEn: LegalDoc = {
@@ -283,12 +268,6 @@ const termsEn: LegalDoc = {
       ],
     },
     {
-      heading: 'Third-party services',
-      paragraphs: [
-        'The Service relies on the following third-party services: Google (sign-in/OAuth and Google Play Billing), Telegram (sign-in and bot notifications), Cloudflare (file storage), LiveKit (audio/video calls), Firebase (push notifications), and an email delivery service. Each of these services has its own privacy policy and terms of use, which may also apply to you.',
-      ],
-    },
-    {
       heading: 'Termination and account deletion',
       paragraphs: [
         'You may delete your account at any time via the Settings section. Deleting your account removes your personal account data (name, contact details, password), BUT family members, connections (edges), and media files you added are NOT deleted if other family members (VIEWERs) also see them, in order to preserve the integrity of the shared tree.',
@@ -321,7 +300,6 @@ const termsEn: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). All rights reserved.',
 };
 
 // ---------------------------------------------------------------------------
@@ -343,7 +321,7 @@ const privacyUz: LegalDoc = {
         "Ikki bosqichli tasdiqlash (2FA): TOTP maxfiy kaliti (shifrlangan holda) va zaxira kodlar (xesh ko'rinishida);",
         "Kirish tarixi va xavfsizlik jurnali: kirish/chiqish hodisalari, brauzer, operatsion tizim, qurilma turi, IP-manzil va vaqt belgisi;",
         "Oila daraxti ma'lumotlari: siz qo'shgan a'zolarning ismi, jinsi, qarindoshlik turi, tug'ilgan/vafot sanasi, profil rasmi;",
-        "Media fayllar: yuklagan rasm, video va hujjatlar (Cloudflare R2 saqlash xizmatida);",
+        "Media fayllar: yuklagan rasm, video va hujjatlar;",
         "Xabarlar: oila a'zolari bilan yozishma matni va biriktirilgan fayllar;",
         "Qo'ng'iroq ma'lumotlari: qo'ng'iroq vaqti, davomiyligi, turi (audio/video) va holati — QO'NG'IROQNING O'ZI (ovoz/video oqimi) SAQLANMAYDI, faqat metama'lumot;",
         "To'lov ma'lumotlari: Google Play orqali amalga oshirilgan xarid ma'lumotlari (mahsulot ID, buyurtma raqami, holat) — TO'LIQ KARTA RAQAMINGIZ BIZGA HECH QACHON YETIB KELMAYDI, uni Google Play o'zi qayta ishlaydi;",
@@ -368,7 +346,7 @@ const privacyUz: LegalDoc = {
         "Biz sizning shaxsiy ma'lumotlaringizni SOTMAYMIZ. Ma'lumotlar faqat quyidagi hollarda uchinchi tomonlarga uzatiladi:",
       ],
       list: [
-        'Xizmat ko\'rsatuvchi provayderlar: Cloudflare (fayl saqlash), LiveKit (qo\'ng\'iroq infratuzilmasi), Firebase (push-bildirishnoma), email yuborish xizmati — bular faqat Xizmatni ishga tushirish uchun zarur hajmda ma\'lumot oladi;',
+        'Xizmat ko\'rsatuvchi provayderlar: Firebase (push-bildirishnoma), email yuborish xizmati — bular faqat Xizmatni ishga tushirish uchun zarur hajmda ma\'lumot oladi;',
         "Google va Telegram — faqat siz ular orqali kirish/ro'yxatdan o'tishni tanlaganingizda (OAuth), va Google Play — to'lovlarni qayta ishlash uchun;",
         "Sizning oila daraxtingizga kirish huquqi bergan boshqa foydalanuvchilar (VIEWER'lar) — siz belgilagan ko'rinish sozlamalariga muvofiq;",
         "Qonuniy talab (sud qarori, davlat organi so'rovi) bo'lganda — faqat qonun talab qilgan hajmda.",
@@ -415,7 +393,7 @@ const privacyUz: LegalDoc = {
     {
       heading: "Ma'lumotlarni xalqaro uzatish",
       paragraphs: [
-        "Bizning ba'zi xizmat ko'rsatuvchi provayderlarimiz (Cloudflare, Google, Firebase) O'zbekiston hududidan tashqarida joylashgan serverlardan foydalanishi mumkin. Ushbu provayderlar xalqaro tan olingan ma'lumotlar xavfsizligi standartlariga rioya qiladi.",
+        "Bizning ba'zi xizmat ko'rsatuvchi provayderlarimiz (Google, Firebase) O'zbekiston hududidan tashqarida joylashgan serverlardan foydalanishi mumkin. Ushbu provayderlar xalqaro tan olingan ma'lumotlar xavfsizligi standartlariga rioya qiladi.",
       ],
     },
     {
@@ -437,7 +415,6 @@ const privacyUz: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). Barcha huquqlar himoyalangan.',
 };
 
 const privacyRu: LegalDoc = {
@@ -455,7 +432,7 @@ const privacyRu: LegalDoc = {
         'Двухфакторная аутентификация (2FA): секретный ключ TOTP (в зашифрованном виде) и резервные коды (в виде хеша);',
         'История входов и журнал безопасности: события входа/выхода, браузер, операционная система, тип устройства, IP-адрес и временная метка;',
         'Данные семейного древа: имя, пол, тип родства, даты рождения/смерти, фото профиля добавленных вами членов семьи;',
-        'Медиафайлы: загруженные фото, видео и документы (в хранилище Cloudflare R2);',
+        'Медиафайлы: загруженные фото, видео и документы;',
         'Сообщения: текст переписки с членами семьи и вложенные файлы;',
         'Данные о звонках: время, продолжительность, тип (аудио/видео) и статус звонка — САМ ЗВОНОК (аудио/видеопоток) НЕ СОХРАНЯЕТСЯ, только метаданные;',
         'Платёжные данные: данные о покупках через Google Play (ID продукта, номер заказа, статус) — ПОЛНЫЙ НОМЕР ВАШЕЙ КАРТЫ НИКОГДА НЕ ПОПАДАЕТ К НАМ, его обрабатывает сам Google Play;',
@@ -478,7 +455,7 @@ const privacyRu: LegalDoc = {
       heading: 'С кем мы делимся данными',
       paragraphs: ['Мы НЕ ПРОДАЁМ ваши персональные данные. Данные передаются третьим лицам только в следующих случаях:'],
       list: [
-        'Поставщики услуг: Cloudflare (хранение файлов), LiveKit (инфраструктура звонков), Firebase (push-уведомления), сервис отправки email — они получают данные только в объёме, необходимом для работы Сервиса;',
+        'Поставщики услуг: Firebase (push-уведомления), сервис отправки email — они получают данные только в объёме, необходимом для работы Сервиса;',
         'Google и Telegram — только при выборе входа/регистрации через них (OAuth), и Google Play — для обработки платежей;',
         'Другие пользователи (VIEWER), которым вы предоставили доступ к своему семейному древу — в соответствии с установленными вами настройками видимости;',
         'При законном требовании (решение суда, запрос государственного органа) — только в объёме, требуемом законом.',
@@ -525,7 +502,7 @@ const privacyRu: LegalDoc = {
     {
       heading: 'Международная передача данных',
       paragraphs: [
-        'Некоторые из наших поставщиков услуг (Cloudflare, Google, Firebase) могут использовать серверы, расположенные за пределами Узбекистана. Эти поставщики соблюдают международно признанные стандарты защиты данных.',
+        'Некоторые из наших поставщиков услуг (Google, Firebase) могут использовать серверы, расположенные за пределами Узбекистана. Эти поставщики соблюдают международно признанные стандарты защиты данных.',
       ],
     },
     {
@@ -547,7 +524,6 @@ const privacyRu: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). Все права защищены.',
 };
 
 const privacyEn: LegalDoc = {
@@ -565,7 +541,7 @@ const privacyEn: LegalDoc = {
         'Two-factor authentication (2FA): TOTP secret key (encrypted) and recovery codes (hashed);',
         'Login history and security log: sign-in/sign-out events, browser, operating system, device type, IP address, and timestamp;',
         "Family tree data: name, gender, relationship type, birth/death dates, and profile photo of the family members you add;",
-        'Media files: uploaded photos, videos, and documents (stored via Cloudflare R2);',
+        'Media files: uploaded photos, videos, and documents;',
         'Messages: text and attached files exchanged with family members;',
         'Call data: call time, duration, type (audio/video), and status — the call CONTENT ITSELF (audio/video stream) is NOT recorded, only metadata;',
         'Payment data: purchase data from Google Play (product ID, order number, status) — YOUR FULL CARD NUMBER NEVER REACHES US, it is processed by Google Play itself;',
@@ -588,7 +564,7 @@ const privacyEn: LegalDoc = {
       heading: 'Who we share data with',
       paragraphs: ['We DO NOT SELL your personal data. Data is shared with third parties only in the following cases:'],
       list: [
-        'Service providers: Cloudflare (file storage), LiveKit (call infrastructure), Firebase (push notifications), our email delivery service — these receive only the data necessary to operate the Service;',
+        'Service providers: Firebase (push notifications), our email delivery service — these receive only the data necessary to operate the Service;',
         'Google and Telegram — only when you choose to sign in/register through them (OAuth), and Google Play — to process payments;',
         'Other users (VIEWERs) to whom you have granted access to your family tree — according to the visibility settings you set;',
         'When legally required (court order, government request) — only to the extent required by law.',
@@ -635,7 +611,7 @@ const privacyEn: LegalDoc = {
     {
       heading: 'International data transfers',
       paragraphs: [
-        'Some of our service providers (Cloudflare, Google, Firebase) may use servers located outside Uzbekistan. These providers comply with internationally recognized data-protection standards.',
+        'Some of our service providers (Google, Firebase) may use servers located outside Uzbekistan. These providers comply with internationally recognized data-protection standards.',
       ],
     },
     {
@@ -657,7 +633,6 @@ const privacyEn: LegalDoc = {
       ],
     },
   ],
-  footer: '© Shajara (AJDO). All rights reserved.',
 };
 
 export const TERMS_CONTENT: Record<SupportedLanguage, LegalDoc> = {

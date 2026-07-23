@@ -68,6 +68,18 @@ export interface AdminStats {
   totalStorageLimitBytes: number;
 }
 
+/** "Yordam Markazi"/"Xato haqida xabar berish" (Settings) orqali kelgan
+ * qo'llab-quvvatlash so'rovi — oila daraxtiga bog'liq EMAS. */
+export interface SupportConversationSummary {
+  userId: string;
+  fullName: string;
+  phone: string | null;
+  email: string | null;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+}
+
 export interface AdminUserBoard {
   owner: { id: string; fullName: string; email: string | null; phone: string | null };
   members: FamilyMemberDto[];
@@ -109,4 +121,9 @@ export const adminApi = {
         { delta },
       )
       .then((r) => r.data),
+
+  /** "Yordam Markazi"/"Xato haqida xabar berish" orqali kelgan barcha
+   * qo'llab-quvvatlash suhbatlari (oila daraxtiga bog'liq EMAS). */
+  listSupportConversations: () =>
+    http.get<SupportConversationSummary[]>('/admin/support/conversations').then((r) => r.data),
 };

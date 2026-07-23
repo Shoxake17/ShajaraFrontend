@@ -27,6 +27,11 @@
   },
   "admin": {
     "title": "Admin panel",
+    "support": {
+      "title": "Support",
+      "empty": "No support requests yet",
+      "selectHint": "Select a conversation from the list"
+    },
     "loadFailed": "Couldn't load. Please try again",
     "actionFailed": "Couldn't perform the action. Please try again",
     "searchPlaceholder": "Search by name, email or phone",
@@ -155,9 +160,18 @@
     "help": {
       "desc": "Have questions? We're happy to help.",
       "helpCenter": "Help center",
+      "helpCenterDesc": "Write your question — our team will reply soon",
+      "helpCenterPlaceholder": "Type a message...",
+      "helpCenterEmpty": "No messages yet. Write your question.",
       "contact": "Contact us",
+      "contactDesc": "Choose whichever way works for you",
       "faq": "Frequently asked questions",
-      "reportBug": "Report a bug"
+      "reportBug": "Report a bug",
+      "reportBugDesc": "Describe what went wrong, attach a screenshot if needed",
+      "reportBugPlaceholder": "Describe the issue...",
+      "reportBugAttach": "Attach photo/file",
+      "reportBugSend": "Send",
+      "reportBugSent": "Thanks! Your message has been sent."
     },
     "system": {
       "desc": "App version and legal information.",
@@ -184,6 +198,8 @@
     "settingsShort": "Settings",
     "admin": "Admin panel",
     "adminShort": "Admin",
+    "support": "Support",
+    "supportShort": "Support",
     "memory": "Storage",
     "memoryUsed": "{{used}} / {{limit}} used",
     "ariaLabel": "Main navigation"

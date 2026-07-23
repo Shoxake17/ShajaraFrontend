@@ -27,6 +27,11 @@
   },
   "admin": {
     "title": "Admin panel",
+    "support": {
+      "title": "Qo'llab-quvvatlash",
+      "empty": "Hozircha qo'llab-quvvatlash so'rovlari yo'q",
+      "selectHint": "Suhbatni ko'rish uchun ro'yxatdan tanlang"
+    },
     "loadFailed": "Yuklab bo'lmadi. Qaytadan urinib ko'ring",
     "actionFailed": "Amalni bajarib bo'lmadi. Qaytadan urinib ko'ring",
     "searchPlaceholder": "Ism, email yoki telefon bo'yicha qidirish",
@@ -155,9 +160,18 @@
     "help": {
       "desc": "Savollaringiz bormi? Biz yordam berishga tayyormiz.",
       "helpCenter": "Yordam markazi",
+      "helpCenterDesc": "Savolingizni yozing — jamoamiz tez orada javob beradi",
+      "helpCenterPlaceholder": "Xabar yozing...",
+      "helpCenterEmpty": "Hali xabar yo'q. Savolingizni yozib qoldiring.",
       "contact": "Biz bilan bog'lanish",
+      "contactDesc": "Qaysi usul qulay bo'lsa, shundan foydalaning",
       "faq": "Tez-tez so'raladigan savollar",
-      "reportBug": "Xato haqida xabar berish"
+      "reportBug": "Xato haqida xabar berish",
+      "reportBugDesc": "Nima noto'g'ri ishlaganini yozib, kerak bo'lsa rasm biriktiring",
+      "reportBugPlaceholder": "Xatoni tasvirlab bering...",
+      "reportBugAttach": "Rasm/fayl biriktirish",
+      "reportBugSend": "Yuborish",
+      "reportBugSent": "Rahmat! Xabaringiz yuborildi."
     },
     "system": {
       "desc": "Ilova versiyasi va huquqiy ma'lumotlar.",
@@ -184,6 +198,8 @@
     "settingsShort": "Sozlama",
     "admin": "Admin panel",
     "adminShort": "Admin",
+    "support": "Qo'llab-quvvatlash",
+    "supportShort": "Yordam",
     "memory": "Xotira",
     "memoryUsed": "{{used}} / {{limit}} foydalanilgan",
     "ariaLabel": "Asosiy navigatsiya"

@@ -33,6 +33,10 @@ import { uploadErrorMessage } from '@/features/tree/components/PhotoPicker';
 import { useStorageStore, quotaMessage } from '@/features/storage/storage.store';
 import { PricingModal } from '@/features/billing/components/PricingModal';
 import { JoinFamilyDialog } from '@/features/tree/components/JoinFamilyDialog';
+import { HelpCenterDialog } from '../components/HelpCenterDialog';
+import { ContactUsDialog } from '../components/ContactUsDialog';
+import { FaqDialog } from '../components/FaqDialog';
+import { ReportBugDialog } from '../components/ReportBugDialog';
 import {
   Card,
   Row,
@@ -294,6 +298,10 @@ export function SettingsPage() {
   const [addEmailOpen, setAddEmailOpen] = useState(false);
   const [initialPasswordOpen, setInitialPasswordOpen] = useState(false);
   const [joinFamilyOpen, setJoinFamilyOpen] = useState(false);
+  const [helpCenterOpen, setHelpCenterOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(false);
+  const [reportBugOpen, setReportBugOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -758,10 +766,25 @@ export function SettingsPage() {
                 <div id="yordam" className="scroll-mt-6">
                   <Card title={t('settings.sections.help')} desc={t('settings.help.desc')}>
                     <div className="space-y-2">
-                      <Row Icon={HelpIcon} label={t('settings.help.helpCenter')} right={<><SoonBadge />{chevron}</>} />
-                      <Row Icon={ChatIcon} label={t('settings.help.contact')} right={<><SoonBadge />{chevron}</>} />
-                      <Row Icon={InfoIcon} label={t('settings.help.faq')} right={<><SoonBadge />{chevron}</>} />
-                      <Row Icon={AlertIcon} label={t('settings.help.reportBug')} right={<><SoonBadge />{chevron}</>} />
+                      <Row
+                        Icon={HelpIcon}
+                        label={t('settings.help.helpCenter')}
+                        onClick={() => setHelpCenterOpen(true)}
+                        right={chevron}
+                      />
+                      <Row
+                        Icon={ChatIcon}
+                        label={t('settings.help.contact')}
+                        onClick={() => setContactOpen(true)}
+                        right={chevron}
+                      />
+                      <Row Icon={InfoIcon} label={t('settings.help.faq')} onClick={() => setFaqOpen(true)} right={chevron} />
+                      <Row
+                        Icon={AlertIcon}
+                        label={t('settings.help.reportBug')}
+                        onClick={() => setReportBugOpen(true)}
+                        right={chevron}
+                      />
                     </div>
                   </Card>
                 </div>
@@ -820,6 +843,10 @@ export function SettingsPage() {
       <AddEmailDialog open={addEmailOpen} onClose={() => setAddEmailOpen(false)} />
       <SetPasswordDialog open={initialPasswordOpen} onClose={() => setInitialPasswordOpen(false)} />
       <JoinFamilyDialog open={joinFamilyOpen} onClose={() => setJoinFamilyOpen(false)} />
+      <HelpCenterDialog open={helpCenterOpen} onClose={() => setHelpCenterOpen(false)} />
+      <ContactUsDialog open={contactOpen} onClose={() => setContactOpen(false)} />
+      <FaqDialog open={faqOpen} onClose={() => setFaqOpen(false)} />
+      <ReportBugDialog open={reportBugOpen} onClose={() => setReportBugOpen(false)} />
     </div>
   );
 }

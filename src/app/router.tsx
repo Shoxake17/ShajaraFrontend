@@ -58,6 +58,9 @@ const AdminUsersPage = lazy(() =>
 const AdminUserTreePage = lazy(() =>
   import('@/features/admin/pages/AdminUserTreePage').then((m) => ({ default: m.AdminUserTreePage })),
 );
+const AdminSupportPage = lazy(() =>
+  import('@/features/admin/pages/AdminSupportPage').then((m) => ({ default: m.AdminSupportPage })),
+);
 
 function withSuspense(page: React.ReactNode) {
   return (
@@ -102,6 +105,7 @@ export const router = createBrowserRouter([
             element: <AdminRoute />,
             children: [
               { path: '/admin', element: withSuspense(<AdminUsersPage />) },
+              { path: '/admin/qollab-quvvatlash', element: withSuspense(<AdminSupportPage />) },
               { path: '/admin/users/:userId', element: withSuspense(<AdminUserTreePage mode="owner" />) },
               { path: '/admin/viewers/:userId', element: withSuspense(<AdminUserTreePage mode="viewer" />) },
             ],

@@ -78,6 +78,10 @@ export const chatApi = {
     http
       .post<{ uploadUrl: string; key: string; kind: ChatAttachmentType }>('/chat/upload-url', { contentType })
       .then((r) => r.data),
+  /** "Yordam Markazi"/"Xato haqida xabar berish" (Settings) — kimga
+   * (qo'llab-quvvatlash hisobiga) yozish kerakligi. */
+  getSupportAdminId: () =>
+    http.get<{ adminId: string | null }>('/chat/support/admin-id').then((r) => r.data),
 };
 
 /**
