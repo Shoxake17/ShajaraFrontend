@@ -7,6 +7,10 @@ export const env = {
    * o'sha origin'ning o'zidan nisbiy `/downloads/...` sifatida ishlaydi). */
   downloadsBaseUrl: (import.meta.env.VITE_API_URL ?? '').replace(/\/api\/v1\/?$/, ''),
   googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
+  /** Desktop (Electron) uchun ALOHIDA Google OAuth client — Google Cloud
+   * Console'da "Desktop app" turida yaratilgan (veb client'dan farqli:
+   * tizim brauzeri + loopback qayta yo'naltirish oqimi uchun, useGoogleAuth.ts). */
+  googleDesktopClientId: import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? '',
   /** Telegram bot username (masalan "AJDOO_bot") — maxfiy emas, widget/
    * oauth havolasini qurish uchun. Bot tokeni FAQAT backend'da. */
   telegramBotUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME ?? 'AJDOO_bot',

@@ -4,12 +4,13 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 export default defineConfig(({ mode }) => ({
-  // MUHIM: Electron `file://` protokoli orqali index.html'ni to'g'ridan-
-  // to'g'ri diskdan ochadi (server YO'Q) — standart MUTLAQ yo'llar
-  // ("/assets/...") shu holatda diskning ILDIZ papkasiga hal bo'lib,
-  // BARCHA JS/CSS fayllari topilmay qolardi. Faqat Electron rejimida
-  // NISBIY yo'l ("./assets/...") ishlatiladi — veb/Capacitor build'lariga
-  // (ular server/virtual-host orqali xizmat qiladi) TA'SIR QILMAYDI.
+  // MUHIM: Electron o'zining maxsus "app://ajdo.uz" protokoli orqali
+  // index.html'ni yuklaydi (electron/main.js — oddiy `file://` CORS uchun
+  // "null" origin yuborardi, backend buni whitelist qila olmasdi). Bu
+  // sxema ILDIZ (standart: true) sifatida ro'yxatdan o'tgan bo'lsa ham,
+  // NISBIY yo'l ("./assets/...") ishlatishda davom etamiz — chunki
+  // ilova FAQAT bitta marta (index.html) yuklanadi, keyin React Router
+  // mijoz tomonida navigatsiya qiladi (haqiqiy sahifa qayta yuklanmaydi).
   base: mode === 'electron' ? './' : '/',
   plugins: [react()],
   resolve: {
@@ -33,8 +34,10 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
-    // e2e/ — Playwright'niki, vitest tegmaydi
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
+    // e2e/ — Playwright'niki, vitest tegmaydi. electron/ — o'zining ALOHIDA
+    // node_modules'iga ega (masalan exponential-backoff'ning o'z jest
+    // testlari) — asosiy `node_modules/**` bu yerga yetib bormaydi.
+    exclude: ['e2e/**', 'node_modules/**', 'electron/**', 'dist/**'],
   },
   build: {
     sourcemap: false,

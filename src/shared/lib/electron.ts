@@ -1,10 +1,29 @@
 // shared/lib/electron.ts
 // Ilova Electron (Windows desktop) ichida ishlayaptimi — preload.js
-// contextBridge orqali window.electronAPI.isElectron'ni yozib qo'yadi
+// contextBridge orqali window.electronAPI'ni yozib qo'yadi
 // (Capacitor.isNativePlatform() bilan bir xil maqsadda ishlatiladi).
+interface ElectronAPI {
+  isElectron: true;
+  signInWithGoogle: (clientId: string) => Promise<{ idToken: string }>;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+  }
+}
+
 export function isElectron(): boolean {
-  return Boolean(
-    typeof window !== 'undefined' &&
-      (window as unknown as { electronAPI?: { isElectron?: boolean } }).electronAPI?.isElectron,
-  );
+  return Boolean(typeof window !== 'undefined' && window.electronAPI?.isElectron);
+}
+
+/**
+ * Desktop'da Google orqali kirish — tizim brauzeri + loopback OAuth oqimi
+ * (main.js), chunki Google Electron'ning o'z oynasi ichidagi popup'ni
+ * "disallowed_useragent" xatosi bilan bloklaydi (veb GIS popup'dan farqli
+ * o'laroq bu yerda faqat ID token qaytadi).
+ */
+export function signInWithGoogleDesktop(clientId: string): Promise<{ idToken: string }> {
+  if (!window.electronAPI) return Promise.reject(new Error('not_electron'));
+  return window.electronAPI.signInWithGoogle(clientId);
 }

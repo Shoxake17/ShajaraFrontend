@@ -7,6 +7,7 @@ import { useAuthStore } from '@/features/auth/model/auth.store';
 import { authErrorMessage } from '@/features/auth/lib/auth-errors';
 import { requestGoogleAccessToken } from '@/shared/lib/google';
 import { requestGoogleIdTokenNative } from '@/shared/lib/google-native';
+import { isElectron, signInWithGoogleDesktop } from '@/shared/lib/electron';
 import { env } from '@/shared/config/env';
 
 /**
@@ -21,19 +22,28 @@ export function useGoogleAuth() {
 
   const signInWithGoogle = async () => {
     setError(null);
-    if (!env.googleClientId) {
+    const isDesktop = isElectron();
+    if (isDesktop ? !env.googleDesktopClientId : !env.googleClientId) {
       setError("Google orqali kirish hali sozlanmagan");
       return;
     }
     setLoading(true);
     try {
-      // Nativ ilovada GIS popup ishlamaydi (Google WebView'ni bloklaydi) —
-      // Play Services'ning o'z hisob tanlash oynasi ishlatiladi, u ID token
-      // qaytaradi (access token emas — sabab: google-native.ts'dagi izoh).
+      // Uchta muhit — uchta har xil oqim:
+      // - Nativ (Capacitor): GIS popup ishlamaydi (Google WebView'ni
+      //   bloklaydi) — Play Services'ning o'z hisob tanlash oynasi
+      //   ishlatiladi, u ID token qaytaradi (access token emas).
+      // - Desktop (Electron): xuddi shu sababdan (Google Electron
+      //   oynasini ham "disallowed_useragent" deb bloklaydi) — tizim
+      //   brauzeri + loopback OAuth oqimi (electron.ts), u ham ID token
+      //   qaytaradi.
+      // - Veb: GIS popup, ACCESS token.
       const isNative = Capacitor.isNativePlatform();
       const { user, accessToken } = isNative
         ? await authApi.google({ idToken: await requestGoogleIdTokenNative() })
-        : await authApi.google({ accessToken: await requestGoogleAccessToken(env.googleClientId) });
+        : isDesktop
+          ? await authApi.google({ idToken: (await signInWithGoogleDesktop(env.googleDesktopClientId)).idToken })
+          : await authApi.google({ accessToken: await requestGoogleAccessToken(env.googleClientId) });
       setSession(user, accessToken);
       navigate('/doska');
     } catch (e) {
@@ -50,8 +60,8 @@ export function useGoogleAuth() {
       // (kod muhim: masalan 10 = DEVELOPER_ERROR — OAuth client/SHA-1/consent
       // screen sozlamasida xato, https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes).
       const base = authErrorMessage(e);
-      const isNativePluginError = Capacitor.isNativePlatform() && typeof e === 'object' && e !== null;
-      const raw = isNativePluginError
+      const isNonAxiosError = (Capacitor.isNativePlatform() || isDesktop) && typeof e === 'object' && e !== null;
+      const raw = isNonAxiosError
         ? [err.message, err.code ? `kod: ${err.code}` : null].filter(Boolean).join(', ')
         : null;
       setError(raw && raw !== base ? `${base} (${raw})` : base);
