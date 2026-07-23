@@ -39,3 +39,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .eslintcache
+
+# TypeScript incremental build keshi — HAR bir `tsc` chaqiruvida (build,
+# build:capacitor, build:desktop) o'zgaradi. Avval GIT'DA KUZATILGAN edi —
+# bu esa CI'dagi build-apk/build-desktop job'larining "commit va push"
+# bosqichida `git rebase origin/main`ni "You have unstaged changes"
+# xatosi bilan BUZAR edi (build bosqichlari shu faylni allaqachon
+# o'zgartirib qo'ygan bo'lardi, working tree rebase uchun toza bo'lmay
+# qolardi).
+tsconfig.tsbuildinfo
