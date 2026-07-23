@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: gitleaks_scan
     steps:
-      # MUHIM: `lfs: true` SHART — aks holda AJDO.apk/AJDO-Setup.exe kabi
+      # MUHIM: `lfs: true` SHART — aks holda AJDO.apk/AJDO.exe kabi
       # Git LFS orqali kuzatiladigan fayllar checkout paytida HAQIQIY
       # tarkib EMAS, faqat kichik "pointer" matni (~130 bayt) sifatida
-      # qoladi. Aynan shu sabab bilan AJDO-Setup.exe production'da 134
+      # qoladi. Aynan shu sabab bilan AJDO.exe production'da 134
       # baytli (buzilgan) fayl sifatida xizmat qilib qolgan edi —
       # foydalanuvchi "ilova hajmi 1KB" deb xabar bergan edi.
       - uses: actions/checkout@v4
@@ -192,7 +192,7 @@ jobs:
           # commit'ini push qilishi mumkin — kim birinchi push qilsa
           # o'shanikiga ega bo'ladi, ikkinchisi "fetch first" (non-fast-
           # forward) bilan RAD ETILARDI. Fayllar boshqa-boshqa bo'lgani
-          # uchun (AJDO.apk vs desktop/AJDO-Setup.exe) rebase HECH QACHON
+          # uchun (AJDO.apk vs desktop/AJDO.exe) rebase HECH QACHON
           # ziddiyatga tushmaydi — shu bois oddiy fetch+rebase+qayta urinish
           # yetarli.
           for i in 1 2 3 4 5; do
@@ -250,15 +250,15 @@ jobs:
           # MUHIM: public/ ICHIDA EMAS — Android job'idagi bilan bir xil
           # sabab (assets bloati/OOM oldini olish uchun).
           New-Item -ItemType Directory -Force -Path downloads/desktop | Out-Null
-          Copy-Item electron/dist-electron/AJDO-Setup.exe downloads/desktop/AJDO-Setup.exe -Force
+          Copy-Item electron/dist-electron/AJDO.exe downloads/desktop/AJDO.exe -Force
           Copy-Item electron/dist-electron/latest.yml downloads/desktop/latest.yml -Force
-          if (Test-Path electron/dist-electron/AJDO-Setup.exe.blockmap) {
-            Copy-Item electron/dist-electron/AJDO-Setup.exe.blockmap downloads/desktop/AJDO-Setup.exe.blockmap -Force
+          if (Test-Path electron/dist-electron/AJDO.exe.blockmap) {
+            Copy-Item electron/dist-electron/AJDO.exe.blockmap downloads/desktop/AJDO.exe.blockmap -Force
           }
 
       - name: Yangi .exe'ni repo'ga commit qilish
         run: |
-          # AJDO-Setup.exe HAM Git LFS orqali (.gitattributes) — Electron
+          # AJDO.exe HAM Git LFS orqali (.gitattributes) — Electron
           # ilovalari Chromium+Node bundlagani uchun APK'dan ham kattaroq
           # (150+ MB) bo'lishi mumkin.
           git lfs install
@@ -270,13 +270,13 @@ jobs:
             Write-Output "O'zgarish yo'q"
             exit 0
           }
-          git commit -m "chore: AJDO-Setup.exe avtomatik yangilash"
+          git commit -m "chore: AJDO.exe avtomatik yangilash"
           # MUHIM: build-apk job'i (ubuntu-latest) HAM shu SHU push
           # hodisasidan kelib chiqib, PARALLEL ravishda main'ga o'z bot-
           # commit'ini push qilishi mumkin — kim birinchi push qilsa
           # o'shanikiga ega bo'ladi, ikkinchisi "fetch first" (non-fast-
           # forward) bilan RAD ETILARDI. Fayllar boshqa-boshqa bo'lgani
-          # uchun (desktop/AJDO-Setup.exe vs AJDO.apk) rebase HECH QACHON
+          # uchun (desktop/AJDO.exe vs AJDO.apk) rebase HECH QACHON
           # ziddiyatga tushmaydi — shu bois oddiy fetch+rebase+qayta urinish
           # yetarli.
           $pushed = $false

@@ -30,7 +30,7 @@
     "win": {
       "target": "nsis",
       "icon": "build/icon.png",
-      "artifactName": "AJDO-Setup.exe"
+      "artifactName": "AJDO.exe"
     },
     "nsis": {
       "oneClick": true,

@@ -66,14 +66,14 @@ export function AppPromo() {
                 <span className="appPromo__storeName">{t('landing.appPromo.downloadSuffix')}</span>
               </span>
             </a>
-            {/* AJDO-Setup.exe — AJDO.apk bilan bir xil naqsh: nginx statik
+            {/* AJDO.exe — AJDO.apk bilan bir xil naqsh: nginx statik
                 fayl sifatida xizmat qiladi (downloads/desktop/, ILDIZ
                 darajasida). GitHub Actions har push'da avtomatik
                 yangilaydi — deploy.yml#build-desktop. O'rnatilgach,
                 Electron'ning o'zi (electron-updater) keyingi
                 yangilanishlarni AVTOMATIK tekshiradi va bitta tugma bilan
                 yangilaydi. */}
-            <a href="/downloads/desktop/AJDO-Setup.exe" download="AJDO-Setup.exe" className="appPromo__storeBtn">
+            <a href="/downloads/desktop/AJDO.exe" download="AJDO.exe" className="appPromo__storeBtn">
               <WindowsIcon />
               <span>
                 <span className="appPromo__storeLabel">{t('landing.appPromo.desktopLabel')}</span>

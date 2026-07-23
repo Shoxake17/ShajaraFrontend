@@ -13,7 +13,7 @@
 # edi. downloads/ Dockerfile'da ALOHIDA (dist/'dan mustaqil) nginx
 # image'iga COPY qilinadi.
 downloads/*.apk filter=lfs diff=lfs merge=lfs -text
-# AJDO-Setup.exe (Electron — Chromium+Node bundlangani uchun odatda
+# AJDO.exe (Electron — Chromium+Node bundlangani uchun odatda
 # APK'dan HAM kattaroq, 150+ MB) — xuddi shu sabab bilan LFS orqali.
 downloads/desktop/*.exe filter=lfs diff=lfs merge=lfs -text
 downloads/desktop/*.blockmap filter=lfs diff=lfs merge=lfs -text
