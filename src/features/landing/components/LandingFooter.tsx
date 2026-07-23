@@ -26,8 +26,8 @@ export function LandingFooter() {
       links: [
         { href: '#', label: t('landing.footer.links.blog') },
         { href: '#', label: t('landing.footer.links.guide') },
-        { href: '#', label: t('landing.footer.links.privacy') },
-        { href: '#', label: t('landing.footer.links.terms') },
+        { href: '/privacy', label: t('landing.footer.links.privacy') },
+        { href: '/terms', label: t('landing.footer.links.terms') },
         { href: '#', label: t('landing.footer.links.about') },
       ],
     },

@@ -773,8 +773,8 @@ export function SettingsPage() {
                   <div className="space-y-1">
                     <Row Icon={LayersIcon} label={t('settings.system.version')} right={<span>1.0.0</span>} />
                     <Row Icon={RefreshIcon} label={t('settings.system.checkUpdates')} right={<SoonBadge />} />
-                    <Row Icon={FileIcon} label={t('settings.system.terms')} right={<SoonBadge />} />
-                    <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} right={<SoonBadge />} />
+                    <Row Icon={FileIcon} label={t('settings.system.terms')} onClick={() => navigate('/terms')} right={chevron} />
+                    <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} onClick={() => navigate('/privacy')} right={chevron} />
                     <Row Icon={AwardIcon} label={t('settings.system.licenses')} right={<SoonBadge />} />
                   </div>
                 </Card>

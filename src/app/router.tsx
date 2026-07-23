@@ -28,6 +28,12 @@ const ForgotPasswordPage = lazy(() =>
 const TelegramCallbackPage = lazy(() =>
   import('@/features/auth/pages/TelegramCallbackPage').then((m) => ({ default: m.TelegramCallbackPage })),
 );
+const TermsPage = lazy(() =>
+  import('@/features/legal/pages/TermsPage').then((m) => ({ default: m.TermsPage })),
+);
+const PrivacyPage = lazy(() =>
+  import('@/features/legal/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+);
 const TreeBoardPage = lazy(() =>
   import('@/features/tree/pages/TreeBoardPage').then((m) => ({ default: m.TreeBoardPage })),
 );
@@ -108,5 +114,7 @@ export const router = createBrowserRouter([
   { path: '/register', element: withSuspense(<RegisterPage />) },
   { path: '/forgot-password', element: withSuspense(<ForgotPasswordPage />) },
   { path: '/telegram-callback', element: withSuspense(<TelegramCallbackPage />) },
+  { path: '/terms', element: withSuspense(<TermsPage />) },
+  { path: '/privacy', element: withSuspense(<PrivacyPage />) },
   { path: '*', element: <Navigate to="/login" replace /> },
 ]);
