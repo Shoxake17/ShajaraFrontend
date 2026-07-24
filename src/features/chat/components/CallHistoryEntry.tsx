@@ -1,7 +1,9 @@
 // features/chat/components/CallHistoryEntry.tsx
-// Chatdagi "qo'ng'iroqlar tarixi" tizim-yozuvi — Telegram uslubida,
-// odatiy xabar pufakchalaridan farqli, markazda kichik pill sifatida.
-import { Phone, PhoneMissed, Video, VideoOff } from 'lucide-react';
+// Chatdagi "qo'ng'iroqlar tarixi" yozuvi — Telegram uslubida: odatiy xabar
+// pufakchasi kabi yo'nalish bo'yicha (chapga/o'ngga) tekislangan, qalin
+// sarlavha + pastida yo'nalish o'qi (kiruvchi/chiquvchi) va vaqt, o'ng
+// tomonda qo'ng'iroq turi ikonkasi.
+import { ArrowDownLeft, ArrowUpRight, Phone, Video } from 'lucide-react';
 import type { CallHistoryItem } from '../api/chat.api';
 
 function formatCallDuration(startedAt: string, endedAt: string): string {
@@ -23,26 +25,36 @@ export function CallHistoryEntry({ call, myUserId }: { call: CallHistoryItem; my
   const typeLabel = isVideo ? "Video qo'ng'iroq" : "Ovozli qo'ng'iroq";
   const connected = call.status === 'ENDED' && !!call.startedAt;
 
-  let label: string;
+  let title: string;
   if (connected && call.startedAt && call.endedAt) {
-    label = `${typeLabel} — ${formatCallDuration(call.startedAt, call.endedAt)}`;
+    title = `${typeLabel} · ${formatCallDuration(call.startedAt, call.endedAt)}`;
   } else if (call.status === 'MISSED') {
-    label = isOutgoing ? `${typeLabel} — javob berilmadi` : `O'tkazib yuborilgan ${typeLabel.toLowerCase()}`;
+    title = isOutgoing ? `${typeLabel} — javob berilmadi` : `O'tkazib yuborilgan ${typeLabel.toLowerCase()}`;
   } else if (call.status === 'DECLINED') {
-    label = isOutgoing ? `${typeLabel} — rad etildi` : `${typeLabel}ni rad etdingiz`;
+    title = isOutgoing ? `${typeLabel} — rad etildi` : `${typeLabel}ni rad etdingiz`;
   } else {
-    label = typeLabel;
+    title = typeLabel;
   }
 
-  const Icon = connected ? (isVideo ? Video : Phone) : isVideo ? VideoOff : PhoneMissed;
-  const iconColor = connected ? 'text-green-600' : 'text-red-500';
+  const ArrowIcon = isOutgoing ? ArrowUpRight : ArrowDownLeft;
+  const arrowColor = connected ? 'text-green-500' : 'text-red-500';
+  const PhoneIcon = isVideo ? Video : Phone;
 
   return (
-    <div className="flex justify-center py-1">
-      <div className="flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs text-neutral-600 shadow-sm ring-1 ring-brand-100">
-        <Icon size={14} className={iconColor} />
-        <span>{label}</span>
-        <span className="text-neutral-400">&middot; {fmtTime(call.createdAt)}</span>
+    <div className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'} py-1`}>
+      <div
+        className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 shadow-sm ${
+          isOutgoing ? 'rounded-br-md bg-brand-800 text-white' : 'rounded-bl-md bg-[#F3F6F0] text-brand-900'
+        }`}
+      >
+        <div className="flex flex-col gap-1">
+          <span className="text-[13px] font-semibold">{title}</span>
+          <span className={`flex items-center gap-1 text-xs ${isOutgoing ? 'text-white/70' : 'text-neutral-500'}`}>
+            <ArrowIcon size={12} className={arrowColor} />
+            {fmtTime(call.createdAt)}
+          </span>
+        </div>
+        <PhoneIcon size={20} className={isOutgoing ? 'text-white/90' : 'text-brand-700'} />
       </div>
     </div>
   );
