@@ -4,6 +4,7 @@
 // ichida ochadi — mobil versiyadagi Capacitor'ning WebView'iga o'xshab.
 const { app, BrowserWindow, shell, protocol, net, ipcMain } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 const http = require('node:http');
 const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
@@ -190,6 +191,30 @@ ipcMain.handle('google-signin', async (_event, clientId) => {
   return { idToken: tokenJson.id_token };
 });
 
+// Yangilanish tekshiruvining har bir bosqichi shu faylga yoziladi
+// (%APPDATA%\AJDO\update.log) — ILGARI xato "jim" (.catch(() => undefined))
+// yutilib ketardi, ya'ni tarmoq/versiya/imzo xatosi bo'lsa ham foydalanuvchi
+// VA biz buni HECH QACHON bila olmasdik. Oddiy foydalanuvchiga bezovta
+// qiluvchi popup ko'rsatilmaydi (bu — fon jarayoni), faqat diagnostika
+// uchun faylga yoziladi.
+function logUpdate(line) {
+  try {
+    const logPath = path.join(app.getPath('userData'), 'update.log');
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${line}\n`);
+  } catch {
+    /* loglash muvaffaqiyatsiz bo'lsa ham ilova ishini davom ettiraveradi */
+  }
+}
+
+autoUpdater.on('checking-for-update', () => logUpdate('checking-for-update'));
+autoUpdater.on('update-available', (info) => logUpdate(`update-available: server=${info.version}`));
+autoUpdater.on('update-not-available', (info) =>
+  logUpdate(`update-not-available: joriy=${app.getVersion()} server=${info.version}`),
+);
+autoUpdater.on('error', (err) => logUpdate(`ERROR: ${err && err.message ? err.message : err}`));
+autoUpdater.on('download-progress', (p) => logUpdate(`download-progress: ${Math.round(p.percent)}%`));
+autoUpdater.on('update-downloaded', (info) => logUpdate(`update-downloaded: ${info.version}`));
+
 app.whenReady().then(() => {
   registerAppProtocol();
   createWindow();
@@ -202,7 +227,10 @@ app.whenReady().then(() => {
   // emas. Android'dan farqli o'laroq, bu yerda foydalanuvchi faqat BITTA
   // "Restart" tugmasini bosadi — to'liq alohida o'rnatuvchini qayta
   // ishga tushirishi shart emas.
-  autoUpdater.checkForUpdatesAndNotify().catch(() => undefined);
+  logUpdate(`app-start: joriy versiya=${app.getVersion()}`);
+  autoUpdater
+    .checkForUpdatesAndNotify()
+    .catch((err) => logUpdate(`checkForUpdatesAndNotify xatosi: ${err && err.message ? err.message : err}`));
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
