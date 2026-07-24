@@ -198,7 +198,20 @@ jobs:
           sed -i "s/versionCode [0-9]\+/versionCode ${{ github.run_number }}/" android/app/build.gradle
           sed -i "s/versionName \"[^\"]*\"/versionName \"1.1.${{ github.run_number }}\"/" android/app/build.gradle
 
+      # MUHIM (sabab): .env.capacitor fayli repo'da mavjud bo'lsa-da (VITE_API_URL
+      # va VITE_GOOGLE_CLIENT_ID'ni belgilaydi), CI runner'da bu qadam
+      # kuzatilmagan sababga ko'ra ba'zan bo'sh ("undefined") qiymatga
+      # tushib qolgan edi (env.ts'dagi nisbiy "/api/v1" zaxirasi ishga
+      # tushgan — bu WebView'ning o'z ICHKI "https://localhost" manziliga
+      # yo'naltirilib, HAQIQIY serverga umuman chiqmagan, login/ro'yxatdan
+      # o'tish butunlay ishlamay qolgan edi). Vite HUJJATIGA ko'ra
+      # PROCESS.ENV'dagi qiymat HAR DOIM .env fayllaridan USTUN turadi —
+      # shu bois bu yerda ANIQ (explicit) belgilanadi, fayl o'qish
+      # xatti-harakatidan MUSTAQIL, ikkilamchi kafolat sifatida.
       - name: Veb bundle'ni qurish (nativ rejim)
+        env:
+          VITE_API_URL: https://ajdo.uz/api/v1
+          VITE_GOOGLE_CLIENT_ID: 834981016654-s75eidlrcjm6qrhm9cr6aiv1rpc9ar6l.apps.googleusercontent.com
         run: npm run build:capacitor
 
       - name: Capacitor'ni Android bilan sinxronlash
@@ -310,7 +323,16 @@ jobs:
         run: |
           (Get-Content electron/package.json -Raw) -replace '"version":\s*"[^"]*"', '"version": "1.1.${{ github.run_number }}"' | Set-Content electron/package.json -NoNewline
 
+      # MUHIM: build-apk job'idagi bilan bir xil ehtiyot chorasi — .env.electron
+      # fayli mavjud bo'lsa-da, CI runner'da fayl-asosli yuklashning
+      # ishonchliligi tasdiqlanmagan holatlar uchun ANIQ (explicit) env
+      # ikkilamchi kafolat sifatida beriladi (Vite process.env'ni HAR DOIM
+      # .env fayllaridan ustun qo'yadi).
       - name: Desktop ilovasini qurish (veb bundle --mode electron + electron-builder)
+        env:
+          VITE_API_URL: https://ajdo.uz/api/v1
+          VITE_GOOGLE_CLIENT_ID: 834981016654-s75eidlrcjm6qrhm9cr6aiv1rpc9ar6l.apps.googleusercontent.com
+          VITE_GOOGLE_DESKTOP_CLIENT_ID: 834981016654-ers3q34dqm9m4ral0vobkimasktvt5tb.apps.googleusercontent.com
         run: npm run build:desktop
 
       - name: Yuklab olish papkasini tayyorlash
