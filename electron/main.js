@@ -10,6 +10,17 @@ const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
 const { autoUpdater } = require('electron-updater');
 
+// MUHIM: Electron `app.getPath('userData')` (loglar, cache va h.k. qayerga
+// yozilishini belgilaydi) nomi uchun package.json'ning TEPA DARAJADAGI
+// "name"/"productName" maydonini ishlatadi — "build.productName" (faqat
+// electron-builder o'rnatuvchi/exe nomi uchun ishlatadigan, ICHKI joylashgan
+// maydon) buni UMUMAN qamrab olmaydi. Shu bois `app.setName()` chaqirilmasa,
+// papka nomi "ajdo-desktop" (package.json'dagi "name") bo'lib qolar edi,
+// "AJDO" EMAS — foydalanuvchiga %APPDATA%\AJDO\ qayerdaligini aytish
+// chalkashlik keltirib chiqargan edi (haqiqiy papka %APPDATA%\ajdo-desktop\
+// bo'lgan). Bu chaqiruv app.whenReady()dan OLDIN, eng boshida bo'lishi SHART.
+app.setName('AJDO');
+
 // `file://` orqali yuklangan sahifa CORS uchun "null" origin yuboradi —
 // backend buni whitelist qila olmaydi (har qanday lokal HTML fayl ham
 // xuddi shu "null"ni yuborardi, bu esa httpOnly refresh-token cookie
