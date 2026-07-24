@@ -145,6 +145,23 @@ jobs:
       - name: Bog'liqliklarni o'rnatish
         run: npm ci
 
+      # MUHIM (sabab): ilova ichidagi UpdateCheck.tsx (Sozlamalar/AppLayout)
+      # yangi APK borligini downloads/latest.json'dagi versionCode joriy
+      # ilovanikidan KATTAROQ bo'lsagina aniqlaydi. Agar versionCode har
+      # build'da qo'lda o'zgartirilmasa (unutilib qolsa — aynan shu bo'lgan),
+      # foydalanuvchi ilovasi "yangilanish yo'q" deb hisoblab, HECH QACHON
+      # bildirishnoma ko'rmaydi — garchi APK mazmuni haqiqatda o'zgargan
+      # bo'lsa ham. Shu bois BUNDAN BUYON versionCode har CI ishga
+      # tushishida GITHUB_RUN_NUMBER (doim ortib boruvchi, noyob butun son)
+      # sifatida AVTOMATIK yoziladi — inson unutishiga bog'liq bo'lmaydi.
+      # sync-version.mjs (build:capacitor ichida) buni o'qib
+      # src/generated/app-version.ts'ga yozadi, shu bois SHU QADAM undan
+      # OLDIN turishi SHART.
+      - name: Versiyani avtomatik oshirish (auto-update ishlashi uchun)
+        run: |
+          sed -i "s/versionCode [0-9]\+/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"1.1.${{ github.run_number }}\"/" android/app/build.gradle
+
       - name: Veb bundle'ni qurish (nativ rejim)
         run: npm run build:capacitor
 
@@ -241,6 +258,21 @@ jobs:
 
       - name: Bog'liqliklarni o'rnatish (electron)
         run: npm --prefix electron ci
+
+      # MUHIM (sabab): electron-updater (main.js) yangilanish borligini
+      # FAQAT SEMVER solishtirish orqali aniqlaydi (downloads/desktop/
+      # latest.yml'dagi "version" vs o'rnatilgan ilovaning o'z versiyasi,
+      # electron/package.json'dan bino qilingan) — hech qanday fayl
+      # hash/mazmun solishtirish YO'Q. electron/package.json'dagi "version"
+      # ILGARI hech qachon o'zgartirilmagan edi ("1.1.0" doim bir xil), shu
+      # bois semver.eq() har doim TRUE qaytarib, "yangilanish yo'q" deb
+      # hisoblardi — garchi AJDO.exe mazmuni har build'da haqiqatda
+      # o'zgargan bo'lsa ham. Shu bois BUNDAN BUYON versiya har CI ishga
+      # tushishida GITHUB_RUN_NUMBER (doim ortib boruvchi, noyob butun son)
+      # bilan AVTOMATIK oshiriladi.
+      - name: Versiyani avtomatik oshirish (auto-update ishlashi uchun)
+        run: |
+          (Get-Content electron/package.json -Raw) -replace '"version":\s*"[^"]*"', '"version": "1.1.${{ github.run_number }}"' | Set-Content electron/package.json -NoNewline
 
       - name: Desktop ilovasini qurish (veb bundle --mode electron + electron-builder)
         run: npm run build:desktop
