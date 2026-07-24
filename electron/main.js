@@ -21,6 +21,16 @@ const { autoUpdater } = require('electron-updater');
 // bo'lgan). Bu chaqiruv app.whenReady()dan OLDIN, eng boshida bo'lishi SHART.
 app.setName('AJDO');
 
+// MUHIM (sabab): Chromium standart bo'yicha ajdo.uz'ga (Cloudflare QUIC/HTTP-3'ni
+// qo'llab-quvvatlaydi) QUIC (UDP-asosli) protokoli orqali ulanishga urinadi.
+// Ba'zi tarmoqlarda (antivirus, korporativ/uy firewall'i UDP 443'ni bloklaydi
+// yoki buzadi) bu muvaffaqiyatsiz tugaydi VA Chromium har doim ham oddiy
+// HTTP/2'ga silliq o'tavermaydi — natijada `net::ERR_QUIC_PROTOCOL_ERROR`
+// bilan haqiqiy so'rov (masalan yangilanish tekshiruvi) butunlay muvaffaqiyatsiz
+// bo'lib qoladi (update.log'da aynan shu xato ko'rilgan). QUIC'ni butunlay
+// o'chirib qo'yish — bu app.whenReady()dan OLDIN chaqirilishi SHART.
+app.commandLine.appendSwitch('disable-quic');
+
 // `file://` orqali yuklangan sahifa CORS uchun "null" origin yuboradi —
 // backend buni whitelist qila olmaydi (har qanday lokal HTML fayl ham
 // xuddi shu "null"ni yuborardi, bu esa httpOnly refresh-token cookie
