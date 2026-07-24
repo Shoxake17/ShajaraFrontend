@@ -24,7 +24,15 @@ electron/dist-electron/
 .env.development.local
 .env.test.local
 .env.production.local
-.env.capacitor
+# MUHIM: .env.capacitor ATAYLAB bu ro'yxatda EMAS (.env.electron kabi) -
+# tarkibi (VITE_API_URL, VITE_GOOGLE_CLIENT_ID) MAXFIY EMAS (OAuth client
+# ID va ochiq API manzili). Bu fayl ILGARI shu yerda gitignore qilingan
+# edi - shu sabab GitHub Actions'da checkout qilinganda UMUMAN mavjud
+# bo'lmagan, VITE_API_URL bo'sh qolib, ilova nisbiy "/api/v1"ga (demak
+# WebView'ning o'z ICHKI "https://localhost" manziliga - hech qanday
+# haqiqiy serverga EMAS) tushib qolgan edi - bu CI'da qurilgan HAR BIR
+# APK'da login/ro'yxatdan o'tish/barcha backend so'rovlari butunlay
+# ishlamasligining haqiqiy sababi bo'lgan.
 
 # IDE va OS fayllari
 .vscode/
