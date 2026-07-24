@@ -1,8 +1,8 @@
-version: 1.1.169
+version: 1.1.170
 files:
   - url: AJDO.exe
-    sha512: sjJxeAEgUVjM1oIBR3OMiteQIVD4HVMA1zghKO7gy/sJmshENYhBOBNoNP+Q4AikUFIh88Rqrd1NRG6ZURI7Dg==
-    size: 90350116
+    sha512: BAVS7WxYZQasKGcGYlfolq2VDlbo1Ujf/gyU+oiRqXVpgGEidI/QsEDh7IjoGsWu1O/C4+e3hQqamY5R4NEemQ==
+    size: 90350148
 path: AJDO.exe
-sha512: sjJxeAEgUVjM1oIBR3OMiteQIVD4HVMA1zghKO7gy/sJmshENYhBOBNoNP+Q4AikUFIh88Rqrd1NRG6ZURI7Dg==
-releaseDate: '2026-07-24T20:53:25.847Z'
+sha512: BAVS7WxYZQasKGcGYlfolq2VDlbo1Ujf/gyU+oiRqXVpgGEidI/QsEDh7IjoGsWu1O/C4+e3hQqamY5R4NEemQ==
+releaseDate: '2026-07-24T22:00:25.351Z'
