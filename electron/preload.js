@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // loopback qayta yo'naltirish oqimi asosiy (main.js) jarayonda bajariladi,
   // natija (ID token) shu IPC orqali qaytadi (useGoogleAuth.ts).
   signInWithGoogle: (clientId) => ipcRenderer.invoke('google-signin', clientId),
+  // Sozlamalar → "Yangilanishlarni tekshirish" tugmasi uchun (main.js).
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 });

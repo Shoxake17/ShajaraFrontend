@@ -7,6 +7,10 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Capacitor } from '@capacitor/core';
+import { isElectron, checkForUpdatesDesktop, getAppVersionDesktop } from '@/shared/lib/electron';
+import { checkForAppUpdate } from '@/features/update/checkForUpdate';
+import { APP_VERSION_NAME } from '@/generated/app-version';
 import type { AppLayoutContext } from '@/app/AppLayout';
 import { LANGUAGE_NAMES, useLanguage } from '@/shared/hooks/useLanguage';
 import { REGION_FORMATS, SUPPORTED_REGIONS, useRegion, type Region } from '@/shared/hooks/useRegion';
@@ -302,6 +306,58 @@ export function SettingsPage() {
   const [contactOpen, setContactOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
   const [reportBugOpen, setReportBugOpen] = useState(false);
+
+  // "Ilova versiyasi" / "Yangilanishlarni tekshirish" (Tizim bo'limi) —
+  // uchta muhit uchun HAM ishlaydi: Electron (IPC orqali app.getVersion()/
+  // autoUpdater), Capacitor/Android (generatsiya qilingan APP_VERSION_NAME
+  // + downloads/latest.json), veb (versiya tushunchasi yo'q — doim eng
+  // so'nggi holatda, deploy'da darhol yangilanadi).
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'up-to-date' | 'available' | 'error'>('idle');
+  const [updateAvailableVersion, setUpdateAvailableVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isElectron()) {
+      getAppVersionDesktop().then(setAppVersion).catch(() => undefined);
+    } else if (Capacitor.isNativePlatform()) {
+      setAppVersion(APP_VERSION_NAME);
+    }
+  }, []);
+
+  const handleCheckUpdates = async () => {
+    if (updateStatus === 'checking') return;
+    setUpdateStatus('checking');
+    setUpdateAvailableVersion(null);
+    try {
+      if (isElectron()) {
+        const result = await checkForUpdatesDesktop();
+        if (result.status === 'available') {
+          setUpdateStatus('available');
+          setUpdateAvailableVersion(result.version);
+        } else if (result.status === 'not-available') {
+          setUpdateStatus('up-to-date');
+        } else {
+          setUpdateStatus('error');
+        }
+      } else if (Capacitor.isNativePlatform()) {
+        const result = await checkForAppUpdate();
+        if (!result.ok) {
+          setUpdateStatus('error');
+        } else if (result.updateAvailable && result.latest) {
+          setUpdateStatus('available');
+          setUpdateAvailableVersion(result.latest.versionName);
+        } else {
+          setUpdateStatus('up-to-date');
+        }
+      } else {
+        // Veb versiyada alohida "yangilanish" tushunchasi yo'q — sahifa
+        // har safar ochilganda serverdagi ENG SO'NGGI koddan yuklanadi.
+        setUpdateStatus('up-to-date');
+      }
+    } catch {
+      setUpdateStatus('error');
+    }
+  };
   const [loggingOut, setLoggingOut] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -794,8 +850,31 @@ export function SettingsPage() {
               <div id="tizim" className="scroll-mt-6">
                 <Card title={t('settings.sections.system')} desc={t('settings.system.desc')}>
                   <div className="space-y-1">
-                    <Row Icon={LayersIcon} label={t('settings.system.version')} right={<span>1.0.0</span>} />
-                    <Row Icon={RefreshIcon} label={t('settings.system.checkUpdates')} right={<SoonBadge />} />
+                    <Row
+                      Icon={LayersIcon}
+                      label={t('settings.system.version')}
+                      right={<span>{appVersion ?? t('settings.system.webVersion')}</span>}
+                    />
+                    <Row
+                      Icon={RefreshIcon}
+                      label={t('settings.system.checkUpdates')}
+                      onClick={() => void handleCheckUpdates()}
+                      right={
+                        updateStatus === 'checking' ? (
+                          <span className="text-xs text-neutral-400">{t('settings.system.checking')}</span>
+                        ) : updateStatus === 'up-to-date' ? (
+                          <span className="text-xs text-green-600">{t('settings.system.upToDate')}</span>
+                        ) : updateStatus === 'available' ? (
+                          <span className="text-xs font-medium text-brand-700">
+                            {t('settings.system.updateAvailable', { version: updateAvailableVersion ?? '' })}
+                          </span>
+                        ) : updateStatus === 'error' ? (
+                          <span className="text-xs text-red-600">{t('settings.system.checkFailed')}</span>
+                        ) : (
+                          chevron
+                        )
+                      }
+                    />
                     <Row Icon={FileIcon} label={t('settings.system.terms')} onClick={() => navigate('/terms')} right={chevron} />
                     <Row Icon={ShieldIcon} label={t('settings.system.privacyPolicy')} onClick={() => navigate('/privacy')} right={chevron} />
                     <Row Icon={AwardIcon} label={t('settings.system.licenses')} right={<SoonBadge />} />

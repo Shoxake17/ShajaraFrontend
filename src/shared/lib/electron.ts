@@ -2,9 +2,16 @@
 // Ilova Electron (Windows desktop) ichida ishlayaptimi — preload.js
 // contextBridge orqali window.electronAPI'ni yozib qo'yadi
 // (Capacitor.isNativePlatform() bilan bir xil maqsadda ishlatiladi).
+export type DesktopUpdateCheckResult =
+  | { status: 'available'; version: string }
+  | { status: 'not-available' }
+  | { status: 'error'; message: string };
+
 interface ElectronAPI {
   isElectron: true;
   signInWithGoogle: (clientId: string) => Promise<{ idToken: string }>;
+  checkForUpdates: () => Promise<DesktopUpdateCheckResult>;
+  getAppVersion: () => Promise<string>;
 }
 
 declare global {
@@ -26,4 +33,16 @@ export function isElectron(): boolean {
 export function signInWithGoogleDesktop(clientId: string): Promise<{ idToken: string }> {
   if (!window.electronAPI) return Promise.reject(new Error('not_electron'));
   return window.electronAPI.signInWithGoogle(clientId);
+}
+
+/** Sozlamalar → "Yangilanishlarni tekshirish" tugmasi (desktop) */
+export function checkForUpdatesDesktop(): Promise<DesktopUpdateCheckResult> {
+  if (!window.electronAPI) return Promise.reject(new Error('not_electron'));
+  return window.electronAPI.checkForUpdates();
+}
+
+/** Sozlamalar → "Ilova versiyasi" qatori (desktop) */
+export function getAppVersionDesktop(): Promise<string> {
+  if (!window.electronAPI) return Promise.reject(new Error('not_electron'));
+  return window.electronAPI.getAppVersion();
 }

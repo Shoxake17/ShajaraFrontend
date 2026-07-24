@@ -14,15 +14,9 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import { env } from '@/shared/config/env';
-import { APP_VERSION_CODE } from '@/generated/app-version';
-
-interface LatestManifest {
-  versionCode: number;
-  versionName: string;
-}
+import { checkForAppUpdate, type LatestManifest } from './checkForUpdate';
 
 const APK_URL = `${env.downloadsBaseUrl}/downloads/AJDO.apk`;
-const MANIFEST_URL = `${env.downloadsBaseUrl}/downloads/latest.json`;
 
 export function UpdateCheck() {
   const { t } = useTranslation();
@@ -31,12 +25,9 @@ export function UpdateCheck() {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    fetch(MANIFEST_URL)
-      .then((r) => (r.ok ? (r.json() as Promise<LatestManifest>) : null))
-      .then((data) => {
-        if (data && data.versionCode > APP_VERSION_CODE) setLatest(data);
-      })
-      .catch(() => undefined); // internet yo'q/server javob bermasa — jim e'tiborsiz qoldiriladi
+    void checkForAppUpdate().then((result) => {
+      if (result.updateAvailable && result.latest) setLatest(result.latest);
+    });
   }, []);
 
   if (!latest || dismissed) return null;

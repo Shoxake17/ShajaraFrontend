@@ -226,6 +226,43 @@ autoUpdater.on('error', (err) => logUpdate(`ERROR: ${err && err.message ? err.me
 autoUpdater.on('download-progress', (p) => logUpdate(`download-progress: ${Math.round(p.percent)}%`));
 autoUpdater.on('update-downloaded', (info) => logUpdate(`update-downloaded: ${info.version}`));
 
+// Sozlamalar → "Yangilanishlarni tekshirish" tugmasi — foydalanuvchi
+// ilova ishga tushganda avtomatik tekshiruvni kutmasdan, QO'LDA darhol
+// tekshira olishi uchun. Natija keyingi 'update-available'/
+// 'update-not-available'/'error' hodisasidan (yoki 20 soniyalik
+// kutishdan) olinadi — logUpdate() bilan BIR VAQTDA, bir-biriga
+// xalaqit bermaydi (EventEmitter bir nechta tinglovchini qo'llab-
+// quvvatlaydi).
+ipcMain.handle('check-for-updates', () => {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      autoUpdater.removeListener('update-available', onAvailable);
+      autoUpdater.removeListener('update-not-available', onNotAvailable);
+      autoUpdater.removeListener('error', onError);
+      resolve(result);
+    };
+    const onAvailable = (info) => finish({ status: 'available', version: info.version });
+    const onNotAvailable = () => finish({ status: 'not-available' });
+    const onError = (err) => finish({ status: 'error', message: err && err.message ? err.message : String(err) });
+
+    autoUpdater.once('update-available', onAvailable);
+    autoUpdater.once('update-not-available', onNotAvailable);
+    autoUpdater.once('error', onError);
+
+    autoUpdater
+      .checkForUpdatesAndNotify()
+      .catch((err) => finish({ status: 'error', message: err && err.message ? err.message : String(err) }));
+
+    const timeout = setTimeout(() => finish({ status: 'error', message: 'timeout' }), 20_000);
+  });
+});
+
+ipcMain.handle('get-app-version', () => app.getVersion());
+
 app.whenReady().then(() => {
   registerAppProtocol();
   createWindow();

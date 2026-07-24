@@ -176,7 +176,12 @@
     "system": {
       "desc": "Ilova versiyasi va huquqiy ma'lumotlar.",
       "version": "Ilova versiyasi",
+      "webVersion": "Veb",
       "checkUpdates": "Yangilanishlarni tekshirish",
+      "checking": "Tekshirilmoqda...",
+      "upToDate": "Eng so'nggi versiyadasiz",
+      "updateAvailable": "Yangi versiya: {{version}}",
+      "checkFailed": "Tekshirib bo'lmadi",
       "terms": "Foydalanish shartlari",
       "privacyPolicy": "Maxfiylik siyosati",
       "licenses": "Litsenziyalar"
