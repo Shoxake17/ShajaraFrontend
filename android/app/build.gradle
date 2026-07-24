@@ -17,7 +17,29 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // MUHIM (sabab): standart AGP debug imzosi (`~/.android/debug.keystore`)
+    // mavjud bo'lmasa AVTOMATIK, TASODIFIY sertifikat bilan yaratiladi.
+    // GitHub Actions runner'lari HAR SAFAR yangi (hech narsa saqlanmaydi)
+    // bo'lgani uchun bu HAR CI build'da BOSHQA-BOSHQA imzo degani edi —
+    // Android esa boshqa imzo bilan APK'ni "yangilash" sifatida o'RNATISHNI
+    // RAD ETADI (avval eskisini qo'lda o'chirish talab qilinadi, aks holda
+    // "App not installed"/hech narsa sodir bo'lmagandek ko'rinadi). Aynan shu
+    // — foydalanuvchi "yangi APK yuklab olsam ham eski qoladi" deb xabar
+    // bergan muammoning haqiqiy ildizi edi. Yechim: BIR MARTA yaratilgan,
+    // repo'ga saqlangan barqaror keystore (debug kalitlar maxfiy emas —
+    // standart amaliyot) — endi HAR bir build BIR XIL imzo bilan chiqadi.
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

@@ -129,6 +129,42 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # MUHIM (sabab): standart AGP debug imzosi runner'da HAR SAFAR yangidan,
+      # TASODIFIY sertifikat bilan avtomatik yaratilardi (runner ephemeral —
+      # oldingi build'ning `~/.android/debug.keystore`si saqlanmaydi) — bu
+      # HAR CI build boshqa-boshqa imzo bilan chiqishi, Android esa boshqa
+      # imzoli APK'ni "yangilash" sifatida o'rnatishni rad etishi (avval
+      # qo'lda o'chirish talab qilinishi) demak edi. Shu bois BIR MARTA
+      # (birinchi ishga tushishda) android/app/debug.keystore yaratilib,
+      # repo'ga saqlanadi (build.gradle'dagi signingConfigs.debug shunga
+      # ishora qiladi) — keyingi HAR bir push shu FAYLni checkout qilib
+      # oladi, demak endi barcha build'lar BIR XIL imzo bilan chiqadi.
+      - name: Debug keystore (barqaror imzo — avtomatik yangilanish uchun SHART)
+        working-directory: android/app
+        run: |
+          if [ -f debug.keystore ]; then
+            echo "debug.keystore allaqachon mavjud — o'tkazib yuborildi"
+            exit 0
+          fi
+          keytool -genkeypair -v -keystore debug.keystore -storepass android \
+            -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 \
+            -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add debug.keystore
+          git commit -m "chore: barqaror debug.keystore qo'shildi (avtomatik yangilanish uchun)"
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rad etildi — fetch+rebase bilan qayta urinilmoqda ($i)..."
+            git fetch origin main
+            git rebase origin/main
+            sleep $((RANDOM % 5 + 2))
+          done
+          echo "Push barcha urinishlardan keyin ham muvaffaqiyatsiz bo'ldi" >&2
+          exit 1
+
       # MUHIM: ubuntu-latest runner'da Android SDK O'RNATILGAN bo'lsa ham,
       # `sdkmanager` PATH'da YO'Q (avvalgi urinishda "command not found",
       # exit 127 bilan tasdiqlandi) — shu bois SDK'ni to'g'ri

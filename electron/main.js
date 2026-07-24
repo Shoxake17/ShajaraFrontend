@@ -226,6 +226,20 @@ autoUpdater.on('error', (err) => logUpdate(`ERROR: ${err && err.message ? err.me
 autoUpdater.on('download-progress', (p) => logUpdate(`download-progress: ${Math.round(p.percent)}%`));
 autoUpdater.on('update-downloaded', (info) => logUpdate(`update-downloaded: ${info.version}`));
 
+// MUHIM: electron-updater'ning ICHKI qarorlari (masalan — "quit paytida
+// o'rnatish TASHLAB YUBORILDI, chunki exitCode 0 EMAS", yoki o'rnatish
+// jarayonining o'zida chiqqan xato) standart holatda faqat o'zining ICHKI
+// logger'iga (hech qayerga yozilmaydigan no-op) ketardi — bizga BUTUNLAY
+// KO'RINMAS edi. "Bildirishnoma chiqadi, lekin versiya o'zgarmaydi" kabi
+// holatlarni ANIQ sabab bilan (taxmin qilmasdan) tashxislash uchun bu
+// xabarlar ENDI bizning o'z update.log faylimizga ham yoziladi.
+autoUpdater.logger = {
+  info: (msg) => logUpdate(`[updater:info] ${msg}`),
+  warn: (msg) => logUpdate(`[updater:warn] ${msg}`),
+  error: (msg) => logUpdate(`[updater:error] ${msg}`),
+};
+app.on('quit', (_event, exitCode) => logUpdate(`app-quit: exitCode=${exitCode}`));
+
 // Sozlamalar → "Yangilanishlarni tekshirish" tugmasi — foydalanuvchi
 // ilova ishga tushganda avtomatik tekshiruvni kutmasdan, QO'LDA darhol
 // tekshira olishi uchun. Natija keyingi 'update-available'/
