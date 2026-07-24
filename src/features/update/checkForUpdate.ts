@@ -24,7 +24,16 @@ const MANIFEST_URL = `${env.downloadsBaseUrl}/downloads/latest.json`;
 
 export async function checkForAppUpdate(): Promise<UpdateCheckResult> {
   try {
-    const res = await fetch(MANIFEST_URL);
+    // MUHIM: `cache: 'no-store'` + vaqt tamg'asi bilan cache-busting —
+    // Android WebView'ning o'z lokal HTTP keshi serverning Cache-Control
+    // sarlavhasidan QAT'IY NAZAR bu so'rovni "eskirgan" deb hisoblab,
+    // tarmoqqa umuman chiqmasdan eski (masalan hali versionCode past
+    // bo'lgan paytdagi) javobni qaytarib turishi mumkin edi — aynan shu
+    // sabab AJDO.exe uchun topilgan Cloudflare keshlash muammosining
+    // mobil tomondagi ekvivalenti. Serverdagi sarlavha to'g'ri bo'lsa ham,
+    // klient (WebView) darajasidagi keshni ishonchli chetlab o'tish uchun
+    // ikkala himoya QATLAMI ham qo'llanadi.
+    const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) return { ok: false, updateAvailable: false, currentVersionName: APP_VERSION_NAME };
     const data = (await res.json()) as LatestManifest;
     return {
